@@ -1,0 +1,1003 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clista.local/schemas/clista-protocol.schema.json",
+  "title": "ClisTa Protocol Export",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "exportedAt",
+    "threads",
+    "participants",
+    "evidence",
+    "assumptions",
+    "claims",
+    "positions",
+    "objections",
+    "decisionRequests",
+    "reviews",
+    "decisionRecords",
+    "minorityReports",
+    "outcomeAudits",
+    "alignmentSnapshots",
+    "events"
+  ],
+  "properties": {
+    "schema": {
+      "const": "clista.protocol.v0"
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "threads": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/thread"
+      }
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/participant"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/assumption"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    },
+    "positions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/position"
+      }
+    },
+    "objections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/objection"
+      }
+    },
+    "decisionRequests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/decisionRequest"
+      }
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/review"
+      }
+    },
+    "decisionRecords": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/decisionRecord"
+      }
+    },
+    "minorityReports": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/minorityReport"
+      }
+    },
+    "outcomeAudits": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/outcomeAudit"
+      }
+    },
+    "alignmentSnapshots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/alignmentSnapshot"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z]{3}_[a-zA-Z0-9][a-zA-Z0-9_-]*$"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "participant"
+        },
+        "kind": {
+          "enum": [
+            "human",
+            "agent",
+            "tool",
+            "system"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "thread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "title",
+        "question",
+        "status",
+        "participantIds",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "thread"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "active",
+            "review",
+            "decided",
+            "archived"
+          ]
+        },
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "source",
+        "finding",
+        "committedByParticipantId",
+        "committedAt",
+        "contentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "evidence"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "finding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "committedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "committedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "artifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "text",
+        "status",
+        "declaredByParticipantId",
+        "declaredAt",
+        "contentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "assumption"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "active",
+            "contested",
+            "resolved",
+            "superseded"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "declaredByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "declaredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "text",
+        "status",
+        "createdByParticipantId",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "claim"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "endorsed",
+            "contested",
+            "resolved"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "assumptionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "contradictingEvidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "createdByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "participantId",
+        "stance",
+        "takenAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "position"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "targetObjectId": {
+          "$ref": "#/$defs/id"
+        },
+        "targetObjectType": {
+          "enum": [
+            "claim",
+            "assumption",
+            "decisionRequest",
+            "thread"
+          ]
+        },
+        "stance": {
+          "enum": [
+            "support",
+            "oppose",
+            "conditional",
+            "neutral",
+            "abstain"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "takenAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "objection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "participantId",
+        "targetObjectId",
+        "targetObjectType",
+        "text",
+        "status",
+        "raisedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "objection"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "targetObjectId": {
+          "$ref": "#/$defs/id"
+        },
+        "targetObjectType": {
+          "enum": [
+            "evidence",
+            "assumption",
+            "claim",
+            "position",
+            "decisionRequest"
+          ]
+        },
+        "assumption": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "open",
+            "resolved",
+            "preserved",
+            "rejected"
+          ]
+        },
+        "raisedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resolvedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "decisionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "proposal",
+        "status",
+        "openedByParticipantId",
+        "openedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "decisionRequest"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "proposal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "review",
+            "changes_requested",
+            "merged",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "supportingEvidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "supportingClaimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "supportingAssumptionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "objectionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "openedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "openedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "decisionRequestId",
+        "reviewerParticipantId",
+        "status",
+        "reviewedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "review"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "decisionRequestId": {
+          "$ref": "#/$defs/id"
+        },
+        "reviewerParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "status": {
+          "enum": [
+            "approve",
+            "approve_with_conditions",
+            "request_changes",
+            "reject",
+            "comment"
+          ]
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comment": {
+          "type": "string"
+        },
+        "reviewedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "decisionRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "decisionRequestId",
+        "status",
+        "summary",
+        "decidedByParticipantId",
+        "decidedAt",
+        "contentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "decisionRecord"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "decisionRequestId": {
+          "$ref": "#/$defs/id"
+        },
+        "status": {
+          "enum": [
+            "approved",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supportingEvidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "supportingClaimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "supportingAssumptionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "preservedObjectionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "minorityReportIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "nextAction": {
+          "type": "string"
+        },
+        "nextReviewAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "decidedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "decidedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "minorityReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "decisionRecordId",
+        "participantId",
+        "text",
+        "filedAt",
+        "contentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "minorityReport"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "decisionRecordId": {
+          "$ref": "#/$defs/id"
+        },
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objectionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "filedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "outcomeAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "decisionRecordId",
+        "outcomeStatus",
+        "summary",
+        "auditedAt",
+        "contentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "outcomeAudit"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "decisionRecordId": {
+          "$ref": "#/$defs/id"
+        },
+        "outcomeStatus": {
+          "enum": [
+            "met",
+            "missed",
+            "partial",
+            "unknown"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string"
+        },
+        "auditedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "alignmentSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "createdAt",
+        "evidenceAlignment",
+        "positionAlignment",
+        "riskAlignment",
+        "overallAlignment"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "alignmentSnapshot"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidenceAlignment": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "positionAlignment": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "riskAlignment": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "overallAlignment": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_type",
+        "thread_id",
+        "actor_id",
+        "timestamp",
+        "payload",
+        "content_hash"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/id"
+        },
+        "event_type": {
+          "enum": [
+            "ThreadCreated",
+            "ParticipantAdded",
+            "AssumptionDeclared",
+            "EvidenceCommitted",
+            "ClaimCreated",
+            "PositionTaken",
+            "ObjectionRaised",
+            "AlignmentCalculated",
+            "DecisionRequestOpened",
+            "ReviewSubmitted",
+            "DecisionMerged",
+            "MinorityReportFiled",
+            "OutcomeAudited"
+          ]
+        },
+        "thread_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    }
+  }
+}

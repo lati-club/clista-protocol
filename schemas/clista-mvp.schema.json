@@ -1,0 +1,427 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clista.local/schemas/clista-mvp.schema.json",
+  "title": "Clista MVP Export",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "exportedAt",
+    "participants",
+    "threads",
+    "messages",
+    "claims",
+    "decisions",
+    "artifacts"
+  ],
+  "properties": {
+    "schema": {
+      "const": "clista.mvp.v0"
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/participant"
+      }
+    },
+    "threads": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/thread"
+      }
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/message"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z]{3}_[a-zA-Z0-9][a-zA-Z0-9_-]*$"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "participant"
+        },
+        "kind": {
+          "enum": [
+            "human",
+            "agent",
+            "tool",
+            "system"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "thread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "title",
+        "status",
+        "participantIds",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "thread"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "decided",
+            "archived"
+          ]
+        },
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "participantId",
+        "index",
+        "createdAt",
+        "content"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "message"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "content": {
+          "type": "string"
+        },
+        "claimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "artifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "sourceMessageIds",
+        "participantId",
+        "stance",
+        "status",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "claim"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceMessageIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "stance": {
+          "enum": [
+            "supports",
+            "opposes",
+            "risk",
+            "evidence",
+            "question",
+            "neutral"
+          ]
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "endorsed",
+            "contested",
+            "resolved"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "artifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "status",
+        "summary",
+        "deciderParticipantIds",
+        "supportingClaimIds",
+        "dissentingClaimIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "decision"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "accepted",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selectedOption": {
+          "type": "string"
+        },
+        "deciderParticipantIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "supportingClaimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "dissentingClaimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "artifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "decidedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "kind",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "artifact"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "url",
+            "note",
+            "schema",
+            "code",
+            "export"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "contentHash": {
+          "type": "string"
+        },
+        "createdByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    }
+  }
+}
