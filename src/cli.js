@@ -63,7 +63,8 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
 function threadCreate(options, cwd) {
   requireOption(options, "title");
   requireOption(options, "question");
-  const actor = participantFrom(options.actor || "System", options.actorRole || "system", options.actorKind || "system");
+  const actorKind = options.actorKind || (options.actor ? "human" : "system");
+  const actor = participantFrom(options.actor || "System", options.actorRole || "system", actorKind);
   const participantSpecs = parseList(options.participant || options.participants);
   const participants = participantSpecs.length
     ? participantSpecs.map(parseParticipantSpec)
@@ -243,6 +244,7 @@ function objectionRaise(options, cwd) {
     assumption: options.assumption,
     text: options.text,
     status: options.status || "open",
+    resolution: options.resolution,
     raisedAt: at
   };
   stripUndefined(objection);

@@ -515,6 +515,9 @@
             "rejected"
           ]
         },
+        "resolution": {
+          "type": "string"
+        },
         "raisedAt": {
           "type": "string",
           "format": "date-time"

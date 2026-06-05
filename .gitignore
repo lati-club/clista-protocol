@@ -1,3 +1,4 @@
-.clista/
+.clista/*
+!.clista/events.ndjson
 node_modules/
 npm-debug.log*

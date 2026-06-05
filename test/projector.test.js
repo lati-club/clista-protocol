@@ -10,6 +10,7 @@ const { exportProtocol, projectEvents, selectAudit, selectThreadState } = requir
 
 const root = path.resolve(__dirname, "..");
 const fixture = path.join(root, "examples", "first-test-thread", "events.ndjson");
+const canonicalLog = path.join(root, ".clista", "events.ndjson");
 
 test("projects the first ClisTa decision thread into reloadable state", () => {
   const projection = projectEvents(readEventsAt(fixture));
@@ -118,4 +119,36 @@ test("CLI can list projected assumptions from the append-only log", () => {
 
   assert.equal(assumptions.length, 1);
   assert.equal(assumptions[0].id, "asm_projection_sufficient");
+});
+
+test("thread-0001 reasoning state is reconstructed from .clista/events.ndjson only", () => {
+  const projection = projectEvents(readEventsAt(canonicalLog));
+  const state = selectThreadState(projection, "thd_thread_0001");
+  const reasoning = state.reasoningState;
+
+  assert.deepEqual(Object.keys(reasoning), [
+    "question",
+    "decision",
+    "rationale",
+    "assumptions",
+    "evidence",
+    "claims",
+    "positions",
+    "objections",
+    "minority_reports",
+    "next_action",
+    "audit_summary"
+  ]);
+  assert.equal(reasoning.question, "How should ClisTa be architected?");
+  assert.equal(reasoning.decision.summary, "Build ClisTa as a protocol-first append-only reasoning engine.");
+  assert.match(reasoning.rationale, /reasoning can be stored as protocol state/);
+  assert.equal(reasoning.assumptions.length, 4);
+  assert.equal(reasoning.evidence.length, 4);
+  assert.equal(reasoning.claims.length, 5);
+  assert.equal(reasoning.positions.length, 3);
+  assert.equal(reasoning.objections.length, 2);
+  assert.equal(reasoning.minority_reports.length, 1);
+  assert.equal(reasoning.next_action, "Implement and prove Milestone 0: Protocol Spine Proven.");
+  assert.equal(reasoning.audit_summary.source, "append_only_event_log");
+  assert.equal(reasoning.audit_summary.external_state_used, false);
 });

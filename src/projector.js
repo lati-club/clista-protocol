@@ -111,29 +111,45 @@ function selectThreadState(projection, requestedThreadId) {
   const currentProposal = latestBy(decisionRequests, "openedAt");
   const decisionRecord = latestBy(decisionRecords, "decidedAt");
   const supportingEvidence = selectSupportingEvidence(evidence, claims, currentProposal, decisionRecord);
-  const unresolvedObjections = objections.filter((objection) => objection.status === "open" || objection.status === "preserved");
   const alignmentSnapshot = latestBy(valuesForThread(projection.alignmentSnapshots, threadId), "createdAt")
     || calculateAlignment(threadId, claims, positions, objections);
+  const assumptionsWithParticipants = assumptions.map((assumption) => ({
+    ...assumption,
+    participant: projection.participants[assumption.declaredByParticipantId] || null
+  }));
+  const positionsWithParticipants = positions.map((position) => ({
+    ...position,
+    participant: projection.participants[position.participantId] || null
+  }));
+  const objectionsWithParticipants = objections.map((objection) => ({
+    ...objection,
+    participant: projection.participants[objection.participantId] || null
+  }));
+  const unresolvedObjectionsWithParticipants = objectionsWithParticipants
+    .filter((objection) => objection.status === "open" || objection.status === "preserved");
+  const reasoningState = buildReasoningState({
+    thread,
+    evidence: supportingEvidence,
+    assumptions: assumptionsWithParticipants,
+    claims,
+    positions: positionsWithParticipants,
+    objections: objectionsWithParticipants,
+    decisionRecord,
+    minorityReports,
+    events: projection.events
+  });
 
   return {
     schema: "clista.threadState.v0",
     projectedAt: projection.projectedAt,
+    reasoningState,
     thread,
     currentProposal: currentProposal || null,
     supportingEvidence,
-    assumptions: assumptions.map((assumption) => ({
-      ...assumption,
-      participant: projection.participants[assumption.declaredByParticipantId] || null
-    })),
+    assumptions: assumptionsWithParticipants,
     claims,
-    participantPositions: positions.map((position) => ({
-      ...position,
-      participant: projection.participants[position.participantId] || null
-    })),
-    unresolvedObjections: unresolvedObjections.map((objection) => ({
-      ...objection,
-      participant: projection.participants[objection.participantId] || null
-    })),
+    participantPositions: positionsWithParticipants,
+    unresolvedObjections: unresolvedObjectionsWithParticipants,
     alignmentSnapshot,
     decisionStatus: {
       requestStatus: currentProposal?.status || "none",
@@ -144,6 +160,42 @@ function selectThreadState(projection, requestedThreadId) {
       outcomeAudits
     },
     auditTrail: auditTrail(projection.events, threadId)
+  };
+}
+
+function buildReasoningState({
+  thread,
+  evidence,
+  assumptions,
+  claims,
+  positions,
+  objections,
+  decisionRecord,
+  minorityReports,
+  events
+}) {
+  return {
+    question: thread.question,
+    decision: decisionRecord
+      ? {
+          id: decisionRecord.id,
+          status: decisionRecord.status,
+          summary: decisionRecord.summary
+        }
+      : null,
+    rationale: decisionRecord?.rationale || null,
+    assumptions,
+    evidence,
+    claims,
+    positions,
+    objections,
+    minority_reports: minorityReports,
+    next_action: decisionRecord?.nextAction || null,
+    audit_summary: {
+      source: "append_only_event_log",
+      events_replayed: events.length,
+      external_state_used: false
+    }
   };
 }
 
