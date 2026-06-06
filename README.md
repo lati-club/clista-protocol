@@ -22,6 +22,12 @@ Commit Evidence -> Pull Decision -> Track Audit
 - Projected state derived from events.
 - CLI-first protocol engine.
 
+The compressed M0-M22 primitive map is:
+
+```text
+docs/protocol/v0/primitive-map.md
+```
+
 The critical command is:
 
 ```text
@@ -105,6 +111,8 @@ clista outcome verify
 
 If it verifies observed effect against intended effect with evidence, completed execution can be evaluated without treating completion as success.
 
+Terminology note: M3 decision outcomes compare a decision's declared expected consequence against later audits for decision scoring. M21 protocol outcomes evaluate an execution-linked observed effect against its intended effect. The CLI namespace overlaps, but the event families are distinct.
+
 The outcome-learning command is:
 
 ```text
@@ -112,6 +120,8 @@ clista outcome-learning verify
 ```
 
 If it verifies lessons derived from evaluated outcomes without rewriting prior reasoning, the protocol can improve without retroactive justification.
+
+`clista outcome-learning derive` accepts optional `--evidence`. When omitted, the learning signal uses the latest outcome evaluation evidence. `clista outcome-learning lesson` also accepts optional `--evidence`; when omitted, the lesson uses the source signal evidence. Read-only outcome-learning commands accept `--events <path>` for fixture and export inspection.
 
 The identity command is:
 
@@ -196,6 +206,10 @@ Execution is not intent. Completion requires evidence that the authorized action
 Completion is not success. Outcome evidence must satisfy the intended effect before performed action can be evaluated as successful.
 
 Learning is not retroactive justification. Lessons can derive from evaluated outcomes, but they cannot rewrite prior rationale, intended effect, governance, or authority.
+
+Layer versions are capability boundaries, not release numbers. A cleanup release can advance the package or tag version while unchanged layers keep the protocol version where that capability was introduced.
+
+The export schema describes projected protocol state. The validator is the strict trust contract for event logs.
 
 ## Repository Boundary
 

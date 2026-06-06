@@ -3566,23 +3566,25 @@ function usage() {
   clista decision eligibility --request <decisionRequestId> [--events <path>]
   clista review submit --thread <threadId> --request <requestId> --reviewer <name|id> --status <status>
   clista decision merge --thread <threadId> --request <requestId> --decider <name|id>
+  # M3 decision outcome commands
   clista outcome expect --thread <threadId> --decision <decisionRecordId> --metric <metric> --operator <operator> --target <target> --review-date <YYYY-MM-DD>
   clista outcome audit --thread <threadId> --expected <expectedOutcomeId> --actual <actual> --result <result> --summary <summary> --auditor <name|id>
+  clista decision score --thread <threadId> --decision <decisionRecordId> --score <score> --status <status> --rationale <text> --audits <outcomeAuditIds>
+  # M21 protocol outcome commands
   clista outcome expect --execution <executionId> --expected-effect <effect>
   clista outcome observe --outcome <outcomeId> --observed-effect <effect> --evidence <evidence>
   clista outcome evaluate --outcome <outcomeId> --result <success|partial_success|failure|inconclusive> --comparison <comparison> --evidence <evidence>
   clista outcome dispute --outcome <outcomeId> --reason <reason>
-  clista outcome list [--thread <threadId>] [--status <status>]
-  clista outcome show <outcomeId>
+  clista outcome list [--thread <threadId>] [--status <status>] [--events <path>]
+  clista outcome show <outcomeId> [--events <path>]
   clista outcome verify [--events <path>]
-  clista outcome-learning derive --outcome <outcomeId> --lesson <lesson> [--confidence <low|medium|high>]
-  clista outcome-learning lesson --signal <learningSignalId> --lesson <lesson>
+  clista outcome-learning derive --outcome <outcomeId> --lesson <lesson> [--evidence <evidence>] [--confidence <low|medium|high>]
+  clista outcome-learning lesson --signal <learningSignalId> --lesson <lesson> [--evidence <evidence>]
   clista outcome-learning dispute --learning <learningId> --reason <reason>
   clista outcome-learning violation --learning <learningId> --type <violationType> --reason <reason>
-  clista outcome-learning list [--thread <threadId>]
-  clista outcome-learning show <learningId>
+  clista outcome-learning list [--thread <threadId>] [--events <path>]
+  clista outcome-learning show <learningId> [--events <path>]
   clista outcome-learning verify [--events <path>]
-  clista decision score --thread <threadId> --decision <decisionRecordId> --score <score> --status <status> --rationale <text> --audits <outcomeAuditIds>
   clista merge open --source <forkThreadId> --target <threadId> --summary <summary>
   clista merge review --request <mergeRequestId> --status <approve|request_changes|reject> --summary <summary>
   clista merge conflict declare --request <mergeRequestId> --type <assumption|claim|evidence|objection|decision|outcome> --parent <objectId> --fork <objectId> --summary <summary>

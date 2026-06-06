@@ -118,6 +118,8 @@ clista outcome verify
 
 `clista outcome expect --execution <executionId>` records M21 protocol outcome expectation.
 
+M21 protocol outcome is execution-linked: it evaluates observed effect against intended effect after an authorized execution. It does not score decision reasoning quality.
+
 The older decision-quality command remains available:
 
 ```text

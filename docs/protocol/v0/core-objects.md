@@ -70,6 +70,8 @@ The immutable record of an accepted or rejected decision.
 
 ## Expected Outcome
 
+M3 decision outcome object.
+
 A measurable expectation attached to a decision record before reality is known.
 
 ## Minority Report
@@ -77,6 +79,8 @@ A measurable expectation attached to a decision record before reality is known.
 Preserved dissent attached to a decision record.
 
 ## Outcome Audit
+
+M3 decision outcome audit object.
 
 A later comparison between the decision and reality.
 
@@ -269,7 +273,7 @@ An explicit learning signal derived from an evaluated protocol outcome.
 
 It may record a lesson, confirmed assumptions, failed assumptions, recommended future constraints, and recommended amendments.
 
-It must reference an evaluated outcome and must not rewrite the original rationale, intended effect, authority, governance, or outcome result.
+It must reference an evaluated M21 protocol outcome and must not rewrite the original rationale, intended effect, authority, governance, or outcome result.
 
 ## Outcome Lesson
 
@@ -342,6 +346,8 @@ A record that execution exceeded, attempted to exceed, or failed to satisfy its 
 Violation is projected onto execution state and preserves accountability without converting intent into completed action.
 
 ## Outcome Record
+
+M21 protocol outcome object.
 
 A lifecycle record that declares an expected effect for an execution, observes the actual effect with evidence, and evaluates the observed effect against the intended effect.
 

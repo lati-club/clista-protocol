@@ -52,14 +52,20 @@ Forbidden:
 ## CLI
 
 ```text
-clista outcome-learning derive --outcome <outcomeId> --lesson <lesson>
-clista outcome-learning lesson --signal <learningSignalId> --lesson <lesson>
+clista outcome-learning derive --outcome <outcomeId> --lesson <lesson> [--evidence <evidence>] [--confidence <low|medium|high>]
+clista outcome-learning lesson --signal <learningSignalId> --lesson <lesson> [--evidence <evidence>]
 clista outcome-learning dispute --learning <learningId> --reason <reason>
 clista outcome-learning violation --learning <learningId> --type <violationType> --reason <reason>
-clista outcome-learning list
-clista outcome-learning show <learningId>
-clista outcome-learning verify
+clista outcome-learning list [--thread <threadId>] [--events <path>]
+clista outcome-learning show <learningId> [--events <path>]
+clista outcome-learning verify [--events <path>]
 ```
+
+`derive` creates a learning signal from the latest evaluated M21 protocol outcome. If `--evidence` is omitted, the signal uses the latest outcome evaluation evidence.
+
+`lesson` records a lesson from an existing learning signal. If `--evidence` is omitted, the lesson uses the source signal evidence.
+
+Read-only outcome-learning commands support `--events <path>` so fixtures and exported logs can be inspected without appending to the canonical event log.
 
 ## Validation
 

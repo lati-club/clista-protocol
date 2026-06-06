@@ -35,6 +35,14 @@ that another human or agent can reload later.
 21. Protocol outcome
 22. Protocol learning from outcomes
 
+The compressed primitive map for M0-M22 is:
+
+```text
+docs/protocol/v0/primitive-map.md
+```
+
+Layer protocol versions mark capability boundaries. Release and package versions mark repository snapshots. A cleanup release may advance while unchanged layer protocol versions remain at the milestone that introduced them.
+
 ## Protocol Objects
 
 The protocol core defines:
@@ -256,6 +264,22 @@ It must answer:
 - Who dissented?
 - What objections remain?
 - What happens next?
+
+## Action Chain Fixture
+
+The M19-M22 action-chain fixture lives at:
+
+```text
+examples/action-chain/events.ndjson
+```
+
+It proves:
+
+```text
+delegation -> execution -> outcome -> outcome learning
+```
+
+Use read-only commands with `--events examples/action-chain/events.ndjson` to inspect it without appending to the canonical log.
 
 ## Architecture Rule
 

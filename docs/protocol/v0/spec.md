@@ -44,6 +44,30 @@ The event log is the source of truth.
 
 Projected state is derived.
 
+## Schema And Validator Boundary
+
+`schemas/clista-protocol.schema.json` describes exported protocol state. It is not the only strict contract for trusted event logs.
+
+Some exported projections permit additional properties so derived metadata can remain forward compatible. The validator is stricter where protocol trust requires it.
+
+The strict trust boundary is:
+
+```text
+clista validate
+```
+
+and the layer verifiers.
+
+If an export schema shape is looser than validator behavior, validator behavior controls whether reasoning state is trusted.
+
+## Layer Versioning
+
+Layer protocol versions mark capability boundaries. Release and package versions mark repository snapshots.
+
+For example, `delegationProtocolVersion: "0.19.0"` means the delegation layer is still at the M19 capability boundary. A cleanup release can advance the package or Git tag version without changing that layer boundary.
+
+Change a layer version only when that layer's protocol behavior changes. Change the package or release version when the repository release changes.
+
 ## Core Events
 
 - `ThreadCreated`

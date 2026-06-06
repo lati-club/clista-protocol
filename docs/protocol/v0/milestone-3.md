@@ -1,4 +1,22 @@
-# Milestone 3: Protocol Outcomes
+# Milestone 3: Decision Outcomes
+
+## Terminology Note
+
+M3 decision outcome means:
+
+```text
+decision reasoning consequence / declared decision result
+```
+
+It is not the same as M21 protocol outcome.
+
+M21 protocol outcome means:
+
+```text
+execution-linked observed effect evaluated against intended effect
+```
+
+M3 uses `ExpectedOutcomeDeclared`, `OutcomeAudited`, and `DecisionScored`. M21 uses `OutcomeExpected`, `OutcomeObserved`, and `OutcomeEvaluated`.
 
 ## Acceptance Criteria
 
@@ -25,7 +43,7 @@ reasoning -> decision -> expected outcomes -> actual outcomes -> decision score
 ## Required Commands
 
 ```text
-clista outcome expect
+clista outcome expect --thread <threadId> --decision <decisionRecordId>
 clista outcome audit
 clista decision score
 ```
