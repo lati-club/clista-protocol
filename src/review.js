@@ -34,6 +34,11 @@ const REVIEW_TRIGGER_TYPES = new Set([
   "degraded_compatibility",
   "degraded_interoperability",
   "degraded_negotiation",
+  "recovery_request",
+  "recovery_plan",
+  "recovery_quarantine",
+  "recovery_apply",
+  "recovery_verify",
   "rollback"
 ]);
 

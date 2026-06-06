@@ -44,6 +44,11 @@ const {
   selectReviewForThread
 } = require("./review");
 const {
+  buildRecoveryState,
+  projectRecovery,
+  selectRecoveryForThread
+} = require("./recovery");
+const {
   buildFederationState,
   projectFederation,
   selectFederationForThread
@@ -241,7 +246,7 @@ function emptyProjection() {
       schema: "clista.compatibility.v0",
       theorem: "protocol_compatibility = verify(capability_set, amendment_state, validation_requirements)",
       hardLaw: "unsupported_state != valid_state",
-      compatibilityProtocolVersion: "0.23.0",
+      compatibilityProtocolVersion: "0.24.0",
       localProtocolVersion: PROTOCOL_VERSION,
       localCapabilitySet: [],
       supportedContinuityProtocolVersions: [],
@@ -274,7 +279,7 @@ function emptyProjection() {
       schema: "clista.interoperability.v0",
       theorem: "protocol_interoperability = preserve(meaning, across_compatible_contexts)",
       hardLaw: "translation != reinterpretation",
-      interoperabilityProtocolVersion: "0.23.0",
+      interoperabilityProtocolVersion: "0.24.0",
       localProtocolVersion: PROTOCOL_VERSION,
       supportedExchangeFormats: [],
       supportedSemantics: [],
@@ -614,6 +619,73 @@ function emptyProjection() {
         stateMutation: false
       }
     },
+    recovery: {
+      schema: "clista.recovery.v0",
+      theorem: "protocol_recovery = restore(valid_state, from_verified_checkpoint_and_repair_log)",
+      hardLaw: "recovery != history rewrite",
+      recoveryProtocolVersion: "0.24.0",
+      localProtocolVersion: PROTOCOL_VERSION,
+      statuses: [
+        "requested",
+        "planned",
+        "quarantined",
+        "emergency_quarantined",
+        "applied",
+        "verified",
+        "violated"
+      ],
+      checkpointTypes: [],
+      subjectTypes: [],
+      records: [],
+      requested: [],
+      planned: [],
+      quarantined: [],
+      applied: [],
+      verified: [],
+      violated: [],
+      pendingReview: [],
+      emergencyQuarantined: [],
+      trusted_state_refs: [],
+      quarantined_subjects: [],
+      requests: [],
+      plans: [],
+      quarantines: [],
+      applications: [],
+      verifications: [],
+      violations: [],
+      byRecovery: {},
+      bySubject: {},
+      plansByRecovery: {},
+      quarantinesByRecovery: {},
+      applicationsByRecovery: {},
+      verificationsByRecovery: {},
+      violationsByRecovery: {},
+      recoveryValidationStatus: {
+        valid: true,
+        recordCount: 0,
+        requestedCount: 0,
+        plannedCount: 0,
+        quarantinedCount: 0,
+        emergencyQuarantinedCount: 0,
+        appliedCount: 0,
+        verifiedCount: 0,
+        violationCount: 0,
+        pendingReviewCount: 0,
+        quarantinedSubjectCount: 0,
+        trustedStateRefCount: 0,
+        historyRewrite: false,
+        eventDeletion: false,
+        eventReplacement: false,
+        silentRepair: false,
+        recoveryAsApproval: false,
+        recoveryAsAmendment: false,
+        recoveryAsConsensus: false,
+        authorityCreated: false,
+        governanceMutation: false,
+        unverifiedCheckpoint: false,
+        restoredStateHashMismatch: false
+      }
+    },
     events: []
   };
 }
@@ -704,6 +776,12 @@ function projectEvents(events) {
       case "ReviewCompleted":
       case "ReviewDisputed":
       case "ReviewViolationRecorded":
+      case "RecoveryRequested":
+      case "RecoveryPlanCreated":
+      case "RecoveryQuarantined":
+      case "RecoveryApplied":
+      case "RecoveryVerified":
+      case "RecoveryViolationRecorded":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -815,6 +893,7 @@ function projectEvents(events) {
   projection.outcome = projectOutcome(buildProtocolOutcomeState(projection));
   projection.outcomeLearning = projectOutcomeLearning(buildOutcomeLearningState(projection));
   projection.review = projectReview(buildReviewState(projection));
+  projection.recovery = projectRecovery(buildRecoveryState(projection));
 
   return projection;
 }
@@ -890,6 +969,7 @@ function selectThreadState(projection, requestedThreadId) {
   const protocolOutcomeState = selectOutcomeForThread(projection.outcome, threadId);
   const outcomeLearningState = selectOutcomeLearningForThread(projection.outcomeLearning, threadId);
   const reviewState = selectReviewForThread(projection.review, threadId);
+  const recoveryState = selectRecoveryForThread(projection.recovery, threadId);
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -918,6 +998,7 @@ function selectThreadState(projection, requestedThreadId) {
     protocolOutcomeState,
     outcomeLearningState,
     reviewState,
+    recoveryState,
     events: projection.events
   });
 
@@ -964,6 +1045,7 @@ function selectThreadState(projection, requestedThreadId) {
     protocolOutcomeState,
     outcomeLearningState,
     reviewState,
+    recoveryState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -996,6 +1078,7 @@ function buildReasoningState({
   protocolOutcomeState,
   outcomeLearningState,
   reviewState,
+  recoveryState,
   events
 }) {
   return {
@@ -1039,6 +1122,7 @@ function buildReasoningState({
     outcome: protocolOutcomeState,
     outcome_learning: outcomeLearningState,
     review: reviewState,
+    recovery: recoveryState,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -1126,6 +1210,7 @@ function exportProtocol(projection) {
     outcome: projection.outcome,
     outcomeLearning: projection.outcomeLearning,
     review: projection.review,
+    recovery: projection.recovery,
     events: projection.events
   };
 }

@@ -74,6 +74,16 @@ Protocol review records subject, trigger, reviewer role, status, completion, dis
 
 It is not approval. Completing a protocol review records `reviewed`; it does not approve, repair, recover, roll back, mutate governance, create authority, create consensus, assign accountability scores, assign blame, or mutate the reviewed object.
 
+## Protocol Recovery
+
+An M24 append-only repair path for restoring recovery-aware trusted projection from a verified checkpoint and repair log.
+
+Protocol recovery records request, checkpoint, plan, quarantine, application, verification, and violations.
+
+It is not history rewrite. Recovery keeps invalid history visible in raw events, exports, validation reporting, and recovery projection while excluding quarantined subjects only from trusted recovered projection.
+
+It is not approval, amendment, consensus, governance mutation, authority creation, rollback, or accountability scoring.
+
 ## Decision Record
 
 The immutable record of an accepted or rejected decision.
@@ -195,6 +205,7 @@ M20 adds execution verification status so performed action is separate from inte
 M21 adds outcome verification status so completion is separate from success.
 M22 adds outcome learning verification status so lessons can derive from evaluated outcomes without retroactive justification.
 M23 adds review verification status so required examination routes state change without becoming approval.
+M24 adds recovery verification status so reviewed repair can restore trusted projection without rewriting history.
 
 ## Compatibility Context
 

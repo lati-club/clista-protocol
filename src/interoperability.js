@@ -2,7 +2,7 @@ const { PROTOCOL_VERSION, contentHash } = require("./integrity");
 
 const INTEROPERABILITY_SCHEMA = "clista.interoperability.v0";
 const INTEROPERABILITY_VERIFY_SCHEMA = "clista.interoperability.verify.v0";
-const INTEROPERABILITY_PROTOCOL_VERSION = "0.23.0";
+const INTEROPERABILITY_PROTOCOL_VERSION = "0.24.0";
 const INTEROPERABILITY_THEOREM = "protocol_interoperability = preserve(meaning, across_compatible_contexts)";
 const INTEROPERABILITY_HARD_LAW = "translation != reinterpretation";
 
@@ -34,7 +34,8 @@ const REQUIRED_SEMANTICS = [
   "execution_status",
   "protocol_outcome_status",
   "protocol_outcome_learning_status",
-  "protocol_review_status"
+  "protocol_review_status",
+  "protocol_recovery_status"
 ];
 
 const SUPPORTED_SEMANTICS = REQUIRED_SEMANTICS;
@@ -115,6 +116,12 @@ const SUPPORTED_EVENT_TYPES = [
   "ReviewCompleted",
   "ReviewDisputed",
   "ReviewViolationRecorded",
+  "RecoveryRequested",
+  "RecoveryPlanCreated",
+  "RecoveryQuarantined",
+  "RecoveryApplied",
+  "RecoveryVerified",
+  "RecoveryViolationRecorded",
   "AssumptionDeclared",
   "EvidenceCommitted",
   "ClaimCreated",
@@ -156,7 +163,8 @@ const OBJECT_SEMANTICS = {
   execution: "performed_action_under_verified_constraints_not_intent",
   protocol_outcome: "observed_effect_evaluation_not_completion_success",
   protocol_outcome_learning: "evaluated_outcome_learning_not_retroactive_justification",
-  protocol_review: "required_review_routing_not_approval"
+  protocol_review: "required_review_routing_not_approval",
+  protocol_recovery: "restored_trusted_projection_not_history_rewrite"
 };
 
 const INTEROPERABILITY_EVENT_TYPES = new Set([

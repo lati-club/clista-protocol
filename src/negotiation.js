@@ -946,7 +946,8 @@ function verificationLayerStatus(verificationState, layer) {
     execution: "executionValidationStatus",
     outcome: "outcomeValidationStatus",
     outcome_learning: "outcomeLearningValidationStatus",
-    review: "reviewValidationStatus"
+    review: "reviewValidationStatus",
+    recovery: "recoveryValidationStatus"
   };
   return verificationState?.[mapping[layer] || layer];
 }

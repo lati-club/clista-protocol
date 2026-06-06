@@ -35,8 +35,9 @@ that another human or agent can reload later.
 21. Protocol outcome
 22. Protocol learning from outcomes
 23. Protocol review
+24. Protocol recovery
 
-The compressed primitive map for M0-M23 is:
+The compressed primitive map for M0-M24 is:
 
 ```text
 docs/protocol/v0/primitive-map.md
@@ -96,6 +97,12 @@ The protocol core defines:
 - `protocolReviewCompletion`
 - `protocolReviewDispute`
 - `protocolReviewViolation`
+- `recoveryRequest`
+- `recoveryPlan`
+- `recoveryQuarantine`
+- `recoveryApplication`
+- `recoveryVerification`
+- `recoveryViolation`
 
 See `schemas/clista-protocol.schema.json`.
 
@@ -186,6 +193,12 @@ Supported events:
 - `ReviewCompleted`
 - `ReviewDisputed`
 - `ReviewViolationRecorded`
+- `RecoveryRequested`
+- `RecoveryPlanCreated`
+- `RecoveryQuarantined`
+- `RecoveryApplied`
+- `RecoveryVerified`
+- `RecoveryViolationRecorded`
 
 The local store lives at:
 
@@ -222,6 +235,11 @@ npm run clista -- outcome-learning lesson --signal ols_example --lesson "Require
 npm run clista -- review require --thread thd_example --subject ols_example --subject-type outcome_learning_signal --trigger outcome_learning_dispute --reason "Learning signal requires review before reuse."
 npm run clista -- review open --review prv_example
 npm run clista -- review complete --review prv_example --summary "Signal was reviewed without approving a governance change."
+npm run clista -- recovery request --thread thd_example --subject evt_bad --subject-type invalid_event --reason "Event failed validation and needs reviewed recovery."
+npm run clista -- recovery plan --recovery rcv_example --plan "Quarantine invalid event from trusted projection and verify restored state."
+npm run clista -- recovery quarantine --recovery rcv_example --reason "Invalid event remains visible but not trusted."
+npm run clista -- recovery apply --recovery rcv_example --summary "Applied reviewed repair marker without rewriting history."
+npm run clista -- recovery verify --recovery rcv_example
 npm run clista -- merge open --source thd_example_alt --target thd_example --summary "Integrate useful fork reasoning."
 npm run clista -- merge eligibility --request mrg_example
 npm run clista -- merge complete --request mrg_example --merged-by "Troy"
@@ -242,6 +260,7 @@ npm run clista -- negotiation check --packet continuity.json
 npm run clista -- negotiation verify
 npm run clista -- execution verify
 npm run clista -- review verify
+npm run clista -- recovery verify
 npm run clista -- outcome verify
 npm run clista -- outcome-learning verify
 npm run clista -- identity show --participant par_troy

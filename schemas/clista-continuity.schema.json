@@ -36,7 +36,7 @@
       "const": "continuity"
     },
     "protocol_version": {
-      "const": "0.23.0"
+      "const": "0.24.0"
     },
     "schema_version": {
       "const": "clista.continuity.packet.v0"
@@ -228,7 +228,7 @@
           "const": "translation != reinterpretation"
         },
         "interoperabilityProtocolVersion": {
-          "const": "0.23.0"
+          "const": "0.24.0"
         },
         "localProtocolVersion": {
           "const": "clista.protocol.v0"
@@ -401,7 +401,8 @@
         "verification_status",
         "integrity_state",
         "status",
-        "next_action"
+        "next_action",
+        "recovery_state"
       ],
       "properties": {
         "mission": {
@@ -621,6 +622,10 @@
             "string",
             "null"
           ]
+        },
+        "recovery_state": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },
@@ -668,7 +673,8 @@
         "authorityCreated",
         "governanceMutation",
         "amendmentApproval",
-        "importedStateMutation"
+        "importedStateMutation",
+        "recoveryValidationStatus"
       ],
       "properties": {
         "schema": {
@@ -688,7 +694,7 @@
           ]
         },
         "continuityProtocolVersion": {
-          "const": "0.23.0"
+          "const": "0.24.0"
         },
         "verificationMode": {
           "enum": [
@@ -722,6 +728,10 @@
         },
         "importedStateMutation": {
           "const": false
+        },
+        "recoveryValidationStatus": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     }

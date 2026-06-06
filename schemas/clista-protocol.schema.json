@@ -60,7 +60,8 @@
     "outcome",
     "outcomeLearning",
     "review",
-    "events"
+    "events",
+    "recovery"
   ],
   "properties": {
     "schema": {
@@ -340,6 +341,9 @@
       "items": {
         "$ref": "#/$defs/event"
       }
+    },
+    "recovery": {
+      "$ref": "#/$defs/recoveryProjection"
     }
   },
   "$defs": {
@@ -1451,7 +1455,7 @@
           "const": "unsupported_state != valid_state"
         },
         "compatibilityProtocolVersion": {
-          "const": "0.23.0"
+          "const": "0.24.0"
         },
         "localProtocolVersion": {
           "const": "clista.protocol.v0"
@@ -1504,6 +1508,11 @@
               "contains": {
                 "const": "review"
               }
+            },
+            {
+              "contains": {
+                "const": "recovery"
+              }
             }
           ]
         },
@@ -1554,6 +1563,11 @@
             {
               "contains": {
                 "const": "review"
+              }
+            },
+            {
+              "contains": {
+                "const": "recovery"
               }
             }
           ]
@@ -1636,7 +1650,7 @@
           "const": "translation != reinterpretation"
         },
         "interoperabilityProtocolVersion": {
-          "const": "0.23.0"
+          "const": "0.24.0"
         },
         "localProtocolVersion": {
           "const": "clista.protocol.v0"
@@ -1678,6 +1692,11 @@
               "contains": {
                 "const": "protocol_review_status"
               }
+            },
+            {
+              "contains": {
+                "const": "protocol_recovery_status"
+              }
             }
           ]
         },
@@ -1708,6 +1727,36 @@
             {
               "contains": {
                 "const": "ReviewRequired"
+              }
+            },
+            {
+              "contains": {
+                "const": "RecoveryRequested"
+              }
+            },
+            {
+              "contains": {
+                "const": "RecoveryPlanCreated"
+              }
+            },
+            {
+              "contains": {
+                "const": "RecoveryQuarantined"
+              }
+            },
+            {
+              "contains": {
+                "const": "RecoveryApplied"
+              }
+            },
+            {
+              "contains": {
+                "const": "RecoveryVerified"
+              }
+            },
+            {
+              "contains": {
+                "const": "RecoveryViolationRecorded"
               }
             }
           ]
@@ -7279,7 +7328,13 @@
             "MergeReviewSubmitted",
             "MergeConflictDeclared",
             "MergeConflictResolved",
-            "MergeCompleted"
+            "MergeCompleted",
+            "RecoveryRequested",
+            "RecoveryPlanCreated",
+            "RecoveryQuarantined",
+            "RecoveryApplied",
+            "RecoveryVerified",
+            "RecoveryViolationRecorded"
           ]
         },
         "thread_id": {
@@ -7312,6 +7367,852 @@
         },
         "metadata": {
           "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "recoveryStatus": {
+      "enum": [
+        "requested",
+        "planned",
+        "quarantined",
+        "emergency_quarantined",
+        "applied",
+        "verified",
+        "violated"
+      ]
+    },
+    "recoveryCheckpoint": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "checkpointId",
+        "checkpointType",
+        "sourceThreadId",
+        "protocolVersion",
+        "projectionHash",
+        "stateHash",
+        "verificationLayerResults",
+        "verified"
+      ],
+      "properties": {
+        "checkpointId": {
+          "type": "string"
+        },
+        "checkpointType": {
+          "enum": [
+            "continuity_packet",
+            "protocol_export",
+            "federated_state_reference",
+            "projection_boundary",
+            "pre_recovery_projection_boundary"
+          ]
+        },
+        "sourceThreadId": {
+          "$ref": "#/$defs/id"
+        },
+        "protocolVersion": {
+          "type": "string"
+        },
+        "boundaryEventId": {
+          "type": "string"
+        },
+        "exportedAt": {
+          "type": "string"
+        },
+        "eventLogHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "headHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "projectionHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "stateHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "verificationLayerResults": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "artifactRef": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "verified": {
+          "const": true
+        },
+        "checkpointHash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "recoverySubjectRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "invalid_event",
+            "event_hash_mismatch",
+            "invalid_import",
+            "invalid_export",
+            "invalid_continuity_packet",
+            "degraded_continuity_packet",
+            "failed_projection",
+            "failed_validation_layer",
+            "bad_compatibility_packet",
+            "bad_interoperability_packet",
+            "bad_federation_packet",
+            "bad_negotiation_packet",
+            "bad_execution_rollback",
+            "bad_outcome_chain",
+            "bad_outcome_learning_chain",
+            "tamper_evidence",
+            "hash_chain_mismatch",
+            "external_artifact"
+          ]
+        },
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "recoveryRequest": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "subjectType",
+        "subjectId",
+        "checkpointRef",
+        "requestedByParticipantId",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "recoveryRequest"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "subjectType": {
+          "type": "string"
+        },
+        "subjectId": {
+          "type": "string"
+        },
+        "subjectRef": {
+          "$ref": "#/$defs/recoverySubjectRef"
+        },
+        "checkpointRef": {
+          "$ref": "#/$defs/recoveryCheckpoint"
+        },
+        "status": {
+          "const": "requested"
+        },
+        "requestedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "eventDeleted": {
+          "const": false
+        },
+        "eventReplaced": {
+          "const": false
+        },
+        "historyRewrite": {
+          "const": false
+        },
+        "historyRewritten": {
+          "const": false
+        },
+        "silentRepair": {
+          "const": false
+        },
+        "recoveryAsApproval": {
+          "const": false
+        },
+        "recoveryAsAmendment": {
+          "const": false
+        },
+        "recoveryAsConsensus": {
+          "const": false
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "recoveryPlan": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "recoveryId",
+        "threadId",
+        "plan",
+        "reviewId",
+        "plannedByParticipantId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "recoveryPlan"
+        },
+        "recoveryId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "plan": {
+          "type": "string"
+        },
+        "reviewId": {
+          "$ref": "#/$defs/id"
+        },
+        "plannedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "eventDeleted": {
+          "const": false
+        },
+        "eventReplaced": {
+          "const": false
+        },
+        "historyRewrite": {
+          "const": false
+        },
+        "historyRewritten": {
+          "const": false
+        },
+        "silentRepair": {
+          "const": false
+        },
+        "recoveryAsApproval": {
+          "const": false
+        },
+        "recoveryAsAmendment": {
+          "const": false
+        },
+        "recoveryAsConsensus": {
+          "const": false
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "recoveryQuarantine": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "recoveryId",
+        "planId",
+        "threadId",
+        "subjectType",
+        "subjectId",
+        "reviewId",
+        "visible",
+        "trusted",
+        "excludedFromTrustedProjection",
+        "quarantinedByParticipantId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "recoveryQuarantine"
+        },
+        "recoveryId": {
+          "$ref": "#/$defs/id"
+        },
+        "planId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "subjectType": {
+          "type": "string"
+        },
+        "subjectId": {
+          "type": "string"
+        },
+        "reviewId": {
+          "$ref": "#/$defs/id"
+        },
+        "emergency": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "quarantined",
+            "emergency_quarantined"
+          ]
+        },
+        "visible": {
+          "const": true
+        },
+        "trusted": {
+          "const": false
+        },
+        "excludedFromTrustedProjection": {
+          "const": true
+        },
+        "quarantinedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "eventDeleted": {
+          "const": false
+        },
+        "eventReplaced": {
+          "const": false
+        },
+        "historyRewrite": {
+          "const": false
+        },
+        "historyRewritten": {
+          "const": false
+        },
+        "silentRepair": {
+          "const": false
+        },
+        "recoveryAsApproval": {
+          "const": false
+        },
+        "recoveryAsAmendment": {
+          "const": false
+        },
+        "recoveryAsConsensus": {
+          "const": false
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "recoveryApplication": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "recoveryId",
+        "planId",
+        "threadId",
+        "repairSummary",
+        "reviewId",
+        "appliedByParticipantId",
+        "repairApplied"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "recoveryApplication"
+        },
+        "recoveryId": {
+          "$ref": "#/$defs/id"
+        },
+        "planId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "repairSummary": {
+          "type": "string"
+        },
+        "reviewId": {
+          "$ref": "#/$defs/id"
+        },
+        "appliedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "repairApplied": {
+          "const": true
+        },
+        "eventDeleted": {
+          "const": false
+        },
+        "eventReplaced": {
+          "const": false
+        },
+        "historyRewrite": {
+          "const": false
+        },
+        "historyRewritten": {
+          "const": false
+        },
+        "silentRepair": {
+          "const": false
+        },
+        "recoveryAsApproval": {
+          "const": false
+        },
+        "recoveryAsAmendment": {
+          "const": false
+        },
+        "recoveryAsConsensus": {
+          "const": false
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "recoveryVerification": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "recoveryId",
+        "applicationId",
+        "threadId",
+        "reviewId",
+        "checkpointHash",
+        "recoveryLogHash",
+        "restoredProjectionHash",
+        "restoredStateHash",
+        "verifiedByParticipantId",
+        "verificationStatus",
+        "valid"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "recoveryVerification"
+        },
+        "recoveryId": {
+          "$ref": "#/$defs/id"
+        },
+        "applicationId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "reviewId": {
+          "$ref": "#/$defs/id"
+        },
+        "originalHeadHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "checkpointHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "recoveryLogHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "restoredProjectionHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "restoredStateHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "verifiedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "verificationStatus": {
+          "const": "verified"
+        },
+        "valid": {
+          "const": true
+        },
+        "eventDeleted": {
+          "const": false
+        },
+        "eventReplaced": {
+          "const": false
+        },
+        "historyRewrite": {
+          "const": false
+        },
+        "historyRewritten": {
+          "const": false
+        },
+        "silentRepair": {
+          "const": false
+        },
+        "recoveryAsApproval": {
+          "const": false
+        },
+        "recoveryAsAmendment": {
+          "const": false
+        },
+        "recoveryAsConsensus": {
+          "const": false
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "recoveryViolation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "recoveryId",
+        "threadId",
+        "violationType",
+        "reason",
+        "detectedByParticipantId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "recoveryViolation"
+        },
+        "recoveryId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "violationType": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "detectedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "eventDeleted": {
+          "const": false
+        },
+        "eventReplaced": {
+          "const": false
+        },
+        "historyRewrite": {
+          "const": false
+        },
+        "historyRewritten": {
+          "const": false
+        },
+        "silentRepair": {
+          "const": false
+        },
+        "recoveryAsApproval": {
+          "const": false
+        },
+        "recoveryAsAmendment": {
+          "const": false
+        },
+        "recoveryAsConsensus": {
+          "const": false
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "recoveryProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "recoveryProtocolVersion",
+        "localProtocolVersion",
+        "statuses",
+        "records",
+        "requested",
+        "planned",
+        "quarantined",
+        "applied",
+        "verified",
+        "violated",
+        "pendingReview",
+        "emergencyQuarantined",
+        "trusted_state_refs",
+        "quarantined_subjects",
+        "byRecovery",
+        "bySubject",
+        "plansByRecovery",
+        "quarantinesByRecovery",
+        "applicationsByRecovery",
+        "verificationsByRecovery",
+        "violationsByRecovery",
+        "recoveryValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.recovery.v0"
+        },
+        "theorem": {
+          "const": "protocol_recovery = restore(valid_state, from_verified_checkpoint_and_repair_log)"
+        },
+        "hardLaw": {
+          "const": "recovery != history rewrite"
+        },
+        "recoveryProtocolVersion": {
+          "const": "0.24.0"
+        },
+        "localProtocolVersion": {
+          "const": "clista.protocol.v0"
+        },
+        "statuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryStatus"
+          }
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "requested": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "planned": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "quarantined": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "applied": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "verified": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "violated": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "pendingReview": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "emergencyQuarantined": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryQuarantine"
+          }
+        },
+        "trusted_state_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "quarantined_subjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "requests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryRequest"
+          }
+        },
+        "plans": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryPlan"
+          }
+        },
+        "quarantines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryQuarantine"
+          }
+        },
+        "applications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryApplication"
+          }
+        },
+        "verifications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryVerification"
+          }
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recoveryViolation"
+          }
+        },
+        "byRecovery": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "bySubject": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "plansByRecovery": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "quarantinesByRecovery": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "applicationsByRecovery": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "verificationsByRecovery": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "violationsByRecovery": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "recoveryValidationStatus": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "valid",
+            "historyRewrite",
+            "eventDeletion",
+            "eventReplacement",
+            "silentRepair",
+            "recoveryAsApproval",
+            "recoveryAsAmendment",
+            "recoveryAsConsensus",
+            "authorityCreated",
+            "governanceMutation",
+            "unverifiedCheckpoint",
+            "restoredStateHashMismatch"
+          ],
+          "properties": {
+            "valid": {
+              "const": true
+            },
+            "historyRewrite": {
+              "const": false
+            },
+            "eventDeletion": {
+              "const": false
+            },
+            "eventReplacement": {
+              "const": false
+            },
+            "silentRepair": {
+              "const": false
+            },
+            "recoveryAsApproval": {
+              "const": false
+            },
+            "recoveryAsAmendment": {
+              "const": false
+            },
+            "recoveryAsConsensus": {
+              "const": false
+            },
+            "authorityCreated": {
+              "const": false
+            },
+            "governanceMutation": {
+              "const": false
+            },
+            "unverifiedCheckpoint": {
+              "const": false
+            },
+            "restoredStateHashMismatch": {
+              "const": false
+            }
+          }
         }
       }
     }

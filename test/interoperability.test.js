@@ -27,7 +27,7 @@ test("interoperability verify accepts current continuity packets as explicitly d
   assert.equal(result.theorem, "protocol_interoperability = preserve(meaning, across_compatible_contexts)");
   assert.equal(result.hardLaw, "translation != reinterpretation");
   assert.ok(result.packetContext.requiredSemantics.includes("authority_context"));
-  assert.equal(result.localProfile.interoperabilityProtocolVersion, "0.23.0");
+  assert.equal(result.localProfile.interoperabilityProtocolVersion, "0.24.0");
   assert.ok(result.packetContext.requiredSemantics.includes("federation_status"));
   assert.ok(result.packetContext.requiredSemantics.includes("negotiation_status"));
   assert.ok(result.packetContext.requiredSemantics.includes("delegation_status"));
@@ -35,6 +35,7 @@ test("interoperability verify accepts current continuity packets as explicitly d
   assert.ok(result.packetContext.requiredSemantics.includes("protocol_outcome_status"));
   assert.ok(result.packetContext.requiredSemantics.includes("protocol_outcome_learning_status"));
   assert.ok(result.packetContext.requiredSemantics.includes("protocol_review_status"));
+  assert.ok(result.packetContext.requiredSemantics.includes("protocol_recovery_status"));
   assert.equal(result.localProfile.objectSemantics.authority, "event_time_governance_permission");
   assert.equal(result.localProfile.objectSemantics.protocol_outcome, "observed_effect_evaluation_not_completion_success");
   assert.equal(result.localProfile.objectSemantics.protocol_outcome_learning, "evaluated_outcome_learning_not_retroactive_justification");

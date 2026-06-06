@@ -167,6 +167,7 @@ test("thread-0001 reasoning state is reconstructed from .clista/events.ndjson on
     "outcome",
     "outcome_learning",
     "review",
+    "recovery",
     "next_action",
     "audit_summary"
   ]);

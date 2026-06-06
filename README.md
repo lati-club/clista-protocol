@@ -133,6 +133,16 @@ If it verifies required review routing without treating review as approval, stat
 
 M23 review commands are distinct from `clista review submit`, which remains the M3 decision-review command for decision requests.
 
+The protocol recovery command is:
+
+```text
+clista recovery verify
+```
+
+If it verifies reviewed recovery records without rewriting history, ClisTa can quarantine unsafe subjects and restore recovery-aware trusted projection while keeping invalid history visible and auditable.
+
+M24 recovery commands append recovery records only. Recovery is not approval, amendment, consensus, governance mutation, authority creation, rollback, or event replacement.
+
 The identity command is:
 
 ```text
@@ -218,6 +228,8 @@ Completion is not success. Outcome evidence must satisfy the intended effect bef
 Learning is not retroactive justification. Lessons can derive from evaluated outcomes, but they cannot rewrite prior rationale, intended effect, governance, or authority.
 
 Review is not approval. Required review routes state changes through examination before further action; it does not approve, repair, recover, roll back, score accountability, create authority, create consensus, or mutate the reviewed state.
+
+Recovery is not history rewrite. It can restore trusted projection membership from verified checkpoints and repair records, but it cannot delete, replace, hide, or normalize invalid events.
 
 Layer versions are capability boundaries, not release numbers. A cleanup release can advance the package or tag version while unchanged layers keep the protocol version where that capability was introduced.
 

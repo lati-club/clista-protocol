@@ -186,7 +186,7 @@ Change a layer version only when that layer's protocol behavior changes. Change 
 - pattern-level learning signals from outcome evidence
 - governance adaptation recommendations from learning signals
 - explicit protocol amendments and amendment history
-- portability, interoperability, federation, negotiation, delegation, execution, outcome, outcome-learning, and review status
+- portability, interoperability, federation, negotiation, delegation, execution, outcome, outcome-learning, review, and recovery status
 
 ## Required Validation
 
@@ -216,6 +216,7 @@ Validation checks:
 - outcome expectation, observation evidence, evaluation judgment, dispute, violation, and completion-not-success boundaries
 - outcome-learning evaluated-outcome references, evidence links, actor accountability, and non-retroactive-justification boundaries
 - review subject existence, actor accountability, required-review pending state, completion-as-reviewed, and review-not-approval boundaries
+- recovery checkpoint verification, review dependency, quarantine visibility, repair evidence, restored-state hashes, and non-history-rewrite boundaries
 
 ## Required Integrity
 

@@ -1,6 +1,6 @@
-# Primitive Map M0-M23
+# Primitive Map M0-M24
 
-This map compresses the verified M0-M23 surface into protocol primitives.
+This map compresses the verified M0-M24 surface into protocol primitives.
 
 ```text
 Conversation is input.
@@ -59,7 +59,7 @@ Milestones:
 - M1 Protocol Validity
 - M2 Protocol Governance
 - M6 Protocol Integrity
-- M8-M23 layer-specific validation
+- M8-M24 layer-specific validation
 
 Preserved laws:
 
@@ -67,6 +67,7 @@ Preserved laws:
 - Unsupported state is not valid state.
 - Invalid reasoning must fail loudly with `event_id` and `reason`.
 - Required review is pending until completed as `reviewed`.
+- Recovery is verified repair, not baseline validity mutation.
 
 ## Governance And Authority
 
@@ -83,6 +84,7 @@ Milestones:
 - M18 Protocol Negotiation
 - M19 and M19.1 Protocol Delegation
 - M23 Protocol Review
+- M24 Protocol Recovery
 
 Preserved laws:
 
@@ -91,6 +93,7 @@ Preserved laws:
 - Delegation is not authority surrender.
 - Agreement is not governance merger.
 - Review is not approval.
+- Recovery is not history rewrite.
 
 ## Accountability: Identity, Attribution, Provenance
 
@@ -207,6 +210,23 @@ Preserved laws:
 - Review completion means `reviewed`.
 - Review does not approve, repair, recover, roll back, mutate governance, create authority, create consensus, assign blame, assign accountability scores, or mutate the reviewed object.
 
+## Recovery Boundary
+
+What it does:
+
+Restores recovery-aware trusted projection from a verified checkpoint and append-only repair log while keeping invalid history visible.
+
+Milestones:
+
+- M24 Protocol Recovery
+
+Preserved laws:
+
+- Recovery is not history rewrite.
+- Quarantine means visible but not trusted.
+- Recovery verification proves restored-state claims; it does not make invalid history valid.
+- Recovery does not approve, amend, create consensus, create authority, mutate governance, delete events, replace events, or perform silent repair.
+
 ## Decision Outcomes And Protocol Outcomes
 
 M3 decision outcome means:
@@ -245,9 +265,9 @@ The names overlap because M21 reuses the CLI namespace for a narrower execution-
 
 ## Layer Versioning And Release Versioning
 
-Layer protocol versions mark capability boundaries. For example, delegation remains `0.19.0`, execution remains `0.20.0`, outcome remains `0.21.0`, outcome learning remains `0.22.0`, and review is `0.23.0` until those layer behaviors change.
+Layer protocol versions mark capability boundaries. For example, delegation remains `0.19.0`, execution remains `0.20.0`, outcome remains `0.21.0`, outcome learning remains `0.22.0`, review remains `0.23.0`, and recovery is `0.24.0` until those layer behaviors change.
 
-Package and release versions mark repository releases. A feature release can advance to `v0.23.0` while unchanged M19-M22 layer versions stay at their original capability boundaries.
+Package and release versions mark repository releases. A feature release can advance to `v0.24.0` while unchanged M19-M23 layer versions stay at their original capability boundaries.
 
 Use a layer version to ask:
 
@@ -279,6 +299,7 @@ clista execution verify
 clista outcome verify
 clista outcome-learning verify
 clista review verify
+clista recovery verify
 ```
 
 If schema permissiveness and validator strictness differ, validator strictness controls trusted protocol state.
