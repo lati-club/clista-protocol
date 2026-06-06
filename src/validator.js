@@ -89,6 +89,12 @@ const {
   validateOutcomeViolation
 } = require("./outcome");
 const {
+  validateOutcomeLearningDispute,
+  validateOutcomeLearningSignal,
+  validateOutcomeLearningViolation,
+  validateOutcomeLesson
+} = require("./outcome-learning");
+const {
   VALID_AUTHORITIES,
   VALID_AUTHORITY_SCOPES,
   applyIdentityEvent,
@@ -346,6 +352,18 @@ function validateEvents(events) {
       case "OutcomeViolationRecorded":
         validateOutcomeViolationRecordedEvent(event, state);
         break;
+      case "LearningSignalDerived":
+        validateLearningSignalDerivedEvent(event, state);
+        break;
+      case "LessonRecorded":
+        validateLessonRecordedEvent(event, state);
+        break;
+      case "LearningDisputed":
+        validateLearningDisputedEvent(event, state);
+        break;
+      case "LearningViolationRecorded":
+        validateLearningViolationRecordedEvent(event, state);
+        break;
       case "ThreadCreated":
         validateThreadCreated(event, state);
         break;
@@ -489,6 +507,10 @@ function emptyValidationState(events = []) {
     outcomeDisputes: new Map(),
     outcomeViolations: new Map(),
     outcomeStatusById: new Map(),
+    outcomeLearningSignals: new Map(),
+    outcomeLessons: new Map(),
+    outcomeLearningDisputes: new Map(),
+    outcomeLearningViolations: new Map(),
     lastContentHash: undefined,
     lastSequence: undefined,
     events: []
@@ -1548,6 +1570,88 @@ function validateOutcomeViolationRecordedEvent(event, state) {
   }
 }
 
+function validateLearningSignalDerivedEvent(event, state) {
+  const signal = event.payload.outcomeLearningSignal;
+  if (!signal) {
+    addError(state, event, "LearningSignalDerived payload missing outcomeLearningSignal");
+    return;
+  }
+  for (const reason of validateOutcomeLearningSignal(signal)) {
+    addError(state, event, reason);
+  }
+  validateOutcomeLearningReferences(event, state, signal, "signal", signal.derivedByParticipantId);
+  validateIdsExist(event, state, signal.confirmedAssumptionIds, state.assumptions, "confirmed assumption");
+  validateIdsExist(event, state, signal.failedAssumptionIds, state.assumptions, "failed assumption");
+  if (signal.id && state.outcomeLearningSignals.has(signal.id)) {
+    addError(state, event, `duplicate outcome learning signal ${signal.id}`);
+  }
+  if (signal.id) {
+    state.outcomeLearningSignals.set(signal.id, signal);
+  }
+}
+
+function validateLessonRecordedEvent(event, state) {
+  const lesson = event.payload.outcomeLesson;
+  if (!lesson) {
+    addError(state, event, "LessonRecorded payload missing outcomeLesson");
+    return;
+  }
+  for (const reason of validateOutcomeLesson(lesson)) {
+    addError(state, event, reason);
+  }
+  validateOutcomeLearningReferences(event, state, lesson, "lesson", lesson.recordedByParticipantId);
+  const signal = lesson.learningSignalId ? state.outcomeLearningSignals.get(lesson.learningSignalId) : null;
+  if (!signal) {
+    addError(state, event, `outcome lesson references unknown learning signal ${lesson.learningSignalId}`);
+  } else {
+    validateOutcomeLearningMatchesTarget(state, event, lesson, signal, "lesson", "learning signal");
+  }
+  if (lesson.id && state.outcomeLessons.has(lesson.id)) {
+    addError(state, event, `duplicate outcome lesson ${lesson.id}`);
+  }
+  if (lesson.id) {
+    state.outcomeLessons.set(lesson.id, lesson);
+  }
+}
+
+function validateLearningDisputedEvent(event, state) {
+  const dispute = event.payload.outcomeLearningDispute;
+  if (!dispute) {
+    addError(state, event, "LearningDisputed payload missing outcomeLearningDispute");
+    return;
+  }
+  for (const reason of validateOutcomeLearningDispute(dispute)) {
+    addError(state, event, reason);
+  }
+  validateOutcomeLearningReferences(event, state, dispute, "dispute", dispute.disputedByParticipantId);
+  validateOutcomeLearningTarget(event, state, dispute, "dispute");
+  if (dispute.id && state.outcomeLearningDisputes.has(dispute.id)) {
+    addError(state, event, `duplicate outcome learning dispute ${dispute.id}`);
+  }
+  if (dispute.id) {
+    state.outcomeLearningDisputes.set(dispute.id, dispute);
+  }
+}
+
+function validateLearningViolationRecordedEvent(event, state) {
+  const violation = event.payload.outcomeLearningViolation;
+  if (!violation) {
+    addError(state, event, "LearningViolationRecorded payload missing outcomeLearningViolation");
+    return;
+  }
+  for (const reason of validateOutcomeLearningViolation(violation)) {
+    addError(state, event, reason);
+  }
+  validateOutcomeLearningReferences(event, state, violation, "violation", violation.detectedByParticipantId);
+  validateOutcomeLearningTarget(event, state, violation, "violation");
+  if (violation.id && state.outcomeLearningViolations.has(violation.id)) {
+    addError(state, event, `duplicate outcome learning violation ${violation.id}`);
+  }
+  if (violation.id) {
+    state.outcomeLearningViolations.set(violation.id, violation);
+  }
+}
+
 function validateThreadCreated(event, state) {
   const thread = event.payload.thread;
   if (!thread?.id) {
@@ -2449,6 +2553,77 @@ function validateOutcomeThread(event, state, object, label) {
   }
 }
 
+function validateOutcomeLearningReferences(event, state, object, label, participantId) {
+  validateThreadObject(event, object, state, `outcome learning ${label}`);
+  if (!participantId) {
+    addError(state, event, `outcome learning ${label} requires accountable participant`);
+  } else if (!state.participants.has(participantId)) {
+    addError(state, event, `outcome learning ${label} references unknown participant ${participantId}`);
+  }
+  if (participantId && event.actor_id !== participantId) {
+    addError(state, event, `outcome learning ${label} actor_id must match accountable participant`);
+  }
+
+  const expectation = object.outcomeId ? state.outcomeExpectations.get(object.outcomeId) : null;
+  if (!expectation) {
+    addError(state, event, `outcome learning ${label} references unknown outcome ${object.outcomeId}`);
+  } else {
+    if (object.executionId !== expectation.executionId) {
+      addError(state, event, `outcome learning ${label} executionId must match evaluated outcome`);
+    }
+    if (object.threadId !== expectation.threadId) {
+      addError(state, event, `outcome learning ${label} threadId must match evaluated outcome`);
+    }
+    if (object.expectedEffect && normalizeOutcomeEffect(object.expectedEffect) !== normalizeOutcomeEffect(expectation.expectedEffect)) {
+      addError(state, event, `outcome learning ${label} must not rewrite intended effect`);
+    }
+  }
+
+  const execution = object.executionId ? state.executionRecords.get(object.executionId) : null;
+  if (!execution) {
+    addError(state, event, `outcome learning ${label} references unknown execution ${object.executionId}`);
+  } else if (execution.threadId !== object.threadId) {
+    addError(state, event, `outcome learning ${label} threadId must match execution record`);
+  }
+
+  const evaluation = object.outcomeId ? state.outcomeEvaluations.get(object.outcomeId) : null;
+  if (!evaluation) {
+    addError(state, event, `outcome learning ${label} requires evaluated outcome ${object.outcomeId}`);
+    return;
+  }
+  if (
+    object.evaluationResult
+    && normalizeDelegationText(object.evaluationResult) !== normalizeDelegationText(evaluation.evaluationResult)
+  ) {
+    addError(state, event, `outcome learning ${label} evaluationResult must match evaluated outcome`);
+  }
+  if (object.sourceOutcomeHash && evaluation.outcomeHash && object.sourceOutcomeHash !== evaluation.outcomeHash) {
+    addError(state, event, `outcome learning ${label} sourceOutcomeHash must match evaluated outcome`);
+  }
+}
+
+function validateOutcomeLearningTarget(event, state, record, label) {
+  const target = state.outcomeLearningSignals.get(record.learningId)
+    || state.outcomeLessons.get(record.learningId);
+  if (!target) {
+    addError(state, event, `outcome learning ${label} references unknown learning ${record.learningId}`);
+    return;
+  }
+  validateOutcomeLearningMatchesTarget(state, event, record, target, label, "learning record");
+}
+
+function validateOutcomeLearningMatchesTarget(state, event, record, target, label, targetLabel) {
+  if (record.outcomeId !== target.outcomeId) {
+    addError(state, event, `outcome learning ${label} outcomeId must match ${targetLabel}`);
+  }
+  if (record.executionId !== target.executionId) {
+    addError(state, event, `outcome learning ${label} executionId must match ${targetLabel}`);
+  }
+  if (record.threadId !== target.threadId) {
+    addError(state, event, `outcome learning ${label} threadId must match ${targetLabel}`);
+  }
+}
+
 function validateTargetExists(event, targetType, targetId, state) {
   if (!targetId) {
     return;
@@ -2681,6 +2856,10 @@ function primaryObject(event) {
     || payload.outcomeRecord
     || payload.outcomeDispute
     || payload.outcomeViolation
+    || payload.outcomeLearningSignal
+    || payload.outcomeLesson
+    || payload.outcomeLearningDispute
+    || payload.outcomeLearningViolation
     || null;
 }
 

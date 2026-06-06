@@ -105,6 +105,14 @@ clista outcome verify
 
 If it verifies observed effect against intended effect with evidence, completed execution can be evaluated without treating completion as success.
 
+The outcome-learning command is:
+
+```text
+clista outcome-learning verify
+```
+
+If it verifies lessons derived from evaluated outcomes without rewriting prior reasoning, the protocol can improve without retroactive justification.
+
 The identity command is:
 
 ```text
@@ -186,6 +194,8 @@ Non-participant delegation is not actor exemption. Every delegate that records a
 Execution is not intent. Completion requires evidence that the authorized action was performed under verified scope and constraints.
 
 Completion is not success. Outcome evidence must satisfy the intended effect before performed action can be evaluated as successful.
+
+Learning is not retroactive justification. Lessons can derive from evaluated outcomes, but they cannot rewrite prior rationale, intended effect, governance, or authority.
 
 ## Repository Boundary
 

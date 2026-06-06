@@ -33,6 +33,7 @@ that another human or agent can reload later.
 19.1. Delegation actor boundary
 20. Protocol execution
 21. Protocol outcome
+22. Protocol learning from outcomes
 
 ## Protocol Objects
 
@@ -78,6 +79,10 @@ The protocol core defines:
 - `outcomeRecord`
 - `outcomeDispute`
 - `outcomeViolation`
+- `outcomeLearningSignal`
+- `outcomeLesson`
+- `outcomeLearningDispute`
+- `outcomeLearningViolation`
 
 See `schemas/clista-protocol.schema.json`.
 
@@ -159,6 +164,10 @@ Supported events:
 - `OutcomeEvaluated`
 - `OutcomeDisputed`
 - `OutcomeViolationRecorded`
+- `LearningSignalDerived`
+- `LessonRecorded`
+- `LearningDisputed`
+- `LearningViolationRecorded`
 
 The local store lives at:
 
@@ -190,6 +199,8 @@ npm run clista -- execution complete --execution exe_example --evidence "Verific
 npm run clista -- outcome expect --execution exe_example --expected-effect "Remote packet accepted under strict verification."
 npm run clista -- outcome observe --outcome oco_example --observed-effect "Remote packet accepted under strict verification." --evidence "Strict verification output matched expected result."
 npm run clista -- outcome evaluate --outcome oco_example --result success --comparison "Observed effect satisfied expected effect." --evidence "Outcome evidence reviewed."
+npm run clista -- outcome-learning derive --outcome oco_example --lesson "Strict verification evidence predicted packet acceptance."
+npm run clista -- outcome-learning lesson --signal ols_example --lesson "Require strict verification evidence on similar packet acceptance."
 npm run clista -- merge open --source thd_example_alt --target thd_example --summary "Integrate useful fork reasoning."
 npm run clista -- merge eligibility --request mrg_example
 npm run clista -- merge complete --request mrg_example --merged-by "Troy"
@@ -210,6 +221,7 @@ npm run clista -- negotiation check --packet continuity.json
 npm run clista -- negotiation verify
 npm run clista -- execution verify
 npm run clista -- outcome verify
+npm run clista -- outcome-learning verify
 npm run clista -- identity show --participant par_troy
 npm run clista -- attribution list --thread thd_example
 npm run clista -- attribution show clm_example

@@ -34,6 +34,11 @@ const {
   selectOutcomeForThread
 } = require("./outcome");
 const {
+  buildOutcomeLearningState,
+  projectOutcomeLearning,
+  selectOutcomeLearningForThread
+} = require("./outcome-learning");
+const {
   buildFederationState,
   projectFederation,
   selectFederationForThread
@@ -231,7 +236,7 @@ function emptyProjection() {
       schema: "clista.compatibility.v0",
       theorem: "protocol_compatibility = verify(capability_set, amendment_state, validation_requirements)",
       hardLaw: "unsupported_state != valid_state",
-      compatibilityProtocolVersion: "0.21.0",
+      compatibilityProtocolVersion: "0.22.0",
       localProtocolVersion: PROTOCOL_VERSION,
       localCapabilitySet: [],
       supportedContinuityProtocolVersions: [],
@@ -264,7 +269,7 @@ function emptyProjection() {
       schema: "clista.interoperability.v0",
       theorem: "protocol_interoperability = preserve(meaning, across_compatible_contexts)",
       hardLaw: "translation != reinterpretation",
-      interoperabilityProtocolVersion: "0.21.0",
+      interoperabilityProtocolVersion: "0.22.0",
       localProtocolVersion: PROTOCOL_VERSION,
       supportedExchangeFormats: [],
       supportedSemantics: [],
@@ -522,6 +527,45 @@ function emptyProjection() {
         stateMutation: false
       }
     },
+    outcomeLearning: {
+      schema: "clista.outcome_learning.v0",
+      theorem: "protocol_outcome_learning = derive(adaptation_signal, from_evaluated_outcome)",
+      hardLaw: "learning != retroactive justification",
+      outcomeLearningProtocolVersion: "0.22.0",
+      localProtocolVersion: PROTOCOL_VERSION,
+      signals: [],
+      lessons: [],
+      disputes: [],
+      violations: [],
+      bySignal: {},
+      byLesson: {},
+      byDispute: {},
+      byViolation: {},
+      lessonsBySignal: {},
+      disputesByLearning: {},
+      violationsByLearning: {},
+      signalsByOutcome: {},
+      lessonsByOutcome: {},
+      disputesByOutcome: {},
+      violationsByOutcome: {},
+      outcomeLearningValidationStatus: {
+        valid: true,
+        signalCount: 0,
+        lessonCount: 0,
+        disputeCount: 0,
+        violationCount: 0,
+        retroactiveJustification: false,
+        priorRationaleRewritten: false,
+        intendedEffectRewritten: false,
+        governanceMutation: false,
+        authorityMutation: false,
+        learningFromUnevaluatedOutcome: false,
+        universalTruthClaim: false,
+        failureRecastAsSuccess: false,
+        outcomeSuccessMutation: false,
+        stateMutation: false
+      }
+    },
     events: []
   };
 }
@@ -603,6 +647,10 @@ function projectEvents(events) {
       case "OutcomeEvaluated":
       case "OutcomeDisputed":
       case "OutcomeViolationRecorded":
+      case "LearningSignalDerived":
+      case "LessonRecorded":
+      case "LearningDisputed":
+      case "LearningViolationRecorded":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -712,6 +760,7 @@ function projectEvents(events) {
   projection.delegation = projectDelegation(buildDelegationState(projection));
   projection.execution = projectExecution(buildExecutionState(projection));
   projection.outcome = projectOutcome(buildProtocolOutcomeState(projection));
+  projection.outcomeLearning = projectOutcomeLearning(buildOutcomeLearningState(projection));
 
   return projection;
 }
@@ -785,6 +834,7 @@ function selectThreadState(projection, requestedThreadId) {
   const delegationState = selectDelegationForThread(projection.delegation, threadId);
   const executionState = selectExecutionForThread(projection.execution, threadId);
   const protocolOutcomeState = selectOutcomeForThread(projection.outcome, threadId);
+  const outcomeLearningState = selectOutcomeLearningForThread(projection.outcomeLearning, threadId);
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -811,6 +861,7 @@ function selectThreadState(projection, requestedThreadId) {
     delegationState,
     executionState,
     protocolOutcomeState,
+    outcomeLearningState,
     events: projection.events
   });
 
@@ -855,6 +906,7 @@ function selectThreadState(projection, requestedThreadId) {
     delegationState,
     executionState,
     protocolOutcomeState,
+    outcomeLearningState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -885,6 +937,7 @@ function buildReasoningState({
   delegationState,
   executionState,
   protocolOutcomeState,
+  outcomeLearningState,
   events
 }) {
   return {
@@ -926,6 +979,7 @@ function buildReasoningState({
     delegation: delegationState,
     execution: executionState,
     outcome: protocolOutcomeState,
+    outcome_learning: outcomeLearningState,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -1011,6 +1065,7 @@ function exportProtocol(projection) {
     delegation: projection.delegation,
     execution: projection.execution,
     outcome: projection.outcome,
+    outcomeLearning: projection.outcomeLearning,
     events: projection.events
   };
 }

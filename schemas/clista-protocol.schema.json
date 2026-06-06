@@ -58,6 +58,7 @@
     "delegation",
     "execution",
     "outcome",
+    "outcomeLearning",
     "events"
   ],
   "properties": {
@@ -326,6 +327,9 @@
     },
     "outcome": {
       "$ref": "#/$defs/outcomeProjection"
+    },
+    "outcomeLearning": {
+      "$ref": "#/$defs/outcomeLearningProjection"
     },
     "events": {
       "type": "array",
@@ -1443,7 +1447,7 @@
           "const": "unsupported_state != valid_state"
         },
         "compatibilityProtocolVersion": {
-          "const": "0.21.0"
+          "const": "0.22.0"
         },
         "localProtocolVersion": {
           "const": "clista.protocol.v0"
@@ -1486,6 +1490,11 @@
               "contains": {
                 "const": "outcome"
               }
+            },
+            {
+              "contains": {
+                "const": "outcome_learning"
+              }
             }
           ]
         },
@@ -1526,6 +1535,11 @@
             {
               "contains": {
                 "const": "outcome"
+              }
+            },
+            {
+              "contains": {
+                "const": "outcome_learning"
               }
             }
           ]
@@ -1608,7 +1622,7 @@
           "const": "translation != reinterpretation"
         },
         "interoperabilityProtocolVersion": {
-          "const": "0.21.0"
+          "const": "0.22.0"
         },
         "localProtocolVersion": {
           "const": "clista.protocol.v0"
@@ -1640,6 +1654,11 @@
               "contains": {
                 "const": "protocol_outcome_status"
               }
+            },
+            {
+              "contains": {
+                "const": "protocol_outcome_learning_status"
+              }
             }
           ]
         },
@@ -1660,6 +1679,11 @@
             {
               "contains": {
                 "const": "OutcomeExpected"
+              }
+            },
+            {
+              "contains": {
+                "const": "LearningSignalDerived"
               }
             }
           ]
@@ -1687,7 +1711,8 @@
             "negotiation",
             "delegation",
             "execution",
-            "protocol_outcome"
+            "protocol_outcome",
+            "protocol_outcome_learning"
           ]
         },
         "profiles": {
@@ -2879,6 +2904,565 @@
               "const": false
             },
             "governanceMutation": {
+              "const": false
+            },
+            "stateMutation": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "outcomeLearningConfidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "outcomeLearningSignal": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "outcomeId",
+        "executionId",
+        "threadId",
+        "evaluationResult",
+        "lesson",
+        "evidence",
+        "confidence",
+        "derivedByParticipantId",
+        "retroactiveJustification",
+        "priorRationaleRewritten",
+        "intendedEffectRewritten",
+        "governanceMutation",
+        "authorityMutation",
+        "learningFromUnevaluatedOutcome",
+        "universalTruthClaim",
+        "failureRecastAsSuccess",
+        "outcomeSuccessMutation",
+        "stateMutation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "outcomeLearningSignal"
+        },
+        "signalType": {
+          "type": "string"
+        },
+        "outcomeId": {
+          "$ref": "#/$defs/id"
+        },
+        "executionId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "evaluationResult": {
+          "$ref": "#/$defs/outcomeEvaluationResult"
+        },
+        "lesson": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confirmedAssumptionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "failedAssumptionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "recommendedConstraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recommendedAmendments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outcomeEvidence"
+          }
+        },
+        "confidence": {
+          "$ref": "#/$defs/outcomeLearningConfidence"
+        },
+        "sourceOutcomeHash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "derivedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "derivedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retroactiveJustification": {
+          "const": false
+        },
+        "priorRationaleRewritten": {
+          "const": false
+        },
+        "intendedEffectRewritten": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "authorityMutation": {
+          "const": false
+        },
+        "learningFromUnevaluatedOutcome": {
+          "const": false
+        },
+        "universalTruthClaim": {
+          "const": false
+        },
+        "failureRecastAsSuccess": {
+          "const": false
+        },
+        "outcomeSuccessMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "outcomeLesson": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "learningSignalId",
+        "outcomeId",
+        "executionId",
+        "threadId",
+        "lesson",
+        "evidence",
+        "recordedByParticipantId",
+        "retroactiveJustification",
+        "priorRationaleRewritten",
+        "intendedEffectRewritten",
+        "governanceMutation",
+        "authorityMutation",
+        "learningFromUnevaluatedOutcome",
+        "universalTruthClaim",
+        "failureRecastAsSuccess",
+        "outcomeSuccessMutation",
+        "stateMutation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "outcomeLesson"
+        },
+        "learningSignalId": {
+          "$ref": "#/$defs/id"
+        },
+        "outcomeId": {
+          "$ref": "#/$defs/id"
+        },
+        "executionId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "lesson": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outcomeEvidence"
+          }
+        },
+        "recordedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "recordedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retroactiveJustification": {
+          "const": false
+        },
+        "priorRationaleRewritten": {
+          "const": false
+        },
+        "intendedEffectRewritten": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "authorityMutation": {
+          "const": false
+        },
+        "learningFromUnevaluatedOutcome": {
+          "const": false
+        },
+        "universalTruthClaim": {
+          "const": false
+        },
+        "failureRecastAsSuccess": {
+          "const": false
+        },
+        "outcomeSuccessMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "outcomeLearningDispute": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "learningId",
+        "outcomeId",
+        "executionId",
+        "threadId",
+        "reason",
+        "disputedByParticipantId",
+        "retroactiveJustification",
+        "governanceMutation",
+        "authorityMutation",
+        "stateMutation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "outcomeLearningDispute"
+        },
+        "learningId": {
+          "$ref": "#/$defs/id"
+        },
+        "outcomeId": {
+          "$ref": "#/$defs/id"
+        },
+        "executionId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disputedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "disputedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retroactiveJustification": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "authorityMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "outcomeLearningViolation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "learningId",
+        "outcomeId",
+        "executionId",
+        "threadId",
+        "violationType",
+        "reason",
+        "detectedByParticipantId",
+        "retroactiveJustification",
+        "priorRationaleRewritten",
+        "intendedEffectRewritten",
+        "governanceMutation",
+        "authorityMutation",
+        "learningFromUnevaluatedOutcome",
+        "universalTruthClaim",
+        "failureRecastAsSuccess",
+        "outcomeSuccessMutation",
+        "stateMutation"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "outcomeLearningViolation"
+        },
+        "learningId": {
+          "$ref": "#/$defs/id"
+        },
+        "outcomeId": {
+          "$ref": "#/$defs/id"
+        },
+        "executionId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "violationType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detectedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "detectedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retroactiveJustification": {
+          "const": false
+        },
+        "priorRationaleRewritten": {
+          "const": false
+        },
+        "intendedEffectRewritten": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "authorityMutation": {
+          "const": false
+        },
+        "learningFromUnevaluatedOutcome": {
+          "const": false
+        },
+        "universalTruthClaim": {
+          "const": false
+        },
+        "failureRecastAsSuccess": {
+          "const": false
+        },
+        "outcomeSuccessMutation": {
+          "const": false
+        },
+        "stateMutation": {
+          "const": false
+        }
+      }
+    },
+    "outcomeLearningProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "outcomeLearningProtocolVersion",
+        "localProtocolVersion",
+        "signals",
+        "lessons",
+        "disputes",
+        "violations",
+        "bySignal",
+        "byLesson",
+        "byDispute",
+        "byViolation",
+        "lessonsBySignal",
+        "disputesByLearning",
+        "violationsByLearning",
+        "signalsByOutcome",
+        "lessonsByOutcome",
+        "disputesByOutcome",
+        "violationsByOutcome",
+        "outcomeLearningValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.outcome_learning.v0"
+        },
+        "theorem": {
+          "const": "protocol_outcome_learning = derive(adaptation_signal, from_evaluated_outcome)"
+        },
+        "hardLaw": {
+          "const": "learning != retroactive justification"
+        },
+        "outcomeLearningProtocolVersion": {
+          "const": "0.22.0"
+        },
+        "localProtocolVersion": {
+          "const": "clista.protocol.v0"
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outcomeLearningSignal"
+          }
+        },
+        "lessons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outcomeLesson"
+          }
+        },
+        "disputes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outcomeLearningDispute"
+          }
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/outcomeLearningViolation"
+          }
+        },
+        "bySignal": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/outcomeLearningSignal"
+          }
+        },
+        "byLesson": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/outcomeLesson"
+          }
+        },
+        "byDispute": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/outcomeLearningDispute"
+          }
+        },
+        "byViolation": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/outcomeLearningViolation"
+          }
+        },
+        "lessonsBySignal": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "disputesByLearning": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "violationsByLearning": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "signalsByOutcome": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "lessonsByOutcome": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "disputesByOutcome": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "violationsByOutcome": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "outcomeLearningValidationStatus": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "valid",
+            "retroactiveJustification",
+            "priorRationaleRewritten",
+            "intendedEffectRewritten",
+            "governanceMutation",
+            "authorityMutation",
+            "learningFromUnevaluatedOutcome",
+            "universalTruthClaim",
+            "failureRecastAsSuccess",
+            "outcomeSuccessMutation",
+            "stateMutation"
+          ],
+          "properties": {
+            "valid": {
+              "const": true
+            },
+            "retroactiveJustification": {
+              "const": false
+            },
+            "priorRationaleRewritten": {
+              "const": false
+            },
+            "intendedEffectRewritten": {
+              "const": false
+            },
+            "governanceMutation": {
+              "const": false
+            },
+            "authorityMutation": {
+              "const": false
+            },
+            "learningFromUnevaluatedOutcome": {
+              "const": false
+            },
+            "universalTruthClaim": {
+              "const": false
+            },
+            "failureRecastAsSuccess": {
+              "const": false
+            },
+            "outcomeSuccessMutation": {
               "const": false
             },
             "stateMutation": {
@@ -5998,6 +6582,10 @@
             "OutcomeEvaluated",
             "OutcomeDisputed",
             "OutcomeViolationRecorded",
+            "LearningSignalDerived",
+            "LessonRecorded",
+            "LearningDisputed",
+            "LearningViolationRecorded",
             "AssumptionDeclared",
             "EvidenceCommitted",
             "ClaimCreated",

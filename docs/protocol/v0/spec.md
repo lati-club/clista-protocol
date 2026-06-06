@@ -111,6 +111,10 @@ Projected state is derived.
 - `OutcomeEvaluated`
 - `OutcomeDisputed`
 - `OutcomeViolationRecorded`
+- `LearningSignalDerived`
+- `LessonRecorded`
+- `LearningDisputed`
+- `LearningViolationRecorded`
 - `EvidenceCommitted`
 - `AssumptionDeclared`
 - `ClaimCreated`
@@ -153,7 +157,7 @@ Projected state is derived.
 - pattern-level learning signals from outcome evidence
 - governance adaptation recommendations from learning signals
 - explicit protocol amendments and amendment history
-- portability, interoperability, federation, negotiation, delegation, execution, and outcome status
+- portability, interoperability, federation, negotiation, delegation, execution, outcome, and outcome-learning status
 
 ## Required Validation
 
@@ -181,6 +185,7 @@ Validation checks:
 - delegation authority, accountable delegate, scoped action, and attribution boundaries
 - execution authorization, actor accountability, scope, constraints, evidence, and explicit lifecycle boundaries
 - outcome expectation, observation evidence, evaluation judgment, dispute, violation, and completion-not-success boundaries
+- outcome-learning evaluated-outcome references, evidence links, actor accountability, and non-retroactive-justification boundaries
 
 ## Required Integrity
 
@@ -229,7 +234,7 @@ A Continuity Packet must be integrity-gated and must preserve:
 - projection hash
 - state hash
 - resume status: `verified`, `degraded`, or `rejected`
-- verification status for integrity, attribution, provenance, learning, adaptation, amendments, compatibility, interoperability, federation, negotiation, delegation, execution, and outcome
+- verification status for integrity, attribution, provenance, learning, adaptation, amendments, compatibility, interoperability, federation, negotiation, delegation, execution, outcome, and outcome learning
 - current question
 - current decision
 - assumptions
@@ -251,9 +256,38 @@ A Continuity Packet must be integrity-gated and must preserve:
 - delegation state
 - execution state
 - protocol outcome state
+- outcome learning state
 - next action
 
 Continuity must reject packets that trust transcript replay, trust model memory, skip failed verification, create authority, approve amendments, mutate governance, mutate imported state, or bypass validation.
+
+## Required Outcome Learning
+
+```text
+clista outcome-learning derive --outcome <outcomeId> --lesson <lesson>
+clista outcome-learning lesson --signal <learningSignalId> --lesson <lesson>
+clista outcome-learning dispute --learning <learningId> --reason <reason>
+clista outcome-learning violation --learning <learningId> --type <violationType> --reason <reason>
+clista outcome-learning verify
+```
+
+must derive learning only from evaluated protocol outcomes.
+
+The theorem is:
+
+```text
+protocol_outcome_learning = derive(adaptation_signal, from_evaluated_outcome)
+```
+
+The hard law is:
+
+```text
+learning != retroactive justification
+```
+
+Outcome learning may record lessons, confirmed assumptions, failed assumptions, future constraints, and amendment recommendations. It must preserve the original reasoning state, intended effect, authority, and governance history.
+
+Outcome learning must reject unevaluated outcomes, evaluation-result rewrites, intended-effect rewrites, retroactive justification, universal truth claims, authority mutation, governance mutation, and attempts to turn failure into success after the fact.
 
 ## Required Compatibility
 

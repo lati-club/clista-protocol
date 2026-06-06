@@ -179,6 +179,7 @@ M18 adds negotiation verification status so exchanged state can declare unresolv
 M19 adds delegation verification status so scoped action can be authorized without surrendering authority.
 M20 adds execution verification status so performed action is separate from intent.
 M21 adds outcome verification status so completion is separate from success.
+M22 adds outcome learning verification status so lessons can derive from evaluated outcomes without retroactive justification.
 
 ## Compatibility Context
 
@@ -261,6 +262,32 @@ Accepted terms may constrain exchange behavior. They do not import authority, ad
 A record that exchange terms could not be agreed under declared constraints.
 
 Failure preserves the audit trail without rejecting the underlying local reasoning state.
+
+## Outcome Learning Signal
+
+An explicit learning signal derived from an evaluated protocol outcome.
+
+It may record a lesson, confirmed assumptions, failed assumptions, recommended future constraints, and recommended amendments.
+
+It must reference an evaluated outcome and must not rewrite the original rationale, intended effect, authority, governance, or outcome result.
+
+## Outcome Lesson
+
+A recorded lesson attached to an outcome learning signal.
+
+It preserves evidence and attribution for the lesson without changing the outcome, execution, decision, delegation, or governance record that produced it.
+
+## Outcome Learning Dispute
+
+A challenge to a recorded outcome learning signal or lesson.
+
+Disputes are projected as explicit state. They do not erase the disputed learning record.
+
+## Outcome Learning Violation
+
+An explicit record that an outcome learning boundary was violated.
+
+Examples include learning from an unevaluated outcome, retroactive justification, intended-effect rewrites, universal truth claims, authority mutation, governance mutation, or recasting failure as success.
 
 ## Delegation Grant
 
