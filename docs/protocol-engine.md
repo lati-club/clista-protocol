@@ -30,6 +30,7 @@ that another human or agent can reload later.
 17. Protocol federation
 18. Protocol negotiation
 19. Protocol delegation
+19.1. Delegation actor boundary
 
 ## Protocol Objects
 

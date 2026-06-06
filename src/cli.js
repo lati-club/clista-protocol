@@ -2018,20 +2018,20 @@ function delegationGrant(options, cwd) {
   requireOption(options, "scope");
   requireOption(options, "limit");
   const delegator = participantFrom(options.delegator || options.actor || "Author", "decision_owner");
-  const delegateType = options.delegateType || "participant";
-  const delegate = delegateType === "participant"
-    ? participantFrom(options.delegate, options.delegateRole || "delegated_actor", options.delegateKind || "human")
-    : null;
+  const delegateType = normalizeDelegateTypeForCli(options.delegateType || "participant");
+  const delegate = participantFrom(
+    options.delegate,
+    options.delegateRole || defaultDelegateRoleForType(delegateType),
+    options.delegateKind || defaultDelegateKindForType(delegateType)
+  );
   appendParticipant(delegator, cwd, options.thread);
-  if (delegate) {
-    appendParticipant(delegate, cwd, options.thread);
-  }
+  appendParticipant(delegate, cwd, options.thread);
   const at = nowIso();
   const grant = buildDelegationGrant({
     id: options.id || options.delegation,
     threadId: options.thread,
     delegatorParticipantId: delegator.id,
-    delegateId: delegate?.id || options.delegate,
+    delegateId: delegate.id,
     delegateType,
     action: options.action,
     scope: options.scope,
@@ -2578,6 +2578,31 @@ function participantFrom(value, role, kind = "human") {
   return participant;
 }
 
+function normalizeDelegateTypeForCli(value) {
+  return String(value || "participant")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+}
+
+function defaultDelegateKindForType(delegateType) {
+  const kinds = {
+    agent: "agent",
+    tool: "tool",
+    context: "system"
+  };
+  return kinds[delegateType] || "human";
+}
+
+function defaultDelegateRoleForType(delegateType) {
+  const roles = {
+    agent: "delegated_agent",
+    tool: "delegated_tool",
+    context: "context_controller"
+  };
+  return roles[delegateType] || "delegated_actor";
+}
+
 function inferTargetType(id) {
   if (!id) {
     return undefined;
@@ -2786,7 +2811,7 @@ function usage() {
   clista negotiation list [--thread <threadId>] [--status <status>]
   clista negotiation show <negotiationId>
   clista negotiation verify [--events <path>]
-  clista delegation grant --thread <threadId> --delegate <name|id> --action <action> --scope <scope> --limit <limit>
+  clista delegation grant --thread <threadId> --delegate <name|id> --action <action> --scope <scope> --limit <limit> [--delegate-type <participant|agent|tool|context>] [--delegate-kind <human|agent|tool|system>]
   clista delegation record --delegation <delegationId> --summary <summary>
   clista delegation list [--thread <threadId>] [--status <status>]
   clista delegation show <delegationId>

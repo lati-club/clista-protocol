@@ -121,7 +121,135 @@ test("delegation validation normalizes participant delegate type before checking
   const message = formatValidationErrors(validation.errors);
 
   assert.equal(validation.valid, false);
-  assert.match(message, /delegation grant references unknown delegate par_missing/);
+  assert.match(message, /delegation grant references unknown accountable delegate par_missing/);
+});
+
+test("delegation CLI binds agent, tool, and context delegates to accountable participants", () => {
+  const cwd = createDelegationStore();
+  const cases = [
+    ["agent", "Verifier Agent", "agent"],
+    ["tool", "Evidence Tool", "tool"],
+    ["context", "Execution Context", "system"]
+  ];
+
+  for (const [delegateType, delegateName, expectedKind] of cases) {
+    const granted = runCli(cwd, [
+      "delegation",
+      "grant",
+      "--thread",
+      "thd_delegation",
+      "--delegator",
+      "Troy",
+      "--delegate",
+      delegateName,
+      "--delegate-type",
+      delegateType,
+      "--action",
+      "verify",
+      "--scope",
+      "thread:thd_delegation",
+      "--limit",
+      `${delegateType} verification only`
+    ]);
+    const recorded = runCli(cwd, [
+      "delegation",
+      "record",
+      "--delegation",
+      granted.delegationGrant.id,
+      "--summary",
+      `${delegateType} delegate recorded scoped verification`
+    ]);
+    const delegateEvent = readEvents(cwd).find((item) => (
+      item.event_type === "ParticipantAdded"
+      && item.payload.participant.id === granted.delegationGrant.delegateId
+    ));
+
+    assert.equal(granted.delegationGrant.delegateType, delegateType);
+    assert.equal(delegateEvent.payload.participant.kind, expectedKind);
+    assert.equal(recorded.event.actor_id, granted.delegationGrant.delegateId);
+    assert.equal(recorded.delegatedAction.delegateType, delegateType);
+    assert.equal(recorded.delegatedAction.attribution.delegateId, granted.delegationGrant.delegateId);
+  }
+
+  const verified = runCli(cwd, ["delegation", "verify"]);
+  assert.equal(verified.valid, true);
+  assert.equal(verified.delegationValidationStatus.grantCount, cases.length);
+  assert.equal(verified.delegationValidationStatus.actionCount, cases.length);
+});
+
+test("delegation validation rejects non-participant delegates without accountable participant records", () => {
+  const cwd = createDelegationStore();
+
+  for (const delegateType of ["agent", "tool", "context"]) {
+    const events = [
+      ...readEvents(cwd),
+      event(`evt_missing_${delegateType}_delegate`, "DelegationGranted", "par_troy", {
+        delegationGrant: grant({
+          id: `dlg_missing_${delegateType}_delegate`,
+          delegateId: `par_missing_${delegateType}`,
+          delegateType
+        })
+      })
+    ];
+    const validation = validateEvents(events);
+    const message = formatValidationErrors(validation.errors);
+
+    assert.equal(validation.valid, false);
+    assert.match(message, new RegExp(`delegation grant references unknown accountable delegate par_missing_${delegateType}`));
+  }
+});
+
+test("delegation validation rejects delegate type and participant kind mismatch", () => {
+  const cwd = createDelegationStore();
+  const cases = [
+    ["agent", /delegation grant delegateType agent requires participant kind agent/],
+    ["tool", /delegation grant delegateType tool requires participant kind tool or system/],
+    ["context", /delegation grant delegateType context requires participant kind system/]
+  ];
+
+  for (const [delegateType, expected] of cases) {
+    const events = [
+      ...readEvents(cwd),
+      event(`evt_mismatch_${delegateType}_delegate`, "DelegationGranted", "par_troy", {
+        delegationGrant: grant({
+          id: `dlg_mismatch_${delegateType}_delegate`,
+          delegateId: "par_reviewer",
+          delegateType
+        })
+      })
+    ];
+    const validation = validateEvents(events);
+    const message = formatValidationErrors(validation.errors);
+
+    assert.equal(validation.valid, false);
+    assert.match(message, expected);
+  }
+});
+
+test("delegation validation rejects delegated action recorded by a different actor", () => {
+  const cwd = createDelegationStore();
+  const grantRecord = grant({ id: "dlg_actor_boundary" });
+  const action = buildDelegatedAction({
+    id: "dla_actor_boundary",
+    delegationId: grantRecord.id,
+    threadId: "thd_delegation",
+    delegateId: "par_reviewer",
+    delegateType: "participant",
+    action: "verify",
+    scope: "thread:thd_delegation",
+    summary: "Worker tried to record reviewer delegation",
+    recordedAt: "2026-06-06T00:10:00.000Z"
+  });
+  const events = [
+    ...readEvents(cwd),
+    event("evt_actor_boundary_grant", "DelegationGranted", "par_troy", { delegationGrant: grantRecord }),
+    event("evt_actor_boundary_action", "DelegatedActionRecorded", "par_worker", { delegatedAction: action })
+  ];
+  const validation = validateEvents(events);
+  const message = formatValidationErrors(validation.errors);
+
+  assert.equal(validation.valid, false);
+  assert.match(message, /delegated action actor_id must match accountable delegate/);
 });
 
 test("delegation validation rejects action after revocation and action outside scope", () => {
@@ -266,7 +394,7 @@ function grant(options = {}) {
     threadId: "thd_delegation",
     delegatorParticipantId: options.delegatorParticipantId || "par_troy",
     delegateId: options.delegateId || "par_reviewer",
-    delegateType: "participant",
+    delegateType: options.delegateType || "participant",
     action: options.action || "verify",
     scope: options.scope || "thread:thd_delegation",
     limits: ["Verify only the delegated thread state"],

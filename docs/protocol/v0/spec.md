@@ -417,12 +417,16 @@ delegation != authority surrender
 Delegation must verify:
 
 - delegator authority exists at event time
-- delegate actor is declared or explicitly typed
+- delegate actor resolves to a known accountable participant
+- agent delegates are participants with `kind: agent`
+- tool delegates are participants with `kind: tool` or `kind: system`
+- context delegates are participants with `kind: system`
 - delegated action is explicit
 - action scope is explicit
 - limits are explicit
 - attribution is required
 - delegated action references a known active grant
+- delegated action actor_id matches the accountable delegate
 - delegated action matches the granted delegate, action, and scope
 - revoked, expired, or violated grants cannot silently continue
 

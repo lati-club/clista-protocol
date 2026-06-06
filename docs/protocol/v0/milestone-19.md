@@ -97,9 +97,13 @@ clista delegation verify
 ClisTa rejects delegation when:
 
 - the delegator lacks required authority at event time
-- a delegate is unknown when the delegate type is participant
+- a delegate does not resolve to a known accountable participant
+- an agent delegate is not a participant with `kind: agent`
+- a tool delegate is not a participant with `kind: tool` or `kind: system`
+- a context delegate is not a participant with `kind: system`
 - a grant omits action, scope, limits, or attribution requirement
 - a delegated action references an unknown grant
+- a delegated action is recorded by an actor other than the accountable delegate
 - a delegated action is recorded after revocation
 - a delegated action is recorded after expiration
 - a delegated action uses a different delegate, action, or scope

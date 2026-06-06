@@ -612,6 +612,7 @@
         "delegationId",
         "threadId",
         "delegateId",
+        "delegateType",
         "action",
         "scope",
         "summary",
@@ -633,6 +634,9 @@
         "delegateId": {
           "type": "string",
           "minLength": 1
+        },
+        "delegateType": {
+          "$ref": "#/$defs/delegateType"
         },
         "action": {
           "type": "string",

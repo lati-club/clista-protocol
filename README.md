@@ -165,6 +165,8 @@ Negotiation is not authority transfer. Agreement is not governance merger.
 
 Delegation is not authority surrender. Delegated action is scoped and attributable.
 
+Non-participant delegation is not actor exemption. Every delegate that records action resolves to an accountable participant.
+
 ## Repository Boundary
 
 This repository is `clista-protocol`.

@@ -268,6 +268,8 @@ It records the action, scope, limits, required delegator authority, expiration, 
 
 Delegation grants action permission. They do not transfer underlying authority.
 
+M19.1 requires every delegate type to resolve to a known participant. Delegate type describes the participant boundary; it does not bypass actor identity.
+
 ## Delegated Action
 
 An action performed under a delegation grant.
@@ -275,6 +277,8 @@ An action performed under a delegation grant.
 It records the delegate, grant, action, scope, target, summary, and attribution back to the delegation.
 
 Delegated actions must stay within the granted scope.
+
+The recording actor must be the accountable delegate participant.
 
 ## Delegation Revocation
 

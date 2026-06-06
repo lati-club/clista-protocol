@@ -322,7 +322,9 @@ function validateDelegationGrant(grant) {
   if (!grant?.delegateId) {
     reasons.push("delegation grant requires delegateId");
   }
-  if (!DELEGATE_TYPES.has(normalizeDelegateType(grant?.delegateType || "participant"))) {
+  if (!grant?.delegateType) {
+    reasons.push("delegation grant requires delegateType participant, agent, tool, or context");
+  } else if (!DELEGATE_TYPES.has(normalizeDelegateType(grant.delegateType))) {
     reasons.push("delegation grant requires delegateType participant, agent, tool, or context");
   }
   if (!normalizeAction(grant?.action)) {
@@ -363,6 +365,11 @@ function validateDelegatedAction(action) {
   }
   if (!action?.delegateId) {
     reasons.push("delegated action requires delegateId");
+  }
+  if (!action?.delegateType) {
+    reasons.push("delegated action requires delegateType participant, agent, tool, or context");
+  } else if (!DELEGATE_TYPES.has(normalizeDelegateType(action.delegateType))) {
+    reasons.push("delegated action requires delegateType participant, agent, tool, or context");
   }
   if (!normalizeAction(action?.action)) {
     reasons.push("delegated action requires action");

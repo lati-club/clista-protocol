@@ -1125,11 +1125,7 @@ function validateDelegationGrantedEvent(event, state) {
   if (grant.delegatorParticipantId && !state.participants.has(grant.delegatorParticipantId)) {
     addError(state, event, `delegation grant references unknown delegator ${grant.delegatorParticipantId}`);
   }
-  if (normalizeDelegationText(grant.delegateType || "participant") === "participant"
-    && grant.delegateId
-    && !state.participants.has(grant.delegateId)) {
-    addError(state, event, `delegation grant references unknown delegate ${grant.delegateId}`);
-  }
+  validateDelegationDelegateActor(event, state, grant.delegateId, grant.delegateType, "grant");
   if (grant.delegatorParticipantId && event.actor_id !== grant.delegatorParticipantId) {
     addError(state, event, "delegation grant actor must be the delegator");
   }
@@ -1847,6 +1843,10 @@ function validateDelegatedActionAgainstGrant(event, state, action, grant) {
   if (status !== "active") {
     addError(state, event, `delegated action references ${status} delegation ${grant.id}`);
   }
+  validateDelegationDelegateActor(event, state, action.delegateId, action.delegateType || grant.delegateType, "action");
+  if (event.actor_id !== action.delegateId) {
+    addError(state, event, "delegated action actor_id must match accountable delegate");
+  }
   if (grant.expiresAt && Date.parse(event.timestamp) > Date.parse(grant.expiresAt)) {
     addError(state, event, `delegated action references expired delegation ${grant.id}`);
   }
@@ -1867,6 +1867,33 @@ function validateDelegatedActionAgainstGrant(event, state, action, grant) {
   }
   if (action.attribution?.delegationId !== action.delegationId) {
     addError(state, event, "delegated action attribution must identify delegation");
+  }
+}
+
+function validateDelegationDelegateActor(event, state, delegateId, delegateType, label) {
+  if (!delegateId) {
+    return;
+  }
+  const participant = state.participants.get(delegateId);
+  if (!participant) {
+    addError(state, event, `delegation ${label} references unknown accountable delegate ${delegateId}`);
+    return;
+  }
+  const normalizedType = normalizeDelegationText(delegateType || "participant");
+  const normalizedKind = normalizeDelegationText(participant.kind || "human");
+  const permittedKinds = {
+    participant: null,
+    agent: new Set(["agent"]),
+    tool: new Set(["tool", "system"]),
+    context: new Set(["system"])
+  };
+  const expectedKinds = permittedKinds[normalizedType];
+  if (expectedKinds && !expectedKinds.has(normalizedKind)) {
+    addError(
+      state,
+      event,
+      `delegation ${label} delegateType ${normalizedType} requires participant kind ${Array.from(expectedKinds).join(" or ")}`
+    );
   }
 }
 
