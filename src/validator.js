@@ -1,0 +1,530 @@
+class ValidationError extends Error {
+  constructor(errors) {
+    super(formatValidationErrors(errors));
+    this.name = "ValidationError";
+    this.errors = errors;
+  }
+}
+
+const ENVELOPE_FIELDS = [
+  "event_id",
+  "event_type",
+  "thread_id",
+  "actor_id",
+  "timestamp",
+  "payload"
+];
+
+function validateEvents(events) {
+  const state = emptyValidationState();
+
+  events.forEach((event, index) => {
+    validateEnvelope(event, index, state);
+    validateAuditIntegrity(event, index, state);
+
+    if (!event || typeof event !== "object" || !event.event_type || !event.payload) {
+      return;
+    }
+
+    validateActor(event, state);
+
+    switch (event.event_type) {
+      case "ParticipantAdded":
+        validateParticipantAdded(event, state);
+        break;
+      case "ThreadCreated":
+        validateThreadCreated(event, state);
+        break;
+      case "EvidenceCommitted":
+        validateEvidenceCommitted(event, state);
+        break;
+      case "AssumptionDeclared":
+        validateAssumptionDeclared(event, state);
+        break;
+      case "ClaimCreated":
+        validateClaimCreated(event, state);
+        break;
+      case "PositionTaken":
+        validatePositionTaken(event, state);
+        break;
+      case "ObjectionRaised":
+        validateObjectionRaised(event, state);
+        break;
+      case "ObjectionResolved":
+        validateObjectionResolved(event, state);
+        break;
+      case "DecisionRequestOpened":
+        validateDecisionRequestOpened(event, state);
+        break;
+      case "ReviewSubmitted":
+        validateReviewSubmitted(event, state);
+        break;
+      case "DecisionMerged":
+        validateDecisionMerged(event, state);
+        break;
+      case "MinorityReportFiled":
+        validateMinorityReportFiled(event, state);
+        break;
+      case "OutcomeAudited":
+        validateOutcomeAudited(event, state);
+        break;
+      case "AlignmentCalculated":
+        break;
+      default:
+        addError(state, event, `unsupported event_type ${event.event_type}`);
+        break;
+    }
+  });
+
+  validateFinalDecisionIntegrity(state);
+
+  return {
+    valid: state.errors.length === 0,
+    errors: state.errors
+  };
+}
+
+function assertValidEvents(events) {
+  const result = validateEvents(events);
+  if (!result.valid) {
+    throw new ValidationError(result.errors);
+  }
+  return result;
+}
+
+function emptyValidationState() {
+  return {
+    errors: [],
+    eventIds: new Set(),
+    participants: new Map(),
+    threads: new Map(),
+    evidence: new Map(),
+    assumptions: new Map(),
+    claims: new Map(),
+    positions: new Map(),
+    objections: new Map(),
+    decisionRequests: new Map(),
+    reviewsByRequest: new Map(),
+    decisionsByRequest: new Map(),
+    decisionRecords: new Map(),
+    decisionEventsByRecord: new Map(),
+    minorityReports: [],
+    lastContentHash: undefined,
+    lastSequence: undefined
+  };
+}
+
+function validateEnvelope(event, index, state) {
+  if (!event || typeof event !== "object") {
+    addError(state, { event_id: null, event_type: null }, `event at index ${index} is not an object`);
+    return;
+  }
+
+  for (const field of ENVELOPE_FIELDS) {
+    if (event[field] === undefined || event[field] === null || event[field] === "") {
+      addError(state, event, `missing ${field}`);
+    }
+  }
+
+  if (event.event_id) {
+    if (state.eventIds.has(event.event_id)) {
+      addError(state, event, `duplicate event_id ${event.event_id}`);
+    }
+    state.eventIds.add(event.event_id);
+  }
+
+  if (event.timestamp && Number.isNaN(Date.parse(event.timestamp))) {
+    addError(state, event, `malformed timestamp ${event.timestamp}`);
+  }
+
+  if (event.payload && (typeof event.payload !== "object" || Array.isArray(event.payload))) {
+    addError(state, event, "payload must be an object");
+  }
+}
+
+function validateAuditIntegrity(event, index, state) {
+  if (event.previous_hash && event.previous_hash !== state.lastContentHash) {
+    addError(state, event, "invalid previous_hash chain");
+  }
+
+  const sequence = event.sequence_number ?? event.sequence;
+  if (sequence !== undefined) {
+    if (typeof sequence !== "number" || !Number.isFinite(sequence)) {
+      addError(state, event, "sequence number must be numeric");
+    } else if (state.lastSequence !== undefined && sequence <= state.lastSequence) {
+      addError(state, event, "events applied out of order by sequence number");
+    } else {
+      state.lastSequence = sequence;
+    }
+  }
+
+  if (event.content_hash) {
+    state.lastContentHash = event.content_hash;
+  } else if (index === 0) {
+    state.lastContentHash = undefined;
+  }
+}
+
+function validateActor(event, state) {
+  if (event.event_type === "ParticipantAdded") {
+    return;
+  }
+  if (event.actor_id && !state.participants.has(event.actor_id)) {
+    addError(state, event, `actor_id ${event.actor_id} is not a known participant`);
+  }
+}
+
+function validateParticipantAdded(event, state) {
+  const participant = event.payload.participant;
+  if (!participant?.id) {
+    addError(state, event, "ParticipantAdded payload missing participant.id");
+    return;
+  }
+  state.participants.set(participant.id, participant);
+}
+
+function validateThreadCreated(event, state) {
+  const thread = event.payload.thread;
+  if (!thread?.id) {
+    addError(state, event, "ThreadCreated payload missing thread.id");
+    return;
+  }
+  if (thread.id !== event.thread_id) {
+    addError(state, event, "thread.id must match event thread_id");
+  }
+  for (const participantId of thread.participantIds || []) {
+    if (!state.participants.has(participantId)) {
+      addError(state, event, `thread references unknown participant ${participantId}`);
+    }
+  }
+  state.threads.set(thread.id, thread);
+}
+
+function validateEvidenceCommitted(event, state) {
+  const evidence = event.payload.evidence;
+  if (!evidence?.id) {
+    addError(state, event, "EvidenceCommitted payload missing evidence.id");
+    return;
+  }
+  validateThreadObject(event, evidence, state, "evidence");
+  if (!state.participants.has(evidence.committedByParticipantId)) {
+    addError(state, event, `evidence committed by unknown participant ${evidence.committedByParticipantId}`);
+  }
+  state.evidence.set(evidence.id, evidence);
+}
+
+function validateAssumptionDeclared(event, state) {
+  const assumption = event.payload.assumption;
+  if (!assumption?.id) {
+    addError(state, event, "AssumptionDeclared payload missing assumption.id");
+    return;
+  }
+  validateThreadObject(event, assumption, state, "assumption");
+  validateIdsExist(event, state, assumption.evidenceIds, state.evidence, "evidence");
+  if (!state.participants.has(assumption.declaredByParticipantId)) {
+    addError(state, event, `assumption declared by unknown participant ${assumption.declaredByParticipantId}`);
+  }
+  state.assumptions.set(assumption.id, assumption);
+}
+
+function validateClaimCreated(event, state) {
+  const claim = event.payload.claim;
+  if (!claim?.id) {
+    addError(state, event, "ClaimCreated payload missing claim.id");
+    return;
+  }
+  validateThreadObject(event, claim, state, "claim");
+  validateIdsExist(event, state, claim.evidenceIds, state.evidence, "evidence");
+  validateIdsExist(event, state, claim.contradictingEvidenceIds, state.evidence, "evidence");
+  validateIdsExist(event, state, claim.assumptionIds, state.assumptions, "assumption");
+  if (!state.participants.has(claim.createdByParticipantId)) {
+    addError(state, event, `claim created by unknown participant ${claim.createdByParticipantId}`);
+  }
+  state.claims.set(claim.id, claim);
+}
+
+function validatePositionTaken(event, state) {
+  const position = event.payload.position;
+  if (!position?.id) {
+    addError(state, event, "PositionTaken payload missing position.id");
+    return;
+  }
+  validateThreadObject(event, position, state, "position");
+  if (!state.participants.has(position.participantId)) {
+    addError(state, event, `position references unknown participant ${position.participantId}`);
+  }
+  validateTargetExists(event, position.targetObjectType, position.targetObjectId, state);
+  state.positions.set(position.id, position);
+}
+
+function validateObjectionRaised(event, state) {
+  const objection = event.payload.objection;
+  if (!objection?.id) {
+    addError(state, event, "ObjectionRaised payload missing objection.id");
+    return;
+  }
+  validateThreadObject(event, objection, state, "objection");
+  if (!state.participants.has(objection.participantId)) {
+    addError(state, event, `objection references unknown participant ${objection.participantId}`);
+  }
+  validateTargetExists(event, objection.targetObjectType, objection.targetObjectId, state);
+  if (objection.status === "resolved") {
+    validateResolution(event, objection, state);
+  }
+  state.objections.set(objection.id, objection);
+}
+
+function validateObjectionResolved(event, state) {
+  const objectionId = event.payload.objectionId || event.payload.objection?.id;
+  const resolution = event.payload.resolution || event.payload.objection?.resolution;
+  const objection = state.objections.get(objectionId);
+
+  if (!objection) {
+    addError(state, event, `objection resolved before objection exists: ${objectionId}`);
+    return;
+  }
+  if (!resolution || !String(resolution).trim()) {
+    addError(state, event, `objection ${objectionId} marked resolved without resolution text`);
+  }
+  if (!isAuthorizedToResolve(event.actor_id, objection, state)) {
+    addError(state, event, `objection ${objectionId} resolved by unauthorized actor ${event.actor_id}`);
+  }
+  state.objections.set(objectionId, {
+    ...objection,
+    status: "resolved",
+    resolution
+  });
+}
+
+function validateDecisionRequestOpened(event, state) {
+  const request = event.payload.decisionRequest;
+  if (!request?.id) {
+    addError(state, event, "DecisionRequestOpened payload missing decisionRequest.id");
+    return;
+  }
+  validateThreadObject(event, request, state, "decision request");
+  validateIdsExist(event, state, request.supportingEvidenceIds, state.evidence, "evidence");
+  validateIdsExist(event, state, request.supportingClaimIds, state.claims, "claim");
+  validateIdsExist(event, state, request.supportingAssumptionIds, state.assumptions, "assumption");
+  validateIdsExist(event, state, request.objectionIds, state.objections, "objection");
+  if (!state.participants.has(request.openedByParticipantId)) {
+    addError(state, event, `decision request opened by unknown participant ${request.openedByParticipantId}`);
+  }
+  state.decisionRequests.set(request.id, request);
+}
+
+function validateReviewSubmitted(event, state) {
+  const review = event.payload.review;
+  if (!review?.id) {
+    addError(state, event, "ReviewSubmitted payload missing review.id");
+    return;
+  }
+  validateThreadObject(event, review, state, "review");
+  if (!state.decisionRequests.has(review.decisionRequestId)) {
+    addError(state, event, `review references unknown decision request ${review.decisionRequestId}`);
+  }
+  if (state.decisionsByRequest.has(review.decisionRequestId)) {
+    addError(state, event, `review submitted after decision already merged for ${review.decisionRequestId}`);
+  }
+  if (!state.participants.has(review.reviewerParticipantId)) {
+    addError(state, event, `review references unknown participant ${review.reviewerParticipantId}`);
+  }
+  addToMapList(state.reviewsByRequest, review.decisionRequestId, review);
+}
+
+function validateDecisionMerged(event, state) {
+  const decision = event.payload.decisionRecord;
+  if (!decision?.id) {
+    addError(state, event, "DecisionMerged payload missing decisionRecord.id");
+    return;
+  }
+  validateThreadObject(event, decision, state, "decision record");
+
+  const request = state.decisionRequests.get(decision.decisionRequestId);
+  if (!request) {
+    addError(state, event, `decision merge before decision request opened: ${decision.decisionRequestId}`);
+  }
+  if (state.decisionsByRequest.has(decision.decisionRequestId)) {
+    addError(state, event, `duplicate final decision for request ${decision.decisionRequestId}`);
+  }
+
+  const evidenceIds = unique([
+    ...(request?.supportingEvidenceIds || []),
+    ...(decision.supportingEvidenceIds || [])
+  ]);
+  if (!evidenceIds.length) {
+    addError(state, event, "decision merged without evidence");
+  }
+  validateIdsExist(event, state, decision.supportingEvidenceIds, state.evidence, "evidence");
+  validateIdsExist(event, state, decision.supportingClaimIds, state.claims, "claim");
+  validateIdsExist(event, state, decision.supportingAssumptionIds, state.assumptions, "assumption");
+  validateIdsExist(event, state, decision.preservedObjectionIds, state.objections, "objection");
+
+  if (!state.reviewsByRequest.has(decision.decisionRequestId)) {
+    addError(state, event, "decision merged without review");
+  }
+  if (!isDecisionOwner(decision.decidedByParticipantId, state) && !isDecisionOwner(event.actor_id, state)) {
+    addError(state, event, `decision merged without authorized decision owner ${decision.decidedByParticipantId}`);
+  }
+  for (const objectionId of request?.objectionIds || []) {
+    const objection = state.objections.get(objectionId);
+    if (isBlockingObjection(objection) && !(decision.preservedObjectionIds || []).includes(objectionId)) {
+      addError(state, event, `decision merged while unresolved blocking objection exists: ${objectionId}`);
+    }
+  }
+
+  state.decisionRecords.set(decision.id, decision);
+  state.decisionsByRequest.set(decision.decisionRequestId, decision);
+  state.decisionEventsByRecord.set(decision.id, event);
+}
+
+function validateMinorityReportFiled(event, state) {
+  const report = event.payload.minorityReport;
+  if (!report?.id) {
+    addError(state, event, "MinorityReportFiled payload missing minorityReport.id");
+    return;
+  }
+  validateThreadObject(event, report, state, "minority report");
+  if (!state.decisionRecords.has(report.decisionRecordId)) {
+    addError(state, event, `minority report references unknown decision ${report.decisionRecordId}`);
+  }
+  if (!state.participants.has(report.participantId)) {
+    addError(state, event, `minority report references unknown participant ${report.participantId}`);
+  }
+  validateIdsExist(event, state, report.objectionIds, state.objections, "objection");
+  state.minorityReports.push(report);
+}
+
+function validateOutcomeAudited(event, state) {
+  const audit = event.payload.outcomeAudit;
+  if (!audit?.id) {
+    addError(state, event, "OutcomeAudited payload missing outcomeAudit.id");
+    return;
+  }
+  validateThreadObject(event, audit, state, "outcome audit");
+  if (!state.decisionRecords.has(audit.decisionRecordId)) {
+    addError(state, event, `outcome audit references unknown decision ${audit.decisionRecordId}`);
+  }
+  validateIdsExist(event, state, audit.evidenceIds, state.evidence, "evidence");
+}
+
+function validateFinalDecisionIntegrity(state) {
+  for (const decision of state.decisionRecords.values()) {
+    const request = state.decisionRequests.get(decision.decisionRequestId);
+    const event = state.decisionEventsByRecord.get(decision.id) || { event_id: decision.id, event_type: "DecisionMerged" };
+    if (!request) {
+      continue;
+    }
+    for (const objectionId of request.objectionIds || []) {
+      const objection = state.objections.get(objectionId);
+      if (isBlockingObjection(objection) && !(decision.preservedObjectionIds || []).includes(objectionId)) {
+        addError(state, event, `decision record omits unresolved objection ${objectionId}`);
+      }
+    }
+    for (const objectionId of decision.preservedObjectionIds || []) {
+      const hasMinorityReport = state.minorityReports.some((report) => {
+        return report.decisionRecordId === decision.id && (report.objectionIds || []).includes(objectionId);
+      });
+      if (!hasMinorityReport) {
+        addError(state, event, `decision record preserves ${objectionId} without minority report`);
+      }
+    }
+  }
+}
+
+function validateResolution(event, objection, state) {
+  if (!objection.resolution || !String(objection.resolution).trim()) {
+    addError(state, event, `objection ${objection.id} marked resolved without resolution text`);
+  }
+  if (!isAuthorizedToResolve(event.actor_id, objection, state)) {
+    addError(state, event, `objection ${objection.id} resolved by unauthorized actor ${event.actor_id}`);
+  }
+}
+
+function validateThreadObject(event, object, state, label) {
+  if (object.threadId !== event.thread_id) {
+    addError(state, event, `${label} threadId must match event thread_id`);
+  }
+  if (!state.threads.has(object.threadId)) {
+    addError(state, event, `${label} references unknown thread ${object.threadId}`);
+  }
+}
+
+function validateTargetExists(event, targetType, targetId, state) {
+  if (!targetId) {
+    return;
+  }
+  const targetCollections = {
+    thread: state.threads,
+    evidence: state.evidence,
+    assumption: state.assumptions,
+    claim: state.claims,
+    position: state.positions,
+    decisionRequest: state.decisionRequests
+  };
+  const collection = targetCollections[targetType];
+  if (!collection) {
+    addError(state, event, `unsupported targetObjectType ${targetType}`);
+    return;
+  }
+  if (!collection.has(targetId)) {
+    addError(state, event, `${targetType} target does not exist: ${targetId}`);
+  }
+}
+
+function validateIdsExist(event, state, ids, collection, label) {
+  for (const id of ids || []) {
+    if (!collection.has(id)) {
+      addError(state, event, `${label} reference does not exist: ${id}`);
+    }
+  }
+}
+
+function addError(state, event, reason) {
+  state.errors.push({
+    event_id: event?.event_id ?? null,
+    event_type: event?.event_type ?? null,
+    reason
+  });
+}
+
+function addToMapList(map, key, value) {
+  if (!map.has(key)) {
+    map.set(key, []);
+  }
+  map.get(key).push(value);
+}
+
+function isBlockingObjection(objection) {
+  return objection && (objection.status === "open" || objection.status === "preserved");
+}
+
+function isAuthorizedToResolve(actorId, objection, state) {
+  return actorId === objection.participantId || isDecisionOwner(actorId, state);
+}
+
+function isDecisionOwner(participantId, state) {
+  const participant = state.participants.get(participantId);
+  const role = String(participant?.role || "").toLowerCase().replace(/[_-]+/g, " ");
+  return role.includes("decision") && role.includes("owner");
+}
+
+function unique(values) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function formatValidationErrors(errors) {
+  if (!errors.length) {
+    return "Validation passed";
+  }
+  return errors
+    .map((error) => `${error.event_id || "(missing event_id)"}: ${error.reason}`)
+    .join("\n");
+}
+
+module.exports = {
+  ValidationError,
+  assertValidEvents,
+  formatValidationErrors,
+  validateEvents
+};

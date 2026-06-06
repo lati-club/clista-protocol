@@ -57,6 +57,9 @@ function projectEvents(events) {
         markAssumptionContested(projection, payload.objection);
         touchThread(projection, payload.objection?.threadId, eventTimestamp(event));
         break;
+      case "ObjectionResolved":
+        resolveObjection(projection, payload.objectionId || payload.objection?.id, payload.resolution || payload.objection?.resolution);
+        break;
       case "AlignmentCalculated":
         upsert(projection.alignmentSnapshots, payload.alignmentSnapshot);
         break;
@@ -281,6 +284,18 @@ function markAssumptionContested(projection, objection) {
       status: "contested"
     };
   }
+}
+
+function resolveObjection(projection, objectionId, resolution) {
+  const objection = projection.objections[objectionId];
+  if (!objection) {
+    return;
+  }
+  projection.objections[objectionId] = {
+    ...objection,
+    status: "resolved",
+    resolution
+  };
 }
 
 function applyReviewStatus(projection, review) {

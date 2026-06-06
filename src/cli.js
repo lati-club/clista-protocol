@@ -15,6 +15,7 @@ const {
   readEventsAt
 } = require("./events");
 const { exportProtocol, projectEvents, selectAudit, selectThreadState } = require("./projector");
+const { assertValidEvents, validateEvents } = require("./validator");
 
 function main(argv = process.argv.slice(2), cwd = process.cwd()) {
   const { command, options } = parseCommand(argv);
@@ -43,6 +44,8 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
         return reviewSubmit(options, cwd);
       case "decision merge":
         return decisionMerge(options, cwd);
+      case "validate":
+        return validateCommand(options, cwd);
       case "state show":
         return stateShow(options, cwd);
       case "audit show":
@@ -417,24 +420,33 @@ function decisionMerge(options, cwd) {
 }
 
 function stateShow(options, cwd) {
-  const projection = projectEvents(readEventsForOptions(options, cwd));
+  const projection = projectEvents(readValidEventsForOptions(options, cwd));
   return print(selectThreadState(projection, options.thread));
 }
 
 function auditShow(options, cwd) {
-  const projection = projectEvents(readEventsForOptions(options, cwd));
+  const projection = projectEvents(readValidEventsForOptions(options, cwd));
   return print(selectAudit(projection, options.thread));
 }
 
 function assumptionsList(options, cwd) {
-  const projection = projectEvents(readEventsForOptions(options, cwd));
+  const projection = projectEvents(readValidEventsForOptions(options, cwd));
   const state = selectThreadState(projection, options.thread);
   return print(state.error ? state : state.assumptions);
 }
 
 function exportShow(options, cwd) {
-  const projection = projectEvents(readEventsForOptions(options, cwd));
+  const projection = projectEvents(readValidEventsForOptions(options, cwd));
   return print(exportProtocol(projection));
+}
+
+function validateCommand(options, cwd) {
+  const events = readEventsForOptions(options, cwd);
+  const result = validateEvents(events);
+  print(result);
+  if (!result.valid) {
+    process.exitCode = 1;
+  }
 }
 
 function appendParticipant(participant, cwd, threadId) {
@@ -456,6 +468,12 @@ function readEventsForOptions(options, cwd) {
     return readEventsAt(path.resolve(cwd, options.events));
   }
   return readEvents(cwd);
+}
+
+function readValidEventsForOptions(options, cwd) {
+  const events = readEventsForOptions(options, cwd);
+  assertValidEvents(events);
+  return events;
 }
 
 function parseCommand(argv) {
@@ -601,8 +619,10 @@ function usage() {
   clista decision open --thread <threadId> --proposal <proposal>
   clista review submit --thread <threadId> --request <requestId> --reviewer <name|id> --status <status>
   clista decision merge --thread <threadId> --request <requestId> --decider <name|id>
+  clista validate [--events <path>]
   clista state show [--thread <threadId>] [--events <path>]
-  clista audit show [--thread <threadId>] [--events <path>]`;
+  clista audit show [--thread <threadId>] [--events <path>]
+  clista export [--events <path>]`;
 }
 
 if (require.main === module) {

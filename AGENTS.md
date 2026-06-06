@@ -46,3 +46,11 @@ clista state show
 ```
 
 If this can reconstruct the current reasoning state from only the append-only log, the protocol spine is working.
+
+## Validity Test
+
+```text
+clista validate
+```
+
+Invalid reasoning must fail loudly with `event_id` and `reason`.

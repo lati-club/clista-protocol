@@ -30,6 +30,14 @@ clista state show
 
 If it can reconstruct the current reasoning state from only the append-only log, the protocol spine works.
 
+The validity command is:
+
+```text
+clista validate
+```
+
+If it rejects invalid event logs with clear event-level errors, the protocol can govern reasoning state instead of merely projecting it.
+
 ## Repository Boundary
 
 This repository is `clista-protocol`.
@@ -37,4 +45,3 @@ This repository is `clista-protocol`.
 It is not `clista-app`, `clista-ui`, or `clista-platform`.
 
 Do not build UI, agent orchestration, graph databases, governance portals, or platform features until the protocol spine works.
-

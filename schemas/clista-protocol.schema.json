@@ -941,8 +941,7 @@
         "thread_id",
         "actor_id",
         "timestamp",
-        "payload",
-        "content_hash"
+        "payload"
       ],
       "properties": {
         "event_id": {
@@ -957,6 +956,7 @@
             "ClaimCreated",
             "PositionTaken",
             "ObjectionRaised",
+            "ObjectionResolved",
             "AlignmentCalculated",
             "DecisionRequestOpened",
             "ReviewSubmitted",
@@ -966,24 +966,10 @@
           ]
         },
         "thread_id": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/id"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/id"
         },
         "actor_id": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/id"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/id"
         },
         "timestamp": {
           "type": "string",

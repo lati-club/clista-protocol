@@ -40,6 +40,7 @@ Projected state is derived.
 - `ClaimCreated`
 - `PositionTaken`
 - `ObjectionRaised`
+- `ObjectionResolved`
 - `AlignmentCalculated`
 - `DecisionRequestOpened`
 - `ReviewSubmitted`
@@ -61,3 +62,15 @@ Projected state is derived.
 - decision status
 - audit trail
 
+## Required Validation
+
+`clista validate` must reject invalid reasoning logs before they are treated as protocol state.
+
+Validation checks:
+
+- event envelope fields
+- object references
+- state transitions
+- decision requirements
+- objection resolution authority
+- audit integrity
