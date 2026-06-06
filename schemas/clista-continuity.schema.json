@@ -9,16 +9,21 @@
     "packet_type",
     "protocol_version",
     "schema_version",
+    "theorem",
+    "hard_law",
     "clista_protocol_version",
     "source_thread_id",
     "event_log_hash",
     "projection_hash",
     "state_hash",
+    "capability_set",
     "integrity_verified",
     "strict_integrity_verified",
     "verification_mode",
+    "resume_status",
     "exported_at",
     "integrity",
+    "verification_state",
     "source_events",
     "continuity_state"
   ],
@@ -30,10 +35,16 @@
       "const": "continuity"
     },
     "protocol_version": {
-      "const": "0.7.0"
+      "const": "0.14.0"
     },
     "schema_version": {
       "const": "clista.continuity.packet.v0"
+    },
+    "theorem": {
+      "const": "reasoning_continuity = resume(project(event_log), verification_state)"
+    },
+    "hard_law": {
+      "const": "context transfer != memory trust"
     },
     "clista_protocol_version": {
       "const": "clista.protocol.v0"
@@ -50,6 +61,15 @@
     "state_hash": {
       "$ref": "#/$defs/hash"
     },
+    "capability_set": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "contains": {
+        "const": "amendments"
+      }
+    },
     "integrity_verified": {
       "const": true
     },
@@ -60,6 +80,13 @@
       "enum": [
         "strict",
         "compatibility"
+      ]
+    },
+    "resume_status": {
+      "enum": [
+        "verified",
+        "degraded",
+        "rejected"
       ]
     },
     "exported_at": {
@@ -91,6 +118,9 @@
         }
       }
     },
+    "verification_state": {
+      "$ref": "#/$defs/verificationState"
+    },
     "source_events": {
       "type": "array",
       "minItems": 1,
@@ -118,6 +148,10 @@
       "required": [
         "mission",
         "continuity_claim",
+        "theorem",
+        "hard_law",
+        "resume_status",
+        "capability_set",
         "source_thread_id",
         "current_question",
         "current_request",
@@ -132,6 +166,11 @@
         "fork_lineage",
         "merge_state",
         "attribution_state",
+        "provenance_state",
+        "learning_state",
+        "adaptation_state",
+        "amendment_state",
+        "verification_status",
         "integrity_state",
         "status",
         "next_action"
@@ -142,6 +181,25 @@
         },
         "continuity_claim": {
           "const": "Projected reasoning state is continuity."
+        },
+        "theorem": {
+          "const": "reasoning_continuity = resume(project(event_log), verification_state)"
+        },
+        "hard_law": {
+          "const": "context transfer != memory trust"
+        },
+        "resume_status": {
+          "enum": [
+            "verified",
+            "degraded",
+            "rejected"
+          ]
+        },
+        "capability_set": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "source_thread_id": {
           "$ref": "#/$defs/id"
@@ -201,6 +259,60 @@
           "type": "object",
           "additionalProperties": true
         },
+        "provenance_state": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "learning_state": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "adaptation_state": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "amendment_state": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "verification_status": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "status",
+            "verification_mode",
+            "required_layers",
+            "transcript_replay",
+            "memory_trust"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "verified",
+                "degraded",
+                "rejected"
+              ]
+            },
+            "verification_mode": {
+              "enum": [
+                "strict",
+                "compatibility"
+              ]
+            },
+            "required_layers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "transcript_replay": {
+              "const": false
+            },
+            "memory_trust": {
+              "const": false
+            }
+          }
+        },
         "integrity_state": {
           "type": "object",
           "additionalProperties": true,
@@ -253,6 +365,91 @@
       "items": {
         "type": "object",
         "additionalProperties": true
+      }
+    },
+    "verificationState": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "status",
+        "clistaProtocolVersion",
+        "continuityProtocolVersion",
+        "capabilitySet",
+        "requiredLayers",
+        "verificationMode",
+        "eventLogHash",
+        "projectionHash",
+        "stateHash",
+        "validity",
+        "integrity",
+        "attributionValidationStatus",
+        "provenanceValidationStatus",
+        "learningValidationStatus",
+        "adaptationValidationStatus",
+        "amendmentValidationStatus",
+        "transcriptReplay",
+        "memoryTrust",
+        "authorityCreated",
+        "governanceMutation",
+        "amendmentApproval",
+        "importedStateMutation"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.continuity.verification_state.v0"
+        },
+        "theorem": {
+          "const": "reasoning_continuity = resume(project(event_log), verification_state)"
+        },
+        "hardLaw": {
+          "const": "context transfer != memory trust"
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "degraded",
+            "rejected"
+          ]
+        },
+        "continuityProtocolVersion": {
+          "const": "0.14.0"
+        },
+        "verificationMode": {
+          "enum": [
+            "strict",
+            "compatibility"
+          ]
+        },
+        "eventLogHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "projectionHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "stateHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "transcriptReplay": {
+          "const": false
+        },
+        "memoryTrust": {
+          "const": false
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "amendmentApproval": {
+          "const": false
+        },
+        "importedStateMutation": {
+          "const": false
+        }
       }
     }
   }

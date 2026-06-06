@@ -52,9 +52,10 @@ The continuity command is:
 
 ```text
 clista continuity export --out continuity.json
+clista continuity resume --packet continuity.json
 ```
 
-If it produces a verifiable Continuity Packet, projected reasoning state can survive context loss without treating the transcript as memory.
+If it produces and resumes a verifiable Continuity Packet, projected reasoning state can survive context loss without treating the transcript as memory.
 
 The identity command is:
 
@@ -119,6 +120,8 @@ Learning is not reputation. It updates reasoning patterns from outcome evidence;
 Adaptation is not governance mutation. It recommends authorized review; it does not execute governance changes.
 
 Recommendation is not amendment. Amendments require explicit approval by active governance authority.
+
+Continuity is not transcript replay. A resumed thread is trusted because projected state verifies, not because a model remembers the conversation.
 
 ## Repository Boundary
 

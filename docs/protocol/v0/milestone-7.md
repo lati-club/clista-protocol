@@ -1,5 +1,7 @@
 # Milestone 7: Protocol Continuity
 
+Historical note: Milestone 14 supersedes this early continuity proof with verified resume state across integrity, attribution, provenance, learning, adaptation, and amendments.
+
 ## Acceptance Criteria
 
 ClisTa must make reasoning state resumable across chats, tools, models, and future protocol contexts.

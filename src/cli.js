@@ -47,6 +47,7 @@ const {
   exportContinuityPacket,
   formatContinuityReasons,
   readContinuityPacketAt,
+  resumeContinuityPacket,
   summarizeContinuityPacket,
   verifyContinuityPacket,
   writeContinuityPacket
@@ -161,6 +162,10 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
         return continuityVerify(options, cwd);
       case "continuity import":
         return continuityImport(options, cwd);
+      case "continuity resume":
+        return continuityResume(options, cwd);
+      case "continuity show":
+        return continuityShow(options, cwd);
       case "continuity summary":
         return continuitySummary(options, cwd);
       case "state show":
@@ -1589,15 +1594,15 @@ function continuityExport(options, cwd) {
       event_log_hash: packet.event_log_hash,
       projection_hash: packet.projection_hash,
       state_hash: packet.state_hash,
-      verification_mode: packet.verification_mode
+      verification_mode: packet.verification_mode,
+      resume_status: packet.resume_status
     });
   }
   return print(packet);
 }
 
 function continuityVerify(options, cwd) {
-  requireOption(options, "packet");
-  const packet = readContinuityPacketAt(path.resolve(cwd, options.packet));
+  const packet = readContinuityPacketForOptions(options, cwd);
   const result = verifyContinuityPacket(packet);
   print(result);
   if (!result.valid) {
@@ -1625,8 +1630,23 @@ function continuityImport(options, cwd) {
     event_log_hash: packet.event_log_hash,
     projection_hash: packet.projection_hash,
     state_hash: packet.state_hash,
-    verification_mode: packet.verification_mode
+    verification_mode: packet.verification_mode,
+    resume_status: packet.resume_status,
+    verification_state: packet.verification_state
   });
+}
+
+function continuityResume(options, cwd) {
+  const packet = readContinuityPacketForOptions(options, cwd);
+  const result = resumeContinuityPacket(packet);
+  print(result);
+  if (!result.resumed) {
+    process.exitCode = 1;
+  }
+}
+
+function continuityShow(options, cwd) {
+  return continuitySummary(options, cwd);
 }
 
 function continuitySummary(options, cwd) {
@@ -1697,7 +1717,11 @@ function readContinuityPacketForOptions(options, cwd) {
   if (options.packet) {
     return readContinuityPacketAt(path.resolve(cwd, options.packet));
   }
-  return readContinuityPacketAt(continuityPacketPath(cwd));
+  const packetPath = continuityPacketPath(cwd);
+  if (fs.existsSync(packetPath)) {
+    return readContinuityPacketAt(packetPath);
+  }
+  return exportContinuityPacket(readEventsForOptions(options, cwd), { threadId: options.thread });
 }
 
 function readValidEventsForOptions(options, cwd) {
@@ -1789,6 +1813,17 @@ function normalizeCommand(command, options) {
         amendment: options.amendment || command.slice("amendment show ".length).trim()
       }
     };
+  }
+  for (const continuityCommand of ["continuity import", "continuity verify", "continuity resume", "continuity show", "continuity summary"]) {
+    if (command.startsWith(`${continuityCommand} `)) {
+      return {
+        command: continuityCommand,
+        options: {
+          ...options,
+          packet: options.packet || command.slice(`${continuityCommand} `.length).trim()
+        }
+      };
+    }
   }
   return { command, options };
 }
@@ -2025,8 +2060,10 @@ function usage() {
   clista validate [--events <path>]
   clista integrity verify [--events <path>] [--strict]
   clista continuity export [--events <path>] [--thread <threadId>] [--out <path>]
-  clista continuity verify --packet <path>
-  clista continuity import --packet <path> [--replace true]
+  clista continuity verify [--packet <path>]
+  clista continuity import <path> [--replace true]
+  clista continuity resume [--packet <path>]
+  clista continuity show [--packet <path>]
   clista continuity summary [--packet <path>]
   clista state show [--thread <threadId>] [--events <path>]
   clista audit show [--thread <threadId>] [--events <path>]

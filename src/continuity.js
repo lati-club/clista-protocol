@@ -13,8 +13,37 @@ const { validateEvents } = require("./validator");
 const CONTINUITY_FILE = "continuity.json";
 const CONTINUITY_PROTOCOL = "clista";
 const CONTINUITY_PACKET_TYPE = "continuity";
-const CONTINUITY_PROTOCOL_VERSION = "0.7.0";
+const CONTINUITY_PROTOCOL_VERSION = "0.14.0";
 const CONTINUITY_SCHEMA_VERSION = "clista.continuity.packet.v0";
+const CONTINUITY_THEOREM = "reasoning_continuity = resume(project(event_log), verification_state)";
+const CONTINUITY_HARD_LAW = "context transfer != memory trust";
+
+const CONTINUITY_CAPABILITY_SET = [
+  "spine",
+  "validity",
+  "governance",
+  "outcomes",
+  "forks",
+  "merges",
+  "integrity",
+  "continuity",
+  "identity",
+  "attribution",
+  "provenance",
+  "learning",
+  "adaptation",
+  "amendments"
+];
+
+const REQUIRED_VERIFICATION_LAYERS = [
+  "validity",
+  "integrity",
+  "attribution",
+  "provenance",
+  "learning",
+  "adaptation",
+  "amendments"
+];
 
 function continuityPacketPath(cwd = process.cwd()) {
   return path.join(storeDir(cwd), CONTINUITY_FILE);
@@ -48,16 +77,21 @@ function exportContinuityPacket(events, options = {}) {
     packet_type: CONTINUITY_PACKET_TYPE,
     protocol_version: CONTINUITY_PROTOCOL_VERSION,
     schema_version: CONTINUITY_SCHEMA_VERSION,
+    theorem: CONTINUITY_THEOREM,
+    hard_law: CONTINUITY_HARD_LAW,
     clista_protocol_version: PROTOCOL_VERSION,
     source_thread_id: materials.threadId,
     event_log_hash: materials.eventLogHash,
     projection_hash: materials.projectionHash,
     state_hash: materials.stateHash,
+    capability_set: CONTINUITY_CAPABILITY_SET,
     integrity_verified: materials.integrity.valid,
     strict_integrity_verified: materials.strictIntegrity.valid,
     verification_mode: materials.strictIntegrity.valid ? "strict" : "compatibility",
+    resume_status: materials.verificationState.status,
     exported_at: exportedAt,
     integrity: materials.integrity,
+    verification_state: materials.verificationState,
     source_events: clone(events),
     continuity_state: materials.continuityState
   };
@@ -74,6 +108,13 @@ function verifyContinuityPacket(packet) {
   if (!packet?.continuity_state || typeof packet.continuity_state !== "object" || Array.isArray(packet.continuity_state)) {
     reasons.push(reason("continuity_state", "continuity_state must be an object"));
   }
+  if (!packet?.verification_state || typeof packet.verification_state !== "object" || Array.isArray(packet.verification_state)) {
+    reasons.push(reason("verification_state", "verification_state must be an object"));
+  } else {
+    validateVerificationStateShape(packet.verification_state, reasons);
+    validateNoContinuityMutation(packet.verification_state, reasons);
+  }
+  validateCapabilitySet(packet?.capability_set, reasons);
 
   if (events) {
     const integrity = verifyEventIntegrity(events);
@@ -128,11 +169,20 @@ function verifyContinuityPacket(packet) {
       } else {
         compareHash(reasons, "projection_hash", materials.projectionHash, packet?.projection_hash);
         compareHash(reasons, "state_hash", materials.stateHash, packet?.state_hash);
+        if (packet?.resume_status !== materials.verificationState.status) {
+          reasons.push(reason("resume_status", "resume_status does not match verification state", {
+            expected: materials.verificationState.status,
+            actual: packet?.resume_status
+          }));
+        }
 
         const packetStateHash = contentHash(packet.continuity_state || {});
         compareHash(reasons, "state_hash", packetStateHash, packet?.state_hash, "state_hash does not match continuity_state");
         if (stableStringify(packet.continuity_state || {}) !== stableStringify(materials.continuityState)) {
           reasons.push(reason("continuity_state", "continuity_state does not match projected thread state"));
+        }
+        if (stableStringify(packet.verification_state || {}) !== stableStringify(materials.verificationState)) {
+          reasons.push(reason("verification_state", "verification_state does not match recomputed verification state"));
         }
       }
     }
@@ -146,10 +196,38 @@ function verifyContinuityPacket(packet) {
     protocolVersion: packet?.protocol_version || null,
     schemaVersion: packet?.schema_version || null,
     verificationMode: packet?.verification_mode || null,
+    resumeStatus: packet?.resume_status || null,
     eventLogHash: packet?.event_log_hash || null,
     projectionHash: packet?.projection_hash || null,
     stateHash: packet?.state_hash || null,
+    verificationState: packet?.verification_state || null,
     reasons
+  };
+}
+
+function resumeContinuityPacket(packet) {
+  const verification = verifyContinuityPacket(packet);
+  if (!verification.valid) {
+    return {
+      schema: "clista.continuity.resume.v0",
+      resumed: false,
+      resumeStatus: "rejected",
+      hardLaw: CONTINUITY_HARD_LAW,
+      reason: "continuity packet failed verification",
+      verification
+    };
+  }
+  return {
+    schema: "clista.continuity.resume.v0",
+    resumed: true,
+    resumeStatus: packet.resume_status,
+    theorem: CONTINUITY_THEOREM,
+    hardLaw: CONTINUITY_HARD_LAW,
+    source_thread_id: packet.source_thread_id,
+    protocol_version: packet.protocol_version,
+    clista_protocol_version: packet.clista_protocol_version,
+    verification_state: packet.verification_state,
+    continuity_state: packet.continuity_state
   };
 }
 
@@ -170,6 +248,9 @@ function summarizeContinuityPacket(packet) {
     source_thread_id: packet.source_thread_id,
     protocol_version: packet.protocol_version,
     schema_version: packet.schema_version,
+    theorem: packet.theorem,
+    hard_law: packet.hard_law,
+    resume_status: packet.resume_status,
     verification_mode: packet.verification_mode,
     current_question: state.current_question,
     current_decision: state.current_decision,
@@ -184,7 +265,12 @@ function summarizeContinuityPacket(packet) {
     merge_state: state.merge_state,
     attribution_count: (state.attribution_state?.attributions || []).length,
     attribution_state: state.attribution_state,
-    integrity_state: state.integrity_state
+    provenance_state: state.provenance_state,
+    learning_state: state.learning_state,
+    adaptation_state: state.adaptation_state,
+    amendment_state: state.amendment_state,
+    integrity_state: state.integrity_state,
+    verification_state: packet.verification_state
   };
 }
 
@@ -210,6 +296,7 @@ function writeContinuityPacket(packet, cwd = process.cwd(), options = {}) {
 }
 
 function buildContinuityMaterials(events, requestedThreadId) {
+  const validation = validateEvents(events);
   const integrity = verifyEventIntegrity(events);
   const strictIntegrity = verifyEventIntegrity(events, { strict: true });
   const projection = projectEvents(events);
@@ -217,15 +304,33 @@ function buildContinuityMaterials(events, requestedThreadId) {
   const threadId = state.thread?.id || requestedThreadId || null;
   const eventLogHash = hashEventLog(events);
   const projectionHash = contentHash(projectionMaterial(projection));
+  const verificationStatus = determineResumeStatus({
+    validation,
+    integrity,
+    strictIntegrity,
+    projection
+  });
   const continuityState = state.error
     ? null
     : buildContinuityState(state, {
         eventLogHash,
         integrity,
-        strictIntegrity
+        strictIntegrity,
+        verificationStatus
       });
   const stateHash = continuityState ? contentHash(continuityState) : null;
+  const verificationState = buildVerificationState({
+    validation,
+    integrity,
+    strictIntegrity,
+    projection,
+    eventLogHash,
+    projectionHash,
+    stateHash,
+    status: verificationStatus.status
+  });
   return {
+    validation,
     integrity,
     strictIntegrity,
     projection,
@@ -234,11 +339,12 @@ function buildContinuityMaterials(events, requestedThreadId) {
     eventLogHash,
     projectionHash,
     continuityState,
-    stateHash
+    stateHash,
+    verificationState
   };
 }
 
-function buildContinuityState(state, { eventLogHash, integrity, strictIntegrity }) {
+function buildContinuityState(state, { eventLogHash, integrity, strictIntegrity, verificationStatus }) {
   const assumptions = state.assumptions || [];
   const claims = state.claims || [];
   const openObjections = state.unresolvedObjections || [];
@@ -251,6 +357,10 @@ function buildContinuityState(state, { eventLogHash, integrity, strictIntegrity 
   return {
     mission: "Conversation is input. Reasoning state is output.",
     continuity_claim: "Projected reasoning state is continuity.",
+    theorem: CONTINUITY_THEOREM,
+    hard_law: CONTINUITY_HARD_LAW,
+    resume_status: verificationStatus.status,
+    capability_set: CONTINUITY_CAPABILITY_SET,
     source_thread_id: state.thread.id,
     current_question: state.thread.question,
     current_request: state.currentProposal || null,
@@ -272,6 +382,19 @@ function buildContinuityState(state, { eventLogHash, integrity, strictIntegrity 
     fork_lineage: state.forkLineage || null,
     merge_state: state.mergeState || {},
     attribution_state: state.attributionState || {},
+    provenance_state: state.provenanceState || {},
+    learning_state: state.learningState || {},
+    adaptation_state: state.adaptationState || {},
+    amendment_state: state.amendmentState || {},
+    verification_status: {
+      status: verificationStatus.status,
+      verification_mode: strictIntegrity.valid ? "strict" : "compatibility",
+      required_layers: REQUIRED_VERIFICATION_LAYERS,
+      missing_layers: verificationStatus.missingLayers,
+      failed_layers: verificationStatus.failedLayers,
+      transcript_replay: false,
+      memory_trust: false
+    },
     integrity_state: {
       event_count: integrity.eventCount,
       event_log_hash: eventLogHash,
@@ -316,6 +439,12 @@ function validatePacketEnvelope(packet, reasons) {
   if (packet.schema_version !== CONTINUITY_SCHEMA_VERSION) {
     reasons.push(reason("schema_version", `unsupported schema_version ${packet.schema_version}`));
   }
+  if (packet.theorem !== CONTINUITY_THEOREM) {
+    reasons.push(reason("theorem", `unsupported theorem ${packet.theorem}`));
+  }
+  if (packet.hard_law !== CONTINUITY_HARD_LAW) {
+    reasons.push(reason("hard_law", `unsupported hard_law ${packet.hard_law}`));
+  }
   if (packet.clista_protocol_version !== PROTOCOL_VERSION) {
     reasons.push(reason("clista_protocol_version", `unsupported clista_protocol_version ${packet.clista_protocol_version}`));
   }
@@ -327,10 +456,12 @@ function validatePacketEnvelope(packet, reasons) {
     "event_log_hash",
     "projection_hash",
     "state_hash",
+    "capability_set",
     "exported_at",
     "integrity_verified",
     "strict_integrity_verified",
     "verification_mode",
+    "resume_status",
     "integrity"
   ]) {
     if (packet[field] === undefined || packet[field] === null || packet[field] === "") {
@@ -339,6 +470,152 @@ function validatePacketEnvelope(packet, reasons) {
   }
   if (packet.exported_at && Number.isNaN(Date.parse(packet.exported_at))) {
     reasons.push(reason("exported_at", `malformed exported_at ${packet.exported_at}`));
+  }
+}
+
+function buildVerificationState({
+  validation,
+  integrity,
+  strictIntegrity,
+  projection,
+  eventLogHash,
+  projectionHash,
+  stateHash,
+  status
+}) {
+  const verificationMode = strictIntegrity.valid ? "strict" : "compatibility";
+  return {
+    schema: "clista.continuity.verification_state.v0",
+    theorem: CONTINUITY_THEOREM,
+    hardLaw: CONTINUITY_HARD_LAW,
+    status,
+    clistaProtocolVersion: PROTOCOL_VERSION,
+    continuityProtocolVersion: CONTINUITY_PROTOCOL_VERSION,
+    capabilitySet: CONTINUITY_CAPABILITY_SET,
+    requiredLayers: REQUIRED_VERIFICATION_LAYERS,
+    verificationMode,
+    eventLogHash,
+    projectionHash,
+    stateHash,
+    validity: {
+      valid: validation.valid,
+      errorCount: validation.errors.length
+    },
+    integrity: {
+      valid: integrity.valid,
+      strict: strictIntegrity.valid,
+      eventCount: integrity.eventCount,
+      headHash: integrity.headHash,
+      verificationMode
+    },
+    attributionValidationStatus: projection.attribution?.attributionValidationStatus || null,
+    provenanceValidationStatus: projection.provenance?.provenanceValidationStatus || null,
+    learningValidationStatus: projection.learning?.learningValidationStatus || null,
+    adaptationValidationStatus: projection.adaptation?.adaptationValidationStatus || null,
+    amendmentValidationStatus: projection.amendments?.amendmentValidationStatus || null,
+    transcriptReplay: false,
+    memoryTrust: false,
+    authorityCreated: false,
+    governanceMutation: false,
+    amendmentApproval: false,
+    importedStateMutation: false
+  };
+}
+
+function determineResumeStatus({ validation, integrity, strictIntegrity, projection }) {
+  const missingLayers = [];
+  const failedLayers = [];
+  const layers = {
+    validity: validation.valid,
+    integrity: integrity.valid,
+    attribution: projection.attribution?.attributionValidationStatus?.valid,
+    provenance: projection.provenance?.provenanceValidationStatus?.valid,
+    learning: projection.learning?.learningValidationStatus?.valid,
+    adaptation: projection.adaptation?.adaptationValidationStatus?.valid,
+    amendments: projection.amendments?.amendmentValidationStatus?.valid
+  };
+
+  for (const layer of REQUIRED_VERIFICATION_LAYERS) {
+    if (layers[layer] === undefined || layers[layer] === null) {
+      missingLayers.push(layer);
+    } else if (layers[layer] !== true) {
+      failedLayers.push(layer);
+    }
+  }
+
+  if (missingLayers.length || failedLayers.length) {
+    return {
+      status: "rejected",
+      missingLayers,
+      failedLayers
+    };
+  }
+  return {
+    status: strictIntegrity.valid ? "verified" : "degraded",
+    missingLayers,
+    failedLayers
+  };
+}
+
+function validateVerificationStateShape(verificationState, reasons) {
+  if (verificationState.schema !== "clista.continuity.verification_state.v0") {
+    reasons.push(reason("verification_state.schema", "unsupported verification_state schema"));
+  }
+  if (verificationState.theorem !== CONTINUITY_THEOREM) {
+    reasons.push(reason("verification_state.theorem", "verification_state theorem mismatch"));
+  }
+  if (verificationState.hardLaw !== CONTINUITY_HARD_LAW) {
+    reasons.push(reason("verification_state.hardLaw", "verification_state hard law mismatch"));
+  }
+  if (!["verified", "degraded", "rejected"].includes(verificationState.status)) {
+    reasons.push(reason("verification_state.status", `unsupported verification_state status ${verificationState.status}`));
+  }
+  for (const layer of REQUIRED_VERIFICATION_LAYERS) {
+    if (!verificationState.requiredLayers?.includes(layer)) {
+      reasons.push(reason("verification_state.requiredLayers", `missing required verification layer ${layer}`));
+    }
+  }
+  for (const [field, status] of [
+    ["validity", verificationState.validity],
+    ["integrity", verificationState.integrity],
+    ["attributionValidationStatus", verificationState.attributionValidationStatus],
+    ["provenanceValidationStatus", verificationState.provenanceValidationStatus],
+    ["learningValidationStatus", verificationState.learningValidationStatus],
+    ["adaptationValidationStatus", verificationState.adaptationValidationStatus],
+    ["amendmentValidationStatus", verificationState.amendmentValidationStatus]
+  ]) {
+    if (!status || typeof status !== "object") {
+      reasons.push(reason(`verification_state.${field}`, `missing verification layer ${field}`));
+    } else if (status.valid !== true) {
+      reasons.push(reason(`verification_state.${field}`, `verification layer ${field} is not valid`));
+    }
+  }
+}
+
+function validateCapabilitySet(capabilitySet, reasons) {
+  if (!Array.isArray(capabilitySet)) {
+    reasons.push(reason("capability_set", "capability_set must be an array"));
+    return;
+  }
+  for (const capability of CONTINUITY_CAPABILITY_SET) {
+    if (!capabilitySet.includes(capability)) {
+      reasons.push(reason("capability_set", `missing capability ${capability}`));
+    }
+  }
+}
+
+function validateNoContinuityMutation(value, reasons) {
+  for (const [field, label] of [
+    ["transcriptReplay", "continuity cannot trust transcript replay"],
+    ["memoryTrust", "continuity cannot trust model memory"],
+    ["authorityCreated", "continuity package cannot create authority"],
+    ["governanceMutation", "continuity package cannot mutate governance"],
+    ["amendmentApproval", "continuity package cannot approve amendments"],
+    ["importedStateMutation", "continuity package cannot mutate imported state"]
+  ]) {
+    if (value[field] !== false) {
+      reasons.push(reason(`verification_state.${field}`, label));
+    }
   }
 }
 
@@ -377,12 +654,15 @@ module.exports = {
   CONTINUITY_PROTOCOL,
   CONTINUITY_PROTOCOL_VERSION,
   CONTINUITY_SCHEMA_VERSION,
+  CONTINUITY_THEOREM,
+  CONTINUITY_HARD_LAW,
   buildContinuityMaterials,
   continuityPacketPath,
   exportContinuityPacket,
   formatContinuityReasons,
   hashEventLog,
   readContinuityPacketAt,
+  resumeContinuityPacket,
   summarizeContinuityPacket,
   verifyContinuityPacket,
   writeContinuityPacket

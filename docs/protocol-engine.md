@@ -141,8 +141,9 @@ npm run clista -- validate
 npm run clista -- integrity verify
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
-npm run clista -- continuity import --packet continuity.json
-npm run clista -- continuity summary --packet continuity.json
+npm run clista -- continuity import continuity.json
+npm run clista -- continuity resume
+npm run clista -- continuity show
 npm run clista -- identity show --participant par_troy
 npm run clista -- attribution list --thread thd_example
 npm run clista -- attribution show clm_example

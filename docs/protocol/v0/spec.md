@@ -152,15 +152,36 @@ must reject logs missing canonical protocol version, hash version, content hashe
 
 ```text
 clista continuity export
-clista continuity verify --packet <path>
-clista continuity import --packet <path>
+clista continuity verify [--packet <path>]
+clista continuity import <path>
+clista continuity resume [--packet <path>]
+clista continuity show [--packet <path>]
 clista continuity summary --packet <path>
 ```
 
 must transfer projected reasoning state across contexts without relying on the full conversation transcript.
 
+The theorem is:
+
+```text
+reasoning_continuity = resume(project(event_log), verification_state)
+```
+
+The hard law is:
+
+```text
+context transfer != memory trust
+```
+
 A Continuity Packet must be integrity-gated and must preserve:
 
+- protocol version
+- milestone capability set
+- event log hash
+- projection hash
+- state hash
+- resume status: `verified`, `degraded`, or `rejected`
+- verification status for integrity, attribution, provenance, learning, adaptation, and amendments
 - current question
 - current decision
 - assumptions
@@ -171,7 +192,13 @@ A Continuity Packet must be integrity-gated and must preserve:
 - fork lineage
 - merge state
 - attribution state
+- provenance state
+- learning state
+- adaptation state
+- amendment state
 - next action
+
+Continuity must reject packets that trust transcript replay, trust model memory, skip failed verification, create authority, approve amendments, mutate governance, mutate imported state, or bypass validation.
 
 ## Required Identity
 

@@ -159,3 +159,17 @@ Rejected amendments do not alter active protocol state.
 ## Protocol Amendment Supersession
 
 An authorized governance action that deactivates a previously approved amendment while preserving its history.
+
+## Continuity Packet
+
+A portable verification artifact for projected reasoning state.
+
+It carries source events, event-log integrity proof, projected-state checksums, milestone capability set, verification state, and resume status.
+
+It is not a transcript, not model memory, not governance approval, and not a new authority source.
+
+## Continuity Verification State
+
+A deterministic record of whether transferred reasoning state is `verified`, `degraded`, or `rejected`.
+
+It records required verification layers for integrity, attribution, provenance, learning, adaptation, and amendments.
