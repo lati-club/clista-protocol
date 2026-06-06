@@ -36,8 +36,9 @@ that another human or agent can reload later.
 22. Protocol learning from outcomes
 23. Protocol review
 24. Protocol recovery
+25. Protocol release
 
-The compressed primitive map for M0-M24 is:
+The compressed primitive map for M0-M25 is:
 
 ```text
 docs/protocol/v0/primitive-map.md
@@ -103,8 +104,11 @@ The protocol core defines:
 - `recoveryApplication`
 - `recoveryVerification`
 - `recoveryViolation`
+- `releaseManifest`
 
 See `schemas/clista-protocol.schema.json`.
+
+M25 release manifests are described by `schemas/clista-release-manifest.schema.json` because release verification is a repository artifact boundary rather than projected reasoning state.
 
 ## Event Log
 
@@ -200,6 +204,8 @@ Supported events:
 - `RecoveryVerified`
 - `RecoveryViolationRecorded`
 
+M25 release manifests are repository artifacts, not event-log records. They do not add release approval events.
+
 The local store lives at:
 
 ```text
@@ -240,6 +246,9 @@ npm run clista -- recovery plan --recovery rcv_example --plan "Quarantine invali
 npm run clista -- recovery quarantine --recovery rcv_example --reason "Invalid event remains visible but not trusted."
 npm run clista -- recovery apply --recovery rcv_example --summary "Applied reviewed repair marker without rewriting history."
 npm run clista -- recovery verify --recovery rcv_example
+npm run clista -- release manifest --tag v0.25.0-protocol-release --out .clista/release-manifest.json
+npm run clista -- release verify --manifest .clista/release-manifest.json
+npm run clista -- release show --manifest .clista/release-manifest.json
 npm run clista -- merge open --source thd_example_alt --target thd_example --summary "Integrate useful fork reasoning."
 npm run clista -- merge eligibility --request mrg_example
 npm run clista -- merge complete --request mrg_example --merged-by "Troy"
@@ -261,6 +270,7 @@ npm run clista -- negotiation verify
 npm run clista -- execution verify
 npm run clista -- review verify
 npm run clista -- recovery verify
+npm run clista -- release verify
 npm run clista -- outcome verify
 npm run clista -- outcome-learning verify
 npm run clista -- identity show --participant par_troy

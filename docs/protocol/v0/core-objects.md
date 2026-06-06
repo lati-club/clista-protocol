@@ -84,6 +84,14 @@ It is not history rewrite. Recovery keeps invalid history visible in raw events,
 
 It is not approval, amendment, consensus, governance mutation, authority creation, rollback, or accountability scoring.
 
+## Protocol Release Manifest
+
+An M25 repository artifact that binds a package release to source commit, release tag, package version, CLI entrypoint, schema hashes, source hashes, capability declarations, verifier results, and export shape.
+
+It is not an event-log reasoning object. It does not create trust, protocol authority, governance approval, amendment approval, compatibility proof, or publishing verification.
+
+The manifest records `release_exists: true` and `release_verified: false`. `clista release verify` produces the verification result.
+
 ## Decision Record
 
 The immutable record of an accepted or rejected decision.
@@ -206,6 +214,7 @@ M21 adds outcome verification status so completion is separate from success.
 M22 adds outcome learning verification status so lessons can derive from evaluated outcomes without retroactive justification.
 M23 adds review verification status so required examination routes state change without becoming approval.
 M24 adds recovery verification status so reviewed repair can restore trusted projection without rewriting history.
+M25 adds release manifest verification outside projected reasoning state so the repository artifact can be inspected without treating release as trust.
 
 ## Compatibility Context
 

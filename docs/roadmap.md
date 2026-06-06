@@ -33,23 +33,22 @@ Verified baseline:
 
 - M22: Protocol Outcome Learning
 - M22.1: Roadmap Compression Cleanup
+- M23: Protocol Review
+- M24: Protocol Recovery
 
 Current milestone:
 
-- M23: Protocol Review
+- M25: Protocol Release
 
-M23 adds review routing for state changes that require examination before further action.
+M25 adds release manifest generation and verification for the repository artifact.
 
 Hard law:
 
 ```text
-review != approval
+release != trust
 ```
 
-Next candidates remain separate:
-
-- M24: Protocol Recovery
-- M25: Runtime / Packaging
+Next candidates remain separate and must be selected by inspection.
 
 ## Phase 0: Protocol Spike
 

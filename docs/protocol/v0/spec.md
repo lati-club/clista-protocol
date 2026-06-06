@@ -68,6 +68,8 @@ For example, `delegationProtocolVersion: "0.19.0"` means the delegation layer is
 
 Change a layer version only when that layer's protocol behavior changes. Change the package or release version when the repository release changes.
 
+M25 Protocol Release uses `release_protocol_version: "0.25.0"` in the release manifest. It does not add release records to projected reasoning state, so `schemas/clista-protocol.schema.json` remains the reasoning-state export schema and `schemas/clista-release-manifest.schema.json` describes the release artifact.
+
 ## Core Events
 
 - `ThreadCreated`

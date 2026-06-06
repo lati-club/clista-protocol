@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clista.local/schemas/clista-release-manifest.schema.json",
+  "title": "ClisTa Protocol Release Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "theorem",
+    "hard_law",
+    "release_id",
+    "release_protocol_version",
+    "protocol_version",
+    "package_name",
+    "package_version",
+    "git_commit",
+    "git_tag",
+    "created_at",
+    "cli_entrypoint",
+    "package_manifest",
+    "schema_files",
+    "schema_set_hash",
+    "source_files",
+    "file_set_hash",
+    "required_verifiers",
+    "verifier_results",
+    "capability_set",
+    "required_verification_layers",
+    "release_exists",
+    "release_verified",
+    "trusted",
+    "protocolAuthority",
+    "governanceApproval",
+    "amendmentApproval",
+    "compatibilityProof",
+    "publishingVerified",
+    "silentReleaseMutation",
+    "manifest_hash"
+  ],
+  "properties": {
+    "schema": {
+      "const": "clista.release.manifest.v0"
+    },
+    "theorem": {
+      "const": "protocol_release = package(verified_runtime, with_reproducible_manifest)"
+    },
+    "hard_law": {
+      "const": "release != trust"
+    },
+    "release_protocol_version": {
+      "const": "0.25.0"
+    },
+    "protocol_version": {
+      "const": "clista.protocol.v0"
+    },
+    "release_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "git_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "git_tag": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cli_entrypoint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_manifest": {
+      "type": "object",
+      "required": ["path", "hash", "bin"],
+      "properties": {
+        "path": {
+          "const": "package.json"
+        },
+        "hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bin": {
+          "type": "object"
+        }
+      }
+    },
+    "schema_files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hashedFile"
+      }
+    },
+    "schema_set_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "source_files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hashedFile"
+      }
+    },
+    "file_set_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "required_verifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "command", "args"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "verifier_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "command", "passed", "exit_code", "stdout_hash", "stderr_hash"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "stdout_hash": {
+            "$ref": "#/$defs/sha256"
+          },
+          "stderr_hash": {
+            "$ref": "#/$defs/sha256"
+          },
+          "output_schema": {
+            "type": ["string", "null"]
+          },
+          "error": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "capability_set": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_verification_layers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "export_shape_version": {
+      "type": "string"
+    },
+    "package_artifact_hash": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "previous_release_ref": {
+      "type": ["string", "null"]
+    },
+    "release_exists": {
+      "const": true
+    },
+    "release_verified": {
+      "const": false
+    },
+    "trusted": {
+      "const": false
+    },
+    "protocolAuthority": {
+      "const": false
+    },
+    "governanceApproval": {
+      "const": false
+    },
+    "amendmentApproval": {
+      "const": false
+    },
+    "compatibilityProof": {
+      "const": false
+    },
+    "publishingVerified": {
+      "const": false
+    },
+    "silentReleaseMutation": {
+      "const": false
+    },
+    "manifest_hash": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "hashedFile": {
+      "type": "object",
+      "required": ["path", "hash"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "parsed": {
+          "type": "boolean"
+        },
+        "parse_error": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

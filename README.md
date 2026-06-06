@@ -22,7 +22,7 @@ Commit Evidence -> Pull Decision -> Track Audit
 - Projected state derived from events.
 - CLI-first protocol engine.
 
-The compressed M0-M23 primitive map is:
+The compressed M0-M25 primitive map is:
 
 ```text
 docs/protocol/v0/primitive-map.md
@@ -142,6 +142,16 @@ clista recovery verify
 If it verifies reviewed recovery records without rewriting history, ClisTa can quarantine unsafe subjects and restore recovery-aware trusted projection while keeping invalid history visible and auditable.
 
 M24 recovery commands append recovery records only. Recovery is not approval, amendment, consensus, governance mutation, authority creation, rollback, or event replacement.
+
+The protocol release command is:
+
+```text
+clista release verify
+```
+
+If it verifies a release manifest, ClisTa can bind package version, Git commit, Git tag, CLI entrypoint, schema hashes, source hashes, capability declarations, verifier results, and export shape without treating the release itself as trust.
+
+M25 release manifests are repository artifacts, not reasoning-state events. Release is not trust, protocol authority, governance approval, amendment approval, publishing verification, or compatibility proof by itself.
 
 The identity command is:
 

@@ -1,6 +1,6 @@
-# Primitive Map M0-M24
+# Primitive Map M0-M25
 
-This map compresses the verified M0-M24 surface into protocol primitives.
+This map compresses the verified M0-M25 surface into protocol primitives.
 
 ```text
 Conversation is input.
@@ -59,7 +59,7 @@ Milestones:
 - M1 Protocol Validity
 - M2 Protocol Governance
 - M6 Protocol Integrity
-- M8-M24 layer-specific validation
+- M8-M25 layer-specific validation
 
 Preserved laws:
 
@@ -68,6 +68,7 @@ Preserved laws:
 - Invalid reasoning must fail loudly with `event_id` and `reason`.
 - Required review is pending until completed as `reviewed`.
 - Recovery is verified repair, not baseline validity mutation.
+- Release verification is artifact binding, not trust by existence.
 
 ## Governance And Authority
 
@@ -227,6 +228,24 @@ Preserved laws:
 - Recovery verification proves restored-state claims; it does not make invalid history valid.
 - Recovery does not approve, amend, create consensus, create authority, mutate governance, delete events, replace events, or perform silent repair.
 
+## Release Boundary
+
+What it does:
+
+Produces and verifies a reproducible release manifest that binds package version, Git commit, Git tag, CLI entrypoint, schema hashes, source hashes, capability declarations, verifier results, and export shape.
+
+Milestones:
+
+- M25 Protocol Release
+
+Preserved laws:
+
+- Release is not trust.
+- A tag is not trust.
+- Publishing is not verification.
+- Release does not create protocol authority, approve governance, approve amendments, prove compatibility by itself, or mutate reasoning state.
+- A manifest must distinguish `release_exists` from `release_verified`.
+
 ## Decision Outcomes And Protocol Outcomes
 
 M3 decision outcome means:
@@ -267,7 +286,9 @@ The names overlap because M21 reuses the CLI namespace for a narrower execution-
 
 Layer protocol versions mark capability boundaries. For example, delegation remains `0.19.0`, execution remains `0.20.0`, outcome remains `0.21.0`, outcome learning remains `0.22.0`, review remains `0.23.0`, and recovery is `0.24.0` until those layer behaviors change.
 
-Package and release versions mark repository releases. A feature release can advance to `v0.24.0` while unchanged M19-M23 layer versions stay at their original capability boundaries.
+Package and release versions mark repository releases. A feature release can advance to `v0.25.0` while unchanged M19-M24 layer versions stay at their original capability boundaries.
+
+M25 Protocol Release has its own `release_protocol_version: "0.25.0"` because release manifests are repository artifacts, not projected reasoning-state layers.
 
 Use a layer version to ask:
 

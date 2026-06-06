@@ -77,6 +77,12 @@ const {
   restoredStateHash
 } = require("./recovery");
 const {
+  buildReleaseManifest,
+  readReleaseManifest,
+  verifyReleaseManifest,
+  writeReleaseManifest
+} = require("./release");
+const {
   summarizeProtocolCompatibility,
   verifyProtocolCompatibility
 } = require("./compatibility");
@@ -245,6 +251,12 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
         return recoveryList(options, cwd);
       case "recovery show":
         return recoveryShow(options, cwd);
+      case "release manifest":
+        return releaseManifest(options, cwd);
+      case "release verify":
+        return releaseVerify(options, cwd);
+      case "release show":
+        return releaseShow(options, cwd);
       case "decision merge":
         return decisionMerge(options, cwd);
       case "outcome expect":
@@ -1692,6 +1704,79 @@ function recoveryShow(options, cwd) {
   }
   const projection = projectEvents(readValidEventsForOptions(options, cwd));
   return print(recoveryForId(projection.recovery, recoveryId));
+}
+
+function releaseManifest(options, cwd) {
+  const manifest = buildReleaseManifest(cwd, {
+    tag: options.tag || options.gitTag,
+    gitCommit: options.commit || options.gitCommit,
+    releaseId: options.release || options.releaseId || options.id,
+    previousReleaseRef: options.previous || options.previousReleaseRef,
+    packageArtifact: options.packageArtifact,
+    createdAt: options.createdAt,
+    cliEntrypoint: options.cli || options.cliEntrypoint
+  });
+  if (options.out) {
+    const manifestPath = writeReleaseManifest(manifest, options.out, cwd);
+    return print({
+      schema: "clista.release.manifest.write.v0",
+      written: true,
+      manifestPath,
+      manifestHash: manifest.manifest_hash,
+      manifest
+    });
+  }
+  return print(manifest);
+}
+
+function releaseVerify(options, cwd) {
+  const manifest = options.manifest || options.file
+    ? readReleaseManifest(options.manifest || options.file, cwd)
+    : buildReleaseManifest(cwd, {
+        tag: options.tag || options.gitTag,
+        gitCommit: options.commit || options.gitCommit,
+        releaseId: options.release || options.releaseId || options.id,
+        previousReleaseRef: options.previous || options.previousReleaseRef,
+        packageArtifact: options.packageArtifact,
+        createdAt: options.createdAt,
+        cliEntrypoint: options.cli || options.cliEntrypoint
+      });
+  const result = verifyReleaseManifest(manifest, { cwd });
+  print(result);
+  if (!result.valid) {
+    process.exitCode = 1;
+  }
+}
+
+function releaseShow(options, cwd) {
+  const manifest = options.manifest || options.file
+    ? readReleaseManifest(options.manifest || options.file, cwd)
+    : buildReleaseManifest(cwd, {
+        tag: options.tag || options.gitTag,
+        gitCommit: options.commit || options.gitCommit,
+        releaseId: options.release || options.releaseId || options.id,
+        previousReleaseRef: options.previous || options.previousReleaseRef,
+        packageArtifact: options.packageArtifact,
+        createdAt: options.createdAt,
+        cliEntrypoint: options.cli || options.cliEntrypoint,
+        runVerifiers: false
+      });
+  return print({
+    schema: "clista.release.show.v0",
+    theorem: manifest.theorem,
+    hardLaw: manifest.hard_law,
+    releaseId: manifest.release_id,
+    packageName: manifest.package_name,
+    packageVersion: manifest.package_version,
+    gitCommit: manifest.git_commit,
+    gitTag: manifest.git_tag,
+    cliEntrypoint: manifest.cli_entrypoint,
+    manifestHash: manifest.manifest_hash,
+    releaseExists: manifest.release_exists,
+    releaseVerified: manifest.release_verified,
+    trusted: false,
+    manifest
+  });
 }
 
 function decisionMerge(options, cwd) {
@@ -4109,6 +4194,17 @@ function normalizeCommand(command, options) {
       }
     };
   }
+  for (const releaseCommand of ["release verify", "release show"]) {
+    if (command.startsWith(`${releaseCommand} `)) {
+      return {
+        command: releaseCommand,
+        options: {
+          ...options,
+          manifest: options.manifest || command.slice(`${releaseCommand} `.length).trim()
+        }
+      };
+    }
+  }
   return { command, options };
 }
 
@@ -4442,6 +4538,10 @@ function usage() {
   clista recovery violation --recovery <recoveryId> --type <violationType> --reason <reason>
   clista recovery list [--thread <threadId>] [--status <status>] [--events <path>]
   clista recovery show <recoveryId> [--events <path>]
+  # M25 protocol release commands (release packages verified runtime; release is not trust)
+  clista release manifest [--tag <tag>] [--out <path>]
+  clista release verify [--manifest <path>] [--tag <tag>]
+  clista release show [--manifest <path>]
   clista decision merge --thread <threadId> --request <requestId> --decider <name|id>
   # M3 decision outcome commands
   clista outcome expect --thread <threadId> --decision <decisionRecordId> --metric <metric> --operator <operator> --target <target> --review-date <YYYY-MM-DD>
