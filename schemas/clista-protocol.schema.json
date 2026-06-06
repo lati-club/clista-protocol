@@ -30,6 +30,11 @@
     "outcomeAudits",
     "decisionScores",
     "alignmentSnapshots",
+    "identity",
+    "participantRoles",
+    "activeAuthorities",
+    "revokedAuthorities",
+    "authorityHistory",
     "events"
   ],
   "properties": {
@@ -172,6 +177,33 @@
         "$ref": "#/$defs/alignmentSnapshot"
       }
     },
+    "identity": {
+      "$ref": "#/$defs/identityProjection"
+    },
+    "participantRoles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/participantRole"
+      }
+    },
+    "activeAuthorities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/participantAuthority"
+      }
+    },
+    "revokedAuthorities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/participantAuthority"
+      }
+    },
+    "authorityHistory": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/participantAuthorityHistory"
+      }
+    },
     "events": {
       "type": "array",
       "items": {
@@ -272,8 +304,175 @@
         "role": {
           "type": "string"
         },
+        "declaredBy": {
+          "$ref": "#/$defs/id"
+        },
+        "declaredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "identitySource": {
+          "type": "string"
+        },
         "metadata": {
           "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "participantRole": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "participantId",
+        "role",
+        "scope"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "participantRole"
+        },
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "global",
+            "thread"
+          ]
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "participantAuthority": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "participantId",
+        "authority",
+        "scope"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "participantAuthority"
+        },
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "authority": {
+          "enum": [
+            "decision_owner"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "global",
+            "thread"
+          ]
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "participantAuthorityHistory": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "participantId",
+        "authority",
+        "scope",
+        "action"
+      ],
+      "properties": {
+        "participantId": {
+          "$ref": "#/$defs/id"
+        },
+        "authority": {
+          "enum": [
+            "decision_owner"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "global",
+            "thread"
+          ]
+        },
+        "action": {
+          "enum": [
+            "granted",
+            "revoked"
+          ]
+        }
+      }
+    },
+    "identityProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "participants",
+        "roles",
+        "activeAuthorities",
+        "revokedAuthorities",
+        "authorityHistory",
+        "identityValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.identity.v0"
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/participant"
+          }
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/participantRole"
+          }
+        },
+        "activeAuthorities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/participantAuthority"
+          }
+        },
+        "revokedAuthorities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/participantAuthority"
+          }
+        },
+        "authorityHistory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/participantAuthorityHistory"
+          }
+        },
+        "identityValidationStatus": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },
@@ -1735,6 +1934,10 @@
             "ThreadCreated",
             "ThreadForked",
             "ParticipantAdded",
+            "ParticipantDeclared",
+            "ParticipantRoleAssigned",
+            "ParticipantAuthorityGranted",
+            "ParticipantAuthorityRevoked",
             "AssumptionDeclared",
             "EvidenceCommitted",
             "ClaimCreated",

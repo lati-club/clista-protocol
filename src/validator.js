@@ -1,10 +1,17 @@
-const { evaluateDecisionEligibility, isBlockingObjection, isDecisionOwnerRole } = require("./governance");
+const { evaluateDecisionEligibility, isBlockingObjection } = require("./governance");
 const {
   EVENT_HASH_VERSION,
   HASH_PATTERN,
   PROTOCOL_VERSION,
   computeEventHash
 } = require("./integrity");
+const {
+  VALID_AUTHORITIES,
+  VALID_AUTHORITY_SCOPES,
+  applyIdentityEvent,
+  emptyIdentityState,
+  participantHasAuthority
+} = require("./identity");
 const {
   MERGE_CONFLICT_RESOLUTIONS,
   buildMergeState,
@@ -69,6 +76,18 @@ function validateEvents(events) {
     switch (event.event_type) {
       case "ParticipantAdded":
         validateParticipantAdded(event, state);
+        break;
+      case "ParticipantDeclared":
+        validateParticipantDeclared(event, state);
+        break;
+      case "ParticipantRoleAssigned":
+        validateParticipantRoleAssigned(event, state);
+        break;
+      case "ParticipantAuthorityGranted":
+        validateParticipantAuthorityGranted(event, state);
+        break;
+      case "ParticipantAuthorityRevoked":
+        validateParticipantAuthorityRevoked(event, state);
         break;
       case "ThreadCreated":
         validateThreadCreated(event, state);
@@ -166,6 +185,7 @@ function emptyValidationState(events = []) {
     allEventIndexById: new Map(events.map((event, index) => [event?.event_id, index]).filter(([id]) => id)),
     processedEventsById: new Map(),
     participants: new Map(),
+    identity: emptyIdentityState(),
     threads: new Map(),
     forks: new Map(),
     forkInheritedObjectIds: new Map(),
@@ -280,6 +300,13 @@ function validateActor(event, state) {
   if (event.event_type === "ParticipantAdded") {
     return;
   }
+  if (event.event_type === "ParticipantDeclared") {
+    const participantId = event.payload?.participant?.id;
+    if (event.actor_id && event.actor_id !== participantId && !state.participants.has(event.actor_id)) {
+      addError(state, event, `actor_id ${event.actor_id} is not a declared participant`);
+    }
+    return;
+  }
   if (event.actor_id && !state.participants.has(event.actor_id)) {
     addError(state, event, `actor_id ${event.actor_id} is not a known participant`);
   }
@@ -291,7 +318,71 @@ function validateParticipantAdded(event, state) {
     addError(state, event, "ParticipantAdded payload missing participant.id");
     return;
   }
+  if (state.participants.has(participant.id)) {
+    addError(state, event, `duplicate participant id ${participant.id}`);
+  }
   state.participants.set(participant.id, participant);
+  applyIdentityEvent(state.identity, event);
+}
+
+function validateParticipantDeclared(event, state) {
+  const participant = event.payload.participant;
+  if (!participant?.id) {
+    addError(state, event, "ParticipantDeclared payload missing participant.id");
+    return;
+  }
+  if (state.participants.has(participant.id)) {
+    addError(state, event, `duplicate participant id ${participant.id}`);
+  }
+  state.participants.set(participant.id, participant);
+  applyIdentityEvent(state.identity, event);
+}
+
+function validateParticipantRoleAssigned(event, state) {
+  const role = event.payload.participantRole;
+  if (!role?.participantId) {
+    addError(state, event, "ParticipantRoleAssigned payload missing participantRole.participantId");
+    return;
+  }
+  if (!state.participants.has(role.participantId)) {
+    addError(state, event, `role assignment references unknown participant ${role.participantId}`);
+  }
+  if (!role.role) {
+    addError(state, event, "participant role assignment requires role");
+  }
+  validateAuthorityScope(event, state, role.scope, role.threadId);
+  applyIdentityEvent(state.identity, event);
+}
+
+function validateParticipantAuthorityGranted(event, state) {
+  const authority = event.payload.participantAuthority;
+  if (!authority?.participantId) {
+    addError(state, event, "ParticipantAuthorityGranted payload missing participantAuthority.participantId");
+    return;
+  }
+  if (!state.participants.has(authority.participantId)) {
+    addError(state, event, `authority grant references unknown participant ${authority.participantId}`);
+  }
+  validateAuthorityName(event, state, authority.authority);
+  validateAuthorityScope(event, state, authority.scope, authority.threadId);
+  applyIdentityEvent(state.identity, event);
+}
+
+function validateParticipantAuthorityRevoked(event, state) {
+  const revocation = event.payload.participantAuthorityRevocation;
+  if (!revocation?.participantId) {
+    addError(state, event, "ParticipantAuthorityRevoked payload missing participantAuthorityRevocation.participantId");
+    return;
+  }
+  if (!state.participants.has(revocation.participantId)) {
+    addError(state, event, `authority revocation references unknown participant ${revocation.participantId}`);
+  }
+  validateAuthorityName(event, state, revocation.authority);
+  validateAuthorityScope(event, state, revocation.scope, revocation.threadId);
+  if (!participantHasAuthority(state.identity, revocation.participantId, revocation.authority, revocation.threadId)) {
+    addError(state, event, `authority revocation references inactive authority ${revocation.authority} for ${revocation.participantId}`);
+  }
+  applyIdentityEvent(state.identity, event);
 }
 
 function validateThreadCreated(event, state) {
@@ -567,7 +658,7 @@ function validateDecisionMerged(event, state) {
   if (!state.reviewsByRequest.has(decision.decisionRequestId)) {
     addError(state, event, "decision merged without review");
   }
-  if (!isDecisionOwner(decision.decidedByParticipantId, state) && !isDecisionOwner(event.actor_id, state)) {
+  if (!isDecisionOwner(decision.decidedByParticipantId, state, event.thread_id) && !isDecisionOwner(event.actor_id, state, event.thread_id)) {
     addError(state, event, `decision merged without authorized decision owner ${decision.decidedByParticipantId}`);
   }
   for (const objectionId of request?.objectionIds || []) {
@@ -832,6 +923,9 @@ function validateMergeCompleted(event, state) {
   if (!state.participants.has(completion.mergedBy)) {
     addError(state, event, `merge completion references unknown merger ${completion.mergedBy}`);
   }
+  if (!isDecisionOwner(completion.mergedBy, state, event.thread_id) && !isDecisionOwner(event.actor_id, state, event.thread_id)) {
+    addError(state, event, `merge completed without authorized decision owner ${completion.mergedBy}`);
+  }
 
   const eligibility = evaluateMergeEligibility(state.events, completion.mergeRequestId, {
     actorId: event.actor_id,
@@ -921,6 +1015,27 @@ function validateIdsExist(event, state, ids, collection, label) {
   for (const id of ids || []) {
     if (!collection.has(id)) {
       addError(state, event, `${label} reference does not exist: ${id}`);
+    }
+  }
+}
+
+function validateAuthorityName(event, state, authority) {
+  const normalized = String(authority || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (!VALID_AUTHORITIES.has(normalized)) {
+    addError(state, event, `unsupported authority ${authority}`);
+  }
+}
+
+function validateAuthorityScope(event, state, scope = "global", threadId) {
+  if (!VALID_AUTHORITY_SCOPES.has(scope)) {
+    addError(state, event, `unsupported authority scope ${scope}`);
+    return;
+  }
+  if (scope === "thread") {
+    if (!threadId) {
+      addError(state, event, "thread authority scope requires threadId");
+    } else if (!state.threads.has(threadId)) {
+      addError(state, event, `authority scope references unknown thread ${threadId}`);
     }
   }
 }
@@ -1024,6 +1139,9 @@ function primaryObject(event) {
   return payload.thread
     || payload.threadFork
     || payload.participant
+    || payload.participantRole
+    || payload.participantAuthority
+    || payload.participantAuthorityRevocation
     || payload.evidence
     || payload.assumption
     || payload.claim
@@ -1076,12 +1194,11 @@ function addToMapList(map, key, value) {
 }
 
 function isAuthorizedToResolve(actorId, objection, state) {
-  return actorId === objection.participantId || isDecisionOwner(actorId, state);
+  return actorId === objection.participantId || isDecisionOwner(actorId, state, objection.threadId);
 }
 
-function isDecisionOwner(participantId, state) {
-  const participant = state.participants.get(participantId);
-  return isDecisionOwnerRole(participant?.role);
+function isDecisionOwner(participantId, state, threadId) {
+  return participantHasAuthority(state.identity, participantId, "decision_owner", threadId);
 }
 
 function unique(values) {

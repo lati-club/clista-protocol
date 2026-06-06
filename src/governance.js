@@ -1,3 +1,10 @@
+const {
+  applyIdentityEvent,
+  authorizedParticipantIds,
+  emptyIdentityState,
+  isDecisionOwnerRole
+} = require("./identity");
+
 const APPROVAL_REVIEW_STATUSES = new Set([
   "approve",
   "approved",
@@ -64,6 +71,7 @@ function buildGovernanceState(events) {
   const state = {
     participants: new Map(),
     participantThreadIds: new Map(),
+    identity: emptyIdentityState(),
     threads: new Map(),
     evidence: new Map(),
     assumptions: new Map(),
@@ -84,6 +92,17 @@ function buildGovernanceState(events) {
       case "ParticipantAdded":
         upsert(state.participants, payload.participant, event, state);
         addParticipantThread(state, payload.participant?.id, event.thread_id);
+        applyIdentityEvent(state.identity, event);
+        break;
+      case "ParticipantDeclared":
+        upsert(state.participants, payload.participant, event, state);
+        addParticipantThread(state, payload.participant?.id, event.thread_id);
+        applyIdentityEvent(state.identity, event);
+        break;
+      case "ParticipantRoleAssigned":
+      case "ParticipantAuthorityGranted":
+      case "ParticipantAuthorityRevoked":
+        applyIdentityEvent(state.identity, event);
         break;
       case "ThreadCreated":
         upsert(state.threads, payload.thread, event, state);
@@ -304,10 +323,14 @@ function latestReviewsByReviewer(reviews) {
 }
 
 function authorizedDecisionOwnerIds(state, threadId) {
-  return Array.from(state.participants.values())
-    .filter((participant) => isDecisionOwnerRole(participant.role))
-    .filter((participant) => participantBelongsToThread(state, participant.id, threadId))
-    .map((participant) => participant.id);
+  return authorizedParticipantIds(state.identity, "decision_owner", threadId)
+    .filter((participantId) => {
+      const authorities = Array.from(state.identity.activeAuthorities.values())
+        .filter((authority) => authority.participantId === participantId && authority.authority === "decision_owner");
+      return authorities.some((authority) => authority.scope === "global")
+        || participantBelongsToThread(state, participantId, threadId)
+        || authorities.some((authority) => authority.threadId === threadId);
+    });
 }
 
 function participantBelongsToThread(state, participantId, threadId) {
@@ -391,11 +414,6 @@ function isBlockingObjection(objection) {
 
 function isResolvedObjection(objection) {
   return objection?.status === "resolved";
-}
-
-function isDecisionOwnerRole(role) {
-  const normalized = String(role || "").toLowerCase().replace(/[_-]+/g, " ");
-  return normalized.includes("decision") && normalized.includes("owner");
 }
 
 function pushUnique(values, value) {

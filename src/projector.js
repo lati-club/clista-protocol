@@ -1,4 +1,5 @@
 const { nowIso } = require("./events");
+const { buildIdentityState, projectIdentity } = require("./identity");
 const { PROTOCOL_VERSION, verifyEventIntegrity } = require("./integrity");
 const { evaluateMergeEligibility } = require("./merges");
 
@@ -27,6 +28,20 @@ function emptyProjection() {
     outcomeAudits: {},
     decisionScores: {},
     alignmentSnapshots: {},
+    identity: {
+      schema: "clista.identity.v0",
+      participants: [],
+      roles: [],
+      activeAuthorities: [],
+      revokedAuthorities: [],
+      authorityHistory: [],
+      identityValidationStatus: {
+        valid: true,
+        participantCount: 0,
+        activeAuthorityCount: 0,
+        revokedAuthorityCount: 0
+      }
+    },
     events: []
   };
 }
@@ -41,6 +56,13 @@ function projectEvents(events) {
     switch (eventType(event)) {
       case "ParticipantAdded":
         upsert(projection.participants, payload.participant);
+        break;
+      case "ParticipantDeclared":
+        upsert(projection.participants, payload.participant);
+        break;
+      case "ParticipantRoleAssigned":
+      case "ParticipantAuthorityGranted":
+      case "ParticipantAuthorityRevoked":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -131,6 +153,12 @@ function projectEvents(events) {
         break;
     }
   }
+
+  projection.identity = projectIdentity(buildIdentityState(projection.events));
+  projection.participants = projection.identity.participants.reduce((participants, participant) => {
+    participants[participant.id] = participant;
+    return participants;
+  }, {});
 
   return projection;
 }
@@ -237,6 +265,7 @@ function selectThreadState(projection, requestedThreadId) {
     changedAssumptions,
     divergentClaims,
     mergeState,
+    identityState: projection.identity,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -341,6 +370,11 @@ function exportProtocol(projection) {
     outcomeAudits: Object.values(projection.outcomeAudits),
     decisionScores: Object.values(projection.decisionScores),
     alignmentSnapshots: Object.values(projection.alignmentSnapshots),
+    identity: projection.identity,
+    participantRoles: projection.identity.roles,
+    activeAuthorities: projection.identity.activeAuthorities,
+    revokedAuthorities: projection.identity.revokedAuthorities,
+    authorityHistory: projection.identity.authorityHistory,
     events: projection.events
   };
 }
@@ -912,6 +946,9 @@ function primaryObject(event) {
   return payload.thread
     || payload.threadFork
     || payload.participant
+    || payload.participantRole
+    || payload.participantAuthority
+    || payload.participantAuthorityRevocation
     || payload.evidence
     || payload.assumption
     || payload.claim

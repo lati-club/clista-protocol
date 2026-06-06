@@ -56,6 +56,22 @@ clista continuity export --out continuity.json
 
 If it produces a verifiable Continuity Packet, projected reasoning state can survive context loss without treating the transcript as memory.
 
+The identity command is:
+
+```text
+clista identity show --participant par_troy
+```
+
+If it reconstructs roles, active authority, revoked authority, and authority history from the event log, portable reasoning stays accountable after it leaves its original context.
+
+Anti-pattern:
+
+```text
+vibes with hashes
+```
+
+A system that hashes artifacts without proving who authored them, what authority they carried, or why their contributions should be trusted.
+
 ## Repository Boundary
 
 This repository is `clista-protocol`.

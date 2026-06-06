@@ -49,6 +49,10 @@ Projected state is derived.
 - `ThreadCreated`
 - `ThreadForked`
 - `ParticipantAdded`
+- `ParticipantDeclared`
+- `ParticipantRoleAssigned`
+- `ParticipantAuthorityGranted`
+- `ParticipantAuthorityRevoked`
 - `EvidenceCommitted`
 - `AssumptionDeclared`
 - `ClaimCreated`
@@ -73,6 +77,7 @@ Projected state is derived.
 
 `clista state show` must reconstruct:
 
+- participants and identity state
 - current proposal
 - supporting evidence
 - assumptions
@@ -84,6 +89,7 @@ Projected state is derived.
 - audit trail
 - fork lineage
 - merge state
+- active and revoked authorities
 
 ## Required Validation
 
@@ -137,3 +143,23 @@ A Continuity Packet must be integrity-gated and must preserve:
 - fork lineage
 - merge state
 - next action
+
+## Required Identity
+
+```text
+clista participant declare
+clista participant role assign
+clista participant authority grant
+clista participant authority revoke
+clista identity show --participant <id>
+```
+
+must prove protocol-level participant identity, role, and active authority before authority-bearing reasoning actions are trusted.
+
+Anti-pattern:
+
+```text
+vibes with hashes
+```
+
+A system that preserves artifacts with hashes but cannot prove who authored them, what authority they carried, or why their contributions should be trusted.

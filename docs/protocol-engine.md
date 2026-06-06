@@ -19,12 +19,16 @@ that another human or agent can reload later.
 6. Forks and merges
 7. Local event-log integrity
 8. Protocol continuity packets
+9. Protocol identity
 
 ## Protocol Objects
 
 The protocol core defines:
 
 - `evidence`
+- `participant`
+- `participantRole`
+- `participantAuthority`
 - `assumption`
 - `claim`
 - `position`
@@ -74,10 +78,15 @@ Supported events:
 
 - `AssumptionDeclared`
 - `EvidenceCommitted`
+- `ParticipantDeclared`
+- `ParticipantRoleAssigned`
+- `ParticipantAuthorityGranted`
+- `ParticipantAuthorityRevoked`
 - `ThreadForked`
 - `ClaimCreated`
 - `PositionTaken`
 - `ObjectionRaised`
+- `ObjectionResolved`
 - `DecisionRequestOpened`
 - `ReviewSubmitted`
 - `DecisionMerged`
@@ -101,7 +110,9 @@ The local store lives at:
 
 ```text
 npm run clista -- init
-npm run clista -- thread create --title "ClisTa MVP protocol shape" --question "Should ClisTa MVP begin as a local-first JSON protocol before UI?"
+npm run clista -- participant declare --name "Troy" --id par_troy
+npm run clista -- thread create --id thd_example --actor par_troy --title "ClisTa MVP protocol shape" --question "Should ClisTa MVP begin as a local-first JSON protocol before UI?"
+npm run clista -- participant authority grant --participant par_troy --authority decision_owner --scope thread --thread thd_example
 npm run clista -- thread fork --parent thd_example --fork thd_example_alt --title "Alternative protocol shape" --reason "Test an alternate assumption." --through evt_example
 npm run clista -- evidence commit --thread thd_example --source "Research" --finding "Protocol-first state can be reloaded."
 npm run clista -- claim create --thread thd_example --text "ClisTa should start protocol-first." --evidence evd_example
@@ -123,6 +134,7 @@ npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
 npm run clista -- continuity import --packet continuity.json
 npm run clista -- continuity summary --packet continuity.json
+npm run clista -- identity show --participant par_troy
 npm run clista -- state show --thread thd_example
 npm run clista -- audit show --thread thd_example
 npm run clista -- fork lineage --thread thd_example_alt
