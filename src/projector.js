@@ -1,5 +1,10 @@
 const { nowIso } = require("./events");
 const {
+  buildAdaptationState,
+  projectAdaptation,
+  selectAdaptationForThread
+} = require("./adaptation");
+const {
   buildAttributionState,
   projectAttribution,
   selectAttributionForThread
@@ -122,6 +127,37 @@ function emptyProjection() {
         authorityMutation: false
       }
     },
+    adaptation: {
+      schema: "clista.adaptation.v0",
+      theorem: "governance_adaptation = recommend(governance_review, learning_signals)",
+      hardLaw: "adaptation != governance mutation",
+      recommendations: [],
+      reviews: [],
+      adaptationReviews: [],
+      governanceReviewRecommendations: [],
+      evidenceRequirementReviewRecommendations: [],
+      revisitTriggerReviewRecommendations: [],
+      decisionGateReviewRecommendations: [],
+      provenanceRequirementReviewRecommendations: [],
+      objectionResolutionReviewRecommendations: [],
+      outcomeWindowReviewRecommendations: [],
+      byRecommendation: {},
+      byLearningSignal: {},
+      byPattern: {},
+      adaptationValidationStatus: {
+        valid: true,
+        recommendationCount: 0,
+        reviewCount: 0,
+        governanceMutation: false,
+        authorityMutation: false,
+        ruleMutation: false,
+        thresholdMutation: false,
+        participantScoring: false,
+        sourceScoring: false,
+        modelRanking: false,
+        agentRanking: false
+      }
+    },
     events: []
   };
 }
@@ -153,6 +189,11 @@ function projectEvents(events) {
       case "PatternObservationRecorded":
       case "OutcomeReviewRecorded":
       case "LearningRecommendationRecorded":
+      case "AdaptationReviewRecorded":
+      case "GovernanceReviewRecommended":
+      case "EvidenceRequirementReviewRecommended":
+      case "RevisitTriggerReviewRecommended":
+      case "DecisionGateReviewRecommended":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -253,6 +294,7 @@ function projectEvents(events) {
   projection.attribution = projectAttribution(buildAttributionState(projection.events), identityState);
   projection.provenance = projectProvenance(buildProvenanceState(projection.events));
   projection.learning = projectLearning(buildLearningState(projection));
+  projection.adaptation = projectAdaptation(buildAdaptationState(projection));
 
   return projection;
 }
@@ -317,6 +359,7 @@ function selectThreadState(projection, requestedThreadId) {
   const attributionState = selectAttributionForThread(projection.attribution, threadId);
   const provenanceState = selectProvenanceForThread(projection.provenance, threadId);
   const learningState = selectLearningForThread(projection.learning, threadId);
+  const adaptationState = selectAdaptationForThread(projection.adaptation, threadId);
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -334,6 +377,7 @@ function selectThreadState(projection, requestedThreadId) {
     attributionState,
     provenanceState,
     learningState,
+    adaptationState,
     events: projection.events
   });
 
@@ -369,6 +413,7 @@ function selectThreadState(projection, requestedThreadId) {
     attributionState,
     provenanceState,
     learningState,
+    adaptationState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -390,6 +435,7 @@ function buildReasoningState({
   attributionState,
   provenanceState,
   learningState,
+  adaptationState,
   events
 }) {
   return {
@@ -422,6 +468,7 @@ function buildReasoningState({
     attribution: attributionState,
     provenance: provenanceState,
     learning: learningState,
+    adaptation: adaptationState,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -495,6 +542,8 @@ function exportProtocol(projection) {
     learningSignals: projection.learning.signals,
     learningPatterns: projection.learning.patterns,
     learningRecommendations: projection.learning.revisitRecommendations,
+    adaptation: projection.adaptation,
+    adaptationRecommendations: projection.adaptation.recommendations,
     events: projection.events
   };
 }
@@ -1095,6 +1144,11 @@ function primaryObject(event) {
     || payload.patternObservation
     || payload.outcomeReview
     || payload.learningRecommendation
+    || payload.adaptationReview
+    || payload.governanceReviewRecommendation
+    || payload.evidenceRequirementReviewRecommendation
+    || payload.revisitTriggerReviewRecommendation
+    || payload.decisionGateReviewRecommendation
     || null;
 }
 

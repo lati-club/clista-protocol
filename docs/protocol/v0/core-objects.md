@@ -115,3 +115,17 @@ It describes a repeatable reasoning pattern, not a participant, source, agent, m
 A non-authoritative revisit suggestion derived from learning signals.
 
 It may recommend future review. It must not mutate governance authority automatically.
+
+## Adaptation Recommendation
+
+A non-authoritative governance review recommendation derived from learning signals.
+
+It may recommend review of evidence requirements, revisit triggers, decision gates, governance audit requirements, outcome windows, provenance completeness, or objection-resolution requirements.
+
+It must not change authority, decision rules, governance thresholds, participant standing, source trust, or model preference.
+
+## Adaptation Review
+
+An explicit record that a governance adaptation recommendation was reviewed.
+
+It preserves auditability without applying the governance change. Actual protocol or governance changes still require authorized governance events.

@@ -88,6 +88,14 @@ clista learning review
 
 If it derives pattern-level learning signals from outcomes without ranking participants, sources, agents, or models, reasoning can improve without becoming reputation.
 
+The adaptation command is:
+
+```text
+clista adaptation review
+```
+
+If it recommends governance review from learning signals without changing authority, rules, gates, or thresholds, governance can adapt without becoming hidden mutation.
+
 Anti-pattern:
 
 ```text
@@ -99,6 +107,8 @@ A system that hashes artifacts without proving who authored them, what authority
 Provenance is not truth ranking. It records source lineage; it does not score sources, participants, or models.
 
 Learning is not reputation. It updates reasoning patterns from outcome evidence; it does not change participant authority or assign trust scores.
+
+Adaptation is not governance mutation. It recommends authorized review; it does not execute governance changes.
 
 ## Repository Boundary
 

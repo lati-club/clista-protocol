@@ -57,6 +57,15 @@ Projected state is derived.
 - `ContributionAttributionCorrected`
 - `ContributionAttributionDisputed`
 - `ContributionAttributionRevoked`
+- `LearningSignalRecorded`
+- `PatternObservationRecorded`
+- `OutcomeReviewRecorded`
+- `LearningRecommendationRecorded`
+- `AdaptationReviewRecorded`
+- `GovernanceReviewRecommended`
+- `EvidenceRequirementReviewRecommended`
+- `RevisitTriggerReviewRecommended`
+- `DecisionGateReviewRecommended`
 - `EvidenceCommitted`
 - `AssumptionDeclared`
 - `ClaimCreated`
@@ -97,6 +106,7 @@ Projected state is derived.
 - attribution by contribution, participant, and source event
 - provenance by contribution, source, and introducing event
 - pattern-level learning signals from outcome evidence
+- governance adaptation recommendations from learning signals
 
 ## Required Validation
 
@@ -115,6 +125,7 @@ Validation checks:
 - attribution source, participant, role, authority, and event-time provenance
 - provenance source existence, source timing, transformation, and source hash consistency
 - learning references, uncertainty, non-scoring, and non-authority-mutation boundaries
+- adaptation references, uncertainty, non-scoring, and non-governance-mutation boundaries
 
 ## Required Integrity
 
@@ -294,3 +305,47 @@ Invalid:
 - automatic authority changes
 
 Learning recommendations may suggest future governance review. They must not change authority automatically.
+
+## Required Adaptation
+
+```text
+clista adaptation review
+clista adaptation list
+clista adaptation show <adaptationId>
+clista adaptation verify
+```
+
+must recommend governance review from learning signals.
+
+The theorem is:
+
+```text
+governance_adaptation = recommend(governance_review, learning_signals)
+```
+
+The hard law is:
+
+```text
+adaptation != governance mutation
+```
+
+Adaptation may recommend review of:
+
+- evidence requirements
+- revisit triggers
+- decision gates
+- governance audit requirements
+- outcome windows
+- provenance completeness requirements
+- objection-resolution requirements
+
+Adaptation must not:
+
+- automatically change authority
+- automatically change decision rules
+- automatically modify governance thresholds
+- promote or demote participants
+- trust or distrust sources
+- prefer models or agents
+
+Actual governance changes remain explicit authorized governance events.

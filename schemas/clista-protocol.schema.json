@@ -46,6 +46,8 @@
     "learningSignals",
     "learningPatterns",
     "learningRecommendations",
+    "adaptation",
+    "adaptationRecommendations",
     "events"
   ],
   "properties": {
@@ -270,6 +272,15 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/learningRecommendation"
+      }
+    },
+    "adaptation": {
+      "$ref": "#/$defs/adaptationProjection"
+    },
+    "adaptationRecommendations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/adaptationRecommendation"
       }
     },
     "events": {
@@ -1311,6 +1322,316 @@
           "additionalProperties": true
         },
         "learningValidationStatus": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "adaptationRecommendation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "recommendationType",
+        "pattern",
+        "learningSignalIds",
+        "learningPatterns",
+        "relatedContributions",
+        "finding",
+        "recommendation",
+        "confidence",
+        "authorityMutation",
+        "governanceMutation",
+        "ruleMutation",
+        "thresholdMutation",
+        "participantScoring",
+        "sourceScoring",
+        "modelRanking",
+        "adaptationHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "adaptationRecommendation"
+        },
+        "recommendationType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "learningSignalIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "learningPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relatedContributions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outcomeRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "finding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recommendation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/learningConfidence"
+        },
+        "authorityMutation": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "ruleMutation": {
+          "const": false
+        },
+        "thresholdMutation": {
+          "const": false
+        },
+        "participantScoring": {
+          "const": false
+        },
+        "sourceScoring": {
+          "const": false
+        },
+        "modelRanking": {
+          "const": false
+        },
+        "agentRanking": {
+          "const": false
+        },
+        "generatedFromEventIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "adaptationHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "adaptationReview": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "pattern",
+        "learningSignalIds",
+        "finding",
+        "confidence",
+        "authorityMutation",
+        "governanceMutation",
+        "ruleMutation",
+        "thresholdMutation",
+        "participantScoring",
+        "sourceScoring",
+        "modelRanking",
+        "adaptationHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "adaptationReview"
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "learningSignalIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "finding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/learningConfidence"
+        },
+        "authorityMutation": {
+          "const": false
+        },
+        "governanceMutation": {
+          "const": false
+        },
+        "ruleMutation": {
+          "const": false
+        },
+        "thresholdMutation": {
+          "const": false
+        },
+        "participantScoring": {
+          "const": false
+        },
+        "sourceScoring": {
+          "const": false
+        },
+        "modelRanking": {
+          "const": false
+        },
+        "agentRanking": {
+          "const": false
+        },
+        "adaptationHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "adaptationProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "recommendations",
+        "reviews",
+        "adaptationReviews",
+        "governanceReviewRecommendations",
+        "evidenceRequirementReviewRecommendations",
+        "revisitTriggerReviewRecommendations",
+        "decisionGateReviewRecommendations",
+        "provenanceRequirementReviewRecommendations",
+        "objectionResolutionReviewRecommendations",
+        "outcomeWindowReviewRecommendations",
+        "byRecommendation",
+        "byLearningSignal",
+        "byPattern",
+        "adaptationValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.adaptation.v0"
+        },
+        "theorem": {
+          "const": "governance_adaptation = recommend(governance_review, learning_signals)"
+        },
+        "hardLaw": {
+          "const": "adaptation != governance mutation"
+        },
+        "recommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "reviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationReview"
+          }
+        },
+        "adaptationReviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationReview"
+          }
+        },
+        "governanceReviewRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "evidenceRequirementReviewRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "revisitTriggerReviewRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "decisionGateReviewRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "provenanceRequirementReviewRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "objectionResolutionReviewRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "outcomeWindowReviewRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/adaptationRecommendation"
+          }
+        },
+        "byRecommendation": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "byLearningSignal": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "byPattern": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "adaptationValidationStatus": {
           "type": "object",
           "additionalProperties": true
         }
@@ -2786,6 +3107,11 @@
             "PatternObservationRecorded",
             "OutcomeReviewRecorded",
             "LearningRecommendationRecorded",
+            "AdaptationReviewRecorded",
+            "GovernanceReviewRecommended",
+            "EvidenceRequirementReviewRecommended",
+            "RevisitTriggerReviewRecommended",
+            "DecisionGateReviewRecommended",
             "AssumptionDeclared",
             "EvidenceCommitted",
             "ClaimCreated",
