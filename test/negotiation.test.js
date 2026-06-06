@@ -6,6 +6,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const { readEvents, readEventsAt } = require("../src/events");
+const protocolSchema = require("../schemas/clista-protocol.schema.json");
 const { verifyProtocolNegotiation } = require("../src/negotiation");
 const { exportProtocol, projectEvents, selectThreadState } = require("../src/projector");
 const { formatValidationErrors, validateEvents } = require("../src/validator");
@@ -60,7 +61,7 @@ test("negotiation propose, list, show, and verify record exchange terms without 
   assert.equal(verified.negotiationValidationStatus.termsCount, 1);
 });
 
-test("negotiation detects capability, amendment, validation, and semantic differences", () => {
+test("negotiation rejects required capability, amendment, validation, and semantic differences", () => {
   const packet = runCli(root, ["continuity", "export", "--events", canonicalLog]);
   const tampered = clone(packet);
   tampered.capability_set.push("remote_only_scheduler");
@@ -76,12 +77,48 @@ test("negotiation detects capability, amendment, validation, and semantic differ
   });
   const types = new Set(result.differences.map((item) => item.differenceType));
 
-  assert.equal(result.valid, true);
-  assert.equal(result.status, "degraded");
+  assert.equal(result.valid, false);
+  assert.equal(result.status, "rejected");
   assert.equal(types.has("capability"), true);
   assert.equal(types.has("amendment"), true);
   assert.equal(types.has("validation_requirement"), true);
   assert.equal(types.has("interoperability_profile"), true);
+  assert.match(JSON.stringify(result.reasons), /unsupported required capability remote_only_scheduler/);
+  assert.match(JSON.stringify(result.reasons), /compatibility check is not valid/);
+});
+
+test("negotiation degrades optional unsupported capabilities and semantics explicitly", () => {
+  const packet = runCli(root, ["continuity", "export", "--events", canonicalLog]);
+  const tampered = clone(packet);
+  tampered.optional_capability_set = ["remote_optional_scheduler"];
+  tampered.interoperability_profile.optionalSemantics = ["remote_optional_semantic"];
+
+  const result = verifyProtocolNegotiation(tampered, {
+    continuityVerification: { valid: true },
+    compatibilityResult: { valid: true, status: "degraded", reasons: [] },
+    interoperabilityResult: { valid: true, status: "degraded", reasons: [] },
+    federationResult: { valid: true, status: "degraded", reasons: [] }
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.status, "degraded");
+  assert.match(JSON.stringify(result.degradations), /unsupported optional capability remote_optional_scheduler/);
+  assert.match(JSON.stringify(result.degradations), /unsupported optional semantic remote_optional_semantic/);
+});
+
+test("negotiation check exits non-zero when a required prior gate fails", () => {
+  const packet = runCli(root, ["continuity", "export", "--events", canonicalLog]);
+  const tampered = clone(packet);
+  tampered.verification_state.requiredLayers.push("source_reputation");
+  const cwd = createNegotiationStore();
+  const packetPath = writePacket(cwd, tampered, "required-gate-failure.json");
+  const result = runCliResult(cwd, ["negotiation", "check", "--packet", packetPath]);
+  const checked = JSON.parse(result.stdout);
+
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  assert.equal(checked.valid, false);
+  assert.equal(checked.status, "rejected");
+  assert.match(JSON.stringify(checked.reasons), /source_reputation/);
 });
 
 test("negotiation validation rejects authority transfer and automatic amendment adoption", () => {
@@ -145,6 +182,38 @@ test("accepted, rejected, and degraded negotiation terms project deterministical
   assert.equal(threadState.reasoningState.negotiation.acceptedTerms.length, 1);
 });
 
+test("export schema defines negotiation records and exported negotiation records satisfy it", () => {
+  const packet = runCli(root, ["continuity", "export", "--events", canonicalLog]);
+  const cwd = createNegotiationStore();
+  const packetPath = writePacket(cwd, packet);
+
+  runCli(cwd, [
+    "negotiation",
+    "propose",
+    "--thread",
+    "thd_negotiation",
+    "--packet",
+    packetPath,
+    "--summary",
+    "Propose structurally valid exchange terms"
+  ]);
+  const exported = runCli(cwd, ["export"]);
+  const projectionSchema = protocolSchema.$defs.negotiationProjection;
+
+  assert.deepEqual(protocolSchema.$defs.negotiationStatus.enum, [
+    "proposed",
+    "accepted",
+    "degraded",
+    "rejected"
+  ]);
+  assert.equal(projectionSchema.properties.requests.items.$ref, "#/$defs/negotiationRequest");
+  assert.equal(projectionSchema.properties.differences.items.$ref, "#/$defs/negotiationDifference");
+  assert.equal(projectionSchema.properties.terms.items.$ref, "#/$defs/negotiationTerms");
+  assert.equal(projectionSchema.properties.failures.items.$ref, "#/$defs/negotiationFailure");
+  assertRecordMatchesDefinition(protocolSchema.$defs.negotiationRequest, exported.negotiation.requests[0]);
+  assertRecordMatchesDefinition(protocolSchema.$defs.negotiationTerms, exported.negotiation.terms[0]);
+});
+
 function createNegotiationStore() {
   const cwd = mkdtempSync(path.join(os.tmpdir(), "clista-negotiation-"));
   runCli(cwd, ["init"]);
@@ -180,7 +249,7 @@ function negotiationLifecycleEvents(options = {}) {
           object: "negotiationRequest",
           threadId: "thd_negotiation",
           packetHash: `sha256:${"a".repeat(64)}`,
-          status: "pending",
+          status: "proposed",
           authorityTransfer: false,
           governanceMerge: false,
           automaticAmendmentAdoption: false
@@ -218,9 +287,13 @@ function negotiationLifecycleEvents(options = {}) {
 }
 
 function runCli(cwd, args) {
-  const result = spawnSync("node", [cliPath, ...args], { cwd, encoding: "utf8" });
+  const result = runCliResult(cwd, args);
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return JSON.parse(result.stdout);
+}
+
+function runCliResult(cwd, args) {
+  return spawnSync("node", [cliPath, ...args], { cwd, encoding: "utf8" });
 }
 
 function writePacket(cwd, packet, name = "continuity.json") {
@@ -231,4 +304,28 @@ function writePacket(cwd, packet, name = "continuity.json") {
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function assertRecordMatchesDefinition(definition, record) {
+  assert.ok(record);
+  for (const field of definition.required || []) {
+    assert.ok(Object.hasOwn(record, field), `${record.object || "record"} missing ${field}`);
+  }
+  for (const [field, property] of Object.entries(definition.properties || {})) {
+    if (!Object.hasOwn(record, field)) {
+      continue;
+    }
+    if (Object.hasOwn(property, "const")) {
+      assert.equal(record[field], property.const);
+    }
+    if (property.$ref === "#/$defs/negotiationStatus") {
+      assert.ok(protocolSchema.$defs.negotiationStatus.enum.includes(record[field]));
+    }
+    if (property.pattern) {
+      assert.match(record[field], new RegExp(property.pattern));
+    }
+    if (property.minLength) {
+      assert.ok(String(record[field]).length >= property.minLength);
+    }
+  }
 }

@@ -328,7 +328,7 @@ function emptyProjection() {
       hardLaw: "agreement != governance merger",
       negotiationProtocolVersion: "0.18.0",
       localProtocolVersion: PROTOCOL_VERSION,
-      statuses: ["proposed", "accepted", "degraded", "rejected", "failed", "pending"],
+      statuses: ["proposed", "accepted", "degraded", "rejected"],
       requests: [],
       constraints: [],
       differences: [],

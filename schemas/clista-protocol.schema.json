@@ -331,6 +331,193 @@
       "type": "object",
       "additionalProperties": true
     },
+    "negotiationStatus": {
+      "enum": [
+        "proposed",
+        "accepted",
+        "degraded",
+        "rejected"
+      ]
+    },
+    "negotiationRequest": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "packetHash",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "negotiationRequest"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "packetHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "status": {
+          "$ref": "#/$defs/negotiationStatus"
+        },
+        "negotiationStatus": {
+          "$ref": "#/$defs/negotiationStatus"
+        }
+      }
+    },
+    "negotiationConstraint": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "negotiationId",
+        "constraintType",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "negotiationConstraint"
+        },
+        "negotiationId": {
+          "$ref": "#/$defs/id"
+        },
+        "constraintType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "negotiationDifference": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "negotiationId",
+        "differenceType",
+        "field",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "negotiationDifference"
+        },
+        "negotiationId": {
+          "$ref": "#/$defs/id"
+        },
+        "differenceType": {
+          "enum": [
+            "capability",
+            "amendment",
+            "validation_requirement",
+            "interoperability_profile",
+            "compatibility_status",
+            "interoperability_status",
+            "federation_status"
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "negotiationTerms": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "negotiationId",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "negotiationTerms"
+        },
+        "negotiationId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "status": {
+          "$ref": "#/$defs/negotiationStatus"
+        },
+        "exchangeTerms": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "exchangeTerms"
+          ]
+        },
+        {
+          "required": [
+            "summary"
+          ]
+        }
+      ]
+    },
+    "negotiationFailure": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "negotiationId",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "negotiationFailure"
+        },
+        "negotiationId": {
+          "$ref": "#/$defs/id"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/negotiationStatus"
+        }
+      }
+    },
     "integrityReport": {
       "type": "object",
       "additionalProperties": true,
@@ -914,110 +1101,119 @@
         "statuses": {
           "type": "array",
           "items": {
-            "enum": [
-              "proposed",
-              "accepted",
-              "degraded",
-              "rejected",
-              "failed",
-              "pending"
-            ]
+            "$ref": "#/$defs/negotiationStatus"
           }
         },
         "requests": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationRequest"
           }
         },
         "constraints": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationConstraint"
           }
         },
         "differences": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationDifference"
           }
         },
         "terms": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationTerms"
           }
         },
         "proposedTerms": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationTerms"
           }
         },
         "acceptedTerms": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationTerms"
           }
         },
         "rejectedTerms": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationTerms"
           }
         },
         "degradedTerms": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationTerms"
           }
         },
         "failures": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/$defs/negotiationFailure"
           }
         },
         "byRequest": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "$ref": "#/$defs/negotiationRequest"
+          }
         },
         "byConstraint": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "$ref": "#/$defs/negotiationConstraint"
+          }
         },
         "byDifference": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "$ref": "#/$defs/negotiationDifference"
+          }
         },
         "byTerm": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "$ref": "#/$defs/negotiationTerms"
+          }
         },
         "byFailure": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "$ref": "#/$defs/negotiationFailure"
+          }
         },
         "differencesByNegotiation": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/negotiationDifference"
+            }
+          }
         },
         "termsByNegotiation": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/negotiationTerms"
+            }
+          }
         },
         "failuresByNegotiation": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/negotiationFailure"
+            }
+          }
         },
         "negotiationValidationStatus": {
           "type": "object",

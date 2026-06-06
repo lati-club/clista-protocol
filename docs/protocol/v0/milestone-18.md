@@ -57,26 +57,28 @@ A negotiation difference records an explicit mismatch:
 Negotiation terms record proposed, accepted, rejected, or degraded exchange behavior.
 
 A negotiation failure records that declared constraints could not produce acceptable exchange terms.
+It preserves the audit trail without adding a separate negotiation status.
 
 ## Required Status
 
 Negotiation status must be one of:
 
+- `proposed`
 - `accepted`
 - `degraded`
 - `rejected`
-- `failed`
-- `pending`
+
+`proposed` means exchange terms have been offered for review.
+Proposed terms do not transfer authority, merge governance, import state, adopt amendments, or change validation rules.
 
 `accepted` means no required differences remain unresolved.
 
-`degraded` means exchange may continue only under explicit degraded terms.
+`degraded` means exchange may continue only under explicit degraded terms for optional or tolerated limitations.
 
 `rejected` means a required verification gate failed or exchange terms are not acceptable.
 
-`failed` means the negotiation could not agree on terms under declared constraints.
-
-`pending` means a request or terms proposal exists without accepted, rejected, degraded, or failed resolution.
+A failed required gate is rejected, not degraded.
+Optional unsupported capability or semantic support may be degraded only when explicitly recorded as degraded.
 
 ## Required Commands
 
@@ -140,11 +142,11 @@ governanceMerge: true
 automaticAmendmentAdoption: true
 ```
 
-Failure:
+Required Gate Failure:
 
 ```text
 reason: required validation layer unsupported under declared constraints
-status: failed
+status: rejected
 ```
 
 ## Anti-Goal

@@ -23,7 +23,7 @@ const NEGOTIATION_EVENT_TYPES = new Set([
   "NegotiationFailureRecorded"
 ]);
 
-const STATUS_VALUES = new Set(["proposed", "accepted", "degraded", "rejected", "failed", "pending"]);
+const STATUS_VALUES = new Set(["proposed", "accepted", "degraded", "rejected"]);
 const DIFFERENCE_TYPES = new Set([
   "capability",
   "amendment",
@@ -219,15 +219,15 @@ function verifyProtocolNegotiation(packet, options = {}) {
   }
 
   if (packet && typeof packet === "object") {
-    compareCapabilityDifferences(packet, options, differences);
-    compareAmendmentDifferences(packet, options, differences);
-    compareValidationRequirementDifferences(packet, options, differences);
-    compareInteroperabilityProfileDifferences(packet, options, differences);
+    compareCapabilityDifferences(packet, options, differences, reasons, degradations);
+    compareAmendmentDifferences(packet, options, differences, reasons);
+    compareValidationRequirementDifferences(packet, options, differences, reasons);
+    compareInteroperabilityProfileDifferences(packet, options, differences, reasons, degradations);
   }
 
-  compareGateStatus("compatibility", compatibilityResult, differences, degradations);
-  compareGateStatus("interoperability", interoperabilityResult, differences, degradations);
-  compareGateStatus("federation", federationResult, differences, degradations);
+  compareGateStatus("compatibility", compatibilityResult, differences, reasons, degradations);
+  compareGateStatus("interoperability", interoperabilityResult, differences, reasons, degradations);
+  compareGateStatus("federation", federationResult, differences, reasons, degradations);
 
   for (const [field, label] of [
     ["authorityTransfer", "negotiation cannot transfer authority"],
@@ -294,11 +294,11 @@ function buildNegotiationRequest(packet, negotiationResult, options = {}) {
     packetHash,
     packetProtocolVersion: packet?.protocol_version || null,
     packetSchemaVersion: packet?.schema_version || null,
-    status: "pending",
+    status: "proposed",
     requestedBy: options.requestedBy || options.actor || null,
     requestedAt: options.requestedAt || null,
     summary: options.summary || null,
-    negotiationStatus: negotiationResult?.status || "pending",
+    negotiationStatus: negotiationResult?.status || "proposed",
     differenceCount: (negotiationResult?.differences || []).length,
     degradationCount: (negotiationResult?.degradations || []).length,
     authorityTransfer: false,
@@ -436,6 +436,9 @@ function validateNegotiationRequest(request, priorEvents = []) {
   if (!request?.packetHash) {
     reasons.push("negotiation request requires packetHash");
   }
+  if (!STATUS_VALUES.has(normalizeStatus(request?.status))) {
+    reasons.push("negotiation request requires status proposed, accepted, degraded, or rejected");
+  }
   reasons.push(...rejectNegotiationGuardFields(request));
   return reasons;
 }
@@ -515,6 +518,9 @@ function validateNegotiationFailure(failure, priorEvents = []) {
   if (!failure?.reason) {
     reasons.push("negotiation failure requires reason");
   }
+  if (failure?.status && !STATUS_VALUES.has(normalizeStatus(failure.status))) {
+    reasons.push("negotiation failure status must be proposed, accepted, degraded, or rejected");
+  }
   reasons.push(...rejectNegotiationGuardFields(failure));
   return reasons;
 }
@@ -541,142 +547,166 @@ function validateNegotiationTerms(terms, priorEvents, expectedStatus) {
   return reasons;
 }
 
-function compareCapabilityDifferences(packet, options, differences) {
+function compareCapabilityDifferences(packet, options, differences, reasons, degradations) {
   const localContext = buildLocalCompatibilityContext(options);
   for (const capability of arrayValues(packet?.capability_set)) {
     if (!localContext.localCapabilitySet.includes(capability)) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "capability",
         "capability_set",
         `unsupported required capability ${capability}`,
         "unsupported",
         capability
+      );
+    }
+  }
+  for (const capability of arrayValues(packet?.optional_capability_set || packet?.optional_capabilities)) {
+    if (!localContext.localCapabilitySet.includes(capability)) {
+      differences.push(difference(
+        "capability",
+        "optional_capability_set",
+        `unsupported optional capability ${capability}`,
+        "unsupported",
+        capability
       ));
+      degradations.push(reason("optional_capability_set", `unsupported optional capability ${capability}`));
     }
   }
 }
 
-function compareAmendmentDifferences(packet, options, differences) {
+function compareAmendmentDifferences(packet, options, differences, reasons) {
   const supportedAmendmentIds = arrayValues(options.supportedAmendmentIds);
   for (const amendmentId of activeAmendmentIds(packet)) {
     if (!supportedAmendmentIds.includes(amendmentId)) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "amendment",
         "activeAmendments",
         `active amendment requires explicit local support ${amendmentId}`,
         supportedAmendmentIds,
         amendmentId
-      ));
+      );
     }
   }
 }
 
-function compareValidationRequirementDifferences(packet, options, differences) {
+function compareValidationRequirementDifferences(packet, options, differences, reasons) {
   const localContext = buildLocalCompatibilityContext(options);
   const requiredLayers = arrayValues(packet?.verification_state?.requiredLayers);
   for (const layer of requiredLayers) {
     if (!localContext.supportedVerificationLayers.includes(layer)) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "validation_requirement",
         "verification_state.requiredLayers",
         `unsupported validation requirement ${layer}`,
         localContext.supportedVerificationLayers,
         layer
-      ));
+      );
       continue;
     }
     const status = verificationLayerStatus(packet?.verification_state, layer);
     if (!status || status.valid !== true) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "validation_requirement",
         `verification_state.${layer}`,
         `validation layer ${layer} is not verified`,
         "valid",
         status || null
-      ));
+      );
     }
   }
 }
 
-function compareInteroperabilityProfileDifferences(packet, options, differences) {
+function compareInteroperabilityProfileDifferences(packet, options, differences, reasons, degradations) {
   const localProfile = buildLocalInteroperabilityProfile(options);
   const profile = packet?.interoperability_profile;
   if (!profile || typeof profile !== "object") {
-    differences.push(difference(
+    addRejectedDifference(differences, reasons,
       "interoperability_profile",
       "interoperability_profile",
       "interoperability profile is missing",
       localProfile,
       null
-    ));
+    );
     return;
   }
   if (!localProfile.supportedExchangeFormats.includes(profile.exchangeFormat)) {
-    differences.push(difference(
+    addRejectedDifference(differences, reasons,
       "interoperability_profile",
       "interoperability_profile.exchangeFormat",
       `unsupported exchange format ${profile.exchangeFormat}`,
       localProfile.supportedExchangeFormats,
       profile.exchangeFormat
-    ));
+    );
   }
   for (const semantic of arrayValues(profile.requiredSemantics)) {
     if (!localProfile.supportedSemantics.includes(semantic)) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "interoperability_profile",
         "interoperability_profile.requiredSemantics",
         `unsupported required semantic ${semantic}`,
         localProfile.supportedSemantics,
         semantic
+      );
+    }
+  }
+  for (const semantic of arrayValues(profile.optionalSemantics)) {
+    if (!localProfile.supportedSemantics.includes(semantic)) {
+      differences.push(difference(
+        "interoperability_profile",
+        "interoperability_profile.optionalSemantics",
+        `unsupported optional semantic ${semantic}`,
+        localProfile.supportedSemantics,
+        semantic
       ));
+      degradations.push(reason("interoperability_profile.optionalSemantics", `unsupported optional semantic ${semantic}`));
     }
   }
   for (const eventType of arrayValues(profile.eventTypes)) {
     if (!localProfile.supportedEventTypes.includes(eventType)) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "interoperability_profile",
         "interoperability_profile.eventTypes",
         `unsupported event type ${eventType}`,
         "unsupported",
         eventType
-      ));
+      );
     }
   }
   for (const [objectName, remoteMeaning] of Object.entries(profile.objectSemantics || {})) {
     const localMeaning = localProfile.objectSemantics[objectName];
     if (localMeaning && localMeaning !== remoteMeaning) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "interoperability_profile",
         `interoperability_profile.objectSemantics.${objectName}`,
         `semantic meaning differs for ${objectName}`,
         localMeaning,
         remoteMeaning
-      ));
+      );
     } else if (!localMeaning) {
-      differences.push(difference(
+      addRejectedDifference(differences, reasons,
         "interoperability_profile",
         `interoperability_profile.objectSemantics.${objectName}`,
         `unsupported object semantic ${objectName}`,
         "unsupported",
         remoteMeaning
-      ));
+      );
     }
   }
 }
 
-function compareGateStatus(label, result, differences, degradations) {
+function compareGateStatus(label, result, differences, reasons, degradations) {
   if (!result) {
-    differences.push(difference(
+    addRejectedDifference(differences, reasons,
       `${label}_status`,
       label,
       `${label} result is missing`,
       "required",
       null
-    ));
+    );
     return;
   }
   if (result.valid === false) {
-    differences.push(difference(
+    addRejectedDifference(differences, reasons,
       `${label}_status`,
       label,
       `${label} check is not valid`,
@@ -685,7 +715,7 @@ function compareGateStatus(label, result, differences, degradations) {
         status: result.status,
         reasons: result.reasons || []
       }
-    ));
+    );
   } else if (result.status === "degraded") {
     degradations.push(reason(label, `${label} check is explicitly degraded`));
   }
@@ -723,7 +753,7 @@ function normalizeNegotiationRequest(request, event) {
     id: request.id || deterministicId("ngn", "negotiation_request", event.event_id),
     object: "negotiationRequest",
     threadId: request.threadId || event.thread_id,
-    status: normalizeStatus(request.status || "pending"),
+    status: normalizeStatus(request.status || "proposed"),
     requestedBy: request.requestedBy || event.actor_id,
     requestedAt: request.requestedAt || event.timestamp,
     sourceEventId: event.event_id,
@@ -982,13 +1012,18 @@ function difference(differenceType, field, message, localValue, remoteValue) {
   };
 }
 
+function addRejectedDifference(differences, reasons, differenceType, field, message, localValue, remoteValue) {
+  differences.push(difference(differenceType, field, message, localValue, remoteValue));
+  reasons.push(reason(field, message));
+}
+
 function deterministicId(prefix, type, seed) {
   const hash = contentHash({ type, seed }).slice("sha256:".length, "sha256:".length + 16);
   return `${prefix}_${normalizeText(type).slice(0, 24) || "negotiation"}_${hash}`;
 }
 
 function normalizeStatus(status) {
-  return String(status || "pending").trim().toLowerCase();
+  return String(status || "proposed").trim().toLowerCase();
 }
 
 function normalizeText(value) {

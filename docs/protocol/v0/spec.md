@@ -372,7 +372,10 @@ Negotiation must verify:
 - amendment differences are explicit
 - validation requirement differences are explicit
 - interoperability profile differences are explicit
-- accepted, rejected, degraded, and failed terms remain auditable
+- proposed, accepted, degraded, and rejected terms remain auditable
+- proposed terms have no authority or governance effect
+- failed required gates are rejected rather than degraded
+- degraded terms are explicit only for optional or tolerated limitations
 - accepted terms may constrain exchange behavior
 - accepted terms do not transfer authority
 - accepted terms do not merge governance
