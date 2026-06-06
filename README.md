@@ -96,6 +96,14 @@ clista adaptation review
 
 If it recommends governance review from learning signals without changing authority, rules, gates, or thresholds, governance can adapt without becoming hidden mutation.
 
+The amendment command is:
+
+```text
+clista amendment verify
+```
+
+If it verifies explicit approved protocol changes without treating recommendations as amendments, governance can authorize improvement without implicit mutation.
+
 Anti-pattern:
 
 ```text
@@ -109,6 +117,8 @@ Provenance is not truth ranking. It records source lineage; it does not score so
 Learning is not reputation. It updates reasoning patterns from outcome evidence; it does not change participant authority or assign trust scores.
 
 Adaptation is not governance mutation. It recommends authorized review; it does not execute governance changes.
+
+Recommendation is not amendment. Amendments require explicit approval by active governance authority.
 
 ## Repository Boundary
 

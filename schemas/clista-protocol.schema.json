@@ -48,6 +48,9 @@
     "learningRecommendations",
     "adaptation",
     "adaptationRecommendations",
+    "amendments",
+    "activeAmendments",
+    "amendmentHistory",
     "events"
   ],
   "properties": {
@@ -282,6 +285,19 @@
       "items": {
         "$ref": "#/$defs/adaptationRecommendation"
       }
+    },
+    "amendments": {
+      "$ref": "#/$defs/amendmentProjection"
+    },
+    "activeAmendments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/protocolAmendment"
+      }
+    },
+    "amendmentHistory": {
+      "type": "object",
+      "additionalProperties": true
     },
     "events": {
       "type": "array",
@@ -1632,6 +1648,311 @@
           "additionalProperties": true
         },
         "adaptationValidationStatus": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "protocolAmendment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "title",
+        "amendmentType",
+        "target",
+        "rationale",
+        "proposedChange",
+        "effectScope",
+        "automaticAmendment",
+        "implicitMutation",
+        "retroactiveMutation",
+        "recommendationBecomesAmendment",
+        "amendmentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "protocolAmendment"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "amendmentType": {
+          "enum": [
+            "protocol_rule",
+            "governance_requirement",
+            "evidence_threshold",
+            "revisit_trigger",
+            "decision_gate",
+            "schema",
+            "validation_policy",
+            "interpretive_guidance"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposedChange": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effectScope": {
+          "enum": [
+            "future_only",
+            "interpretive_guidance"
+          ]
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "approved",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "adaptationRecommendationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "learningSignalIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "sourceEventIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "automaticAmendment": {
+          "const": false
+        },
+        "implicitMutation": {
+          "const": false
+        },
+        "hiddenPolicyMutation": {
+          "const": false
+        },
+        "retroactiveMutation": {
+          "const": false
+        },
+        "rewritesPastEvents": {
+          "const": false
+        },
+        "recommendationBecomesAmendment": {
+          "const": false
+        },
+        "amendmentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "protocolAmendmentAction": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "amendmentId",
+        "rationale",
+        "automaticAmendment",
+        "implicitMutation",
+        "retroactiveMutation",
+        "recommendationBecomesAmendment",
+        "amendmentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "enum": [
+            "protocolAmendmentReview",
+            "protocolAmendmentApproval",
+            "protocolAmendmentRejection",
+            "protocolAmendmentSupersession"
+          ]
+        },
+        "amendmentId": {
+          "$ref": "#/$defs/id"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string"
+        },
+        "effectScope": {
+          "enum": [
+            "future_only",
+            "interpretive_guidance"
+          ]
+        },
+        "authority": {
+          "type": "string"
+        },
+        "supersededByAmendmentId": {
+          "$ref": "#/$defs/id"
+        },
+        "automaticAmendment": {
+          "const": false
+        },
+        "implicitMutation": {
+          "const": false
+        },
+        "hiddenPolicyMutation": {
+          "const": false
+        },
+        "retroactiveMutation": {
+          "const": false
+        },
+        "rewritesPastEvents": {
+          "const": false
+        },
+        "recommendationBecomesAmendment": {
+          "const": false
+        },
+        "amendmentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "amendmentProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "amendments",
+        "activeAmendments",
+        "pendingAmendments",
+        "rejectedAmendments",
+        "supersededAmendments",
+        "proposals",
+        "reviews",
+        "approvals",
+        "rejections",
+        "supersessions",
+        "byAmendment",
+        "historyByAmendment",
+        "byAdaptationRecommendation",
+        "byLearningSignal",
+        "amendmentValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.amendments.v0"
+        },
+        "theorem": {
+          "const": "authorized_protocol_change = approve(amendment, governance_authority)"
+        },
+        "hardLaw": {
+          "const": "recommendation != amendment"
+        },
+        "amendments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendment"
+          }
+        },
+        "activeAmendments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendment"
+          }
+        },
+        "pendingAmendments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendment"
+          }
+        },
+        "rejectedAmendments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendment"
+          }
+        },
+        "supersededAmendments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendment"
+          }
+        },
+        "proposals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendment"
+          }
+        },
+        "reviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendmentAction"
+          }
+        },
+        "approvals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendmentAction"
+          }
+        },
+        "rejections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendmentAction"
+          }
+        },
+        "supersessions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/protocolAmendmentAction"
+          }
+        },
+        "byAmendment": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "historyByAmendment": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "byAdaptationRecommendation": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "byLearningSignal": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "amendmentValidationStatus": {
           "type": "object",
           "additionalProperties": true
         }
@@ -3112,6 +3433,11 @@
             "EvidenceRequirementReviewRecommended",
             "RevisitTriggerReviewRecommended",
             "DecisionGateReviewRecommended",
+            "ProtocolAmendmentProposed",
+            "ProtocolAmendmentReviewed",
+            "ProtocolAmendmentApproved",
+            "ProtocolAmendmentRejected",
+            "ProtocolAmendmentSuperseded",
             "AssumptionDeclared",
             "EvidenceCommitted",
             "ClaimCreated",

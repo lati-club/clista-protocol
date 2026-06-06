@@ -7,6 +7,13 @@ const {
   validateRevisitTriggerReviewRecommendation
 } = require("./adaptation");
 const {
+  validateProtocolAmendment,
+  validateProtocolAmendmentApproval,
+  validateProtocolAmendmentRejection,
+  validateProtocolAmendmentReview,
+  validateProtocolAmendmentSupersession
+} = require("./amendments");
+const {
   validateAttributionCorrection,
   validateAttributionDispute,
   validateAttributionRevocation,
@@ -149,6 +156,21 @@ function validateEvents(events) {
         break;
       case "DecisionGateReviewRecommended":
         validateDecisionGateReviewRecommendedEvent(event, state);
+        break;
+      case "ProtocolAmendmentProposed":
+        validateProtocolAmendmentProposed(event, state);
+        break;
+      case "ProtocolAmendmentReviewed":
+        validateProtocolAmendmentReviewed(event, state);
+        break;
+      case "ProtocolAmendmentApproved":
+        validateProtocolAmendmentApprovedEvent(event, state);
+        break;
+      case "ProtocolAmendmentRejected":
+        validateProtocolAmendmentRejectedEvent(event, state);
+        break;
+      case "ProtocolAmendmentSuperseded":
+        validateProtocolAmendmentSupersededEvent(event, state);
         break;
       case "ThreadCreated":
         validateThreadCreated(event, state);
@@ -606,6 +628,73 @@ function validateDecisionGateReviewRecommendedEvent(event, state) {
   }
   for (const reason of validateDecisionGateReviewRecommendation(recommendation, state.events)) {
     addError(state, event, reason);
+  }
+}
+
+function validateProtocolAmendmentProposed(event, state) {
+  const amendment = event.payload.protocolAmendment || event.payload.amendment;
+  if (!amendment) {
+    addError(state, event, "ProtocolAmendmentProposed payload missing protocolAmendment");
+    return;
+  }
+  for (const reason of validateProtocolAmendment(amendment, state.events)) {
+    addError(state, event, reason);
+  }
+}
+
+function validateProtocolAmendmentReviewed(event, state) {
+  const review = event.payload.protocolAmendmentReview || event.payload.amendmentReview;
+  if (!review) {
+    addError(state, event, "ProtocolAmendmentReviewed payload missing protocolAmendmentReview");
+    return;
+  }
+  for (const reason of validateProtocolAmendmentReview(review, state.events)) {
+    addError(state, event, reason);
+  }
+}
+
+function validateProtocolAmendmentApprovedEvent(event, state) {
+  const approval = event.payload.protocolAmendmentApproval || event.payload.amendmentApproval;
+  if (!approval) {
+    addError(state, event, "ProtocolAmendmentApproved payload missing protocolAmendmentApproval");
+    return;
+  }
+  for (const reason of validateProtocolAmendmentApproval(approval, state.events)) {
+    addError(state, event, reason);
+  }
+  const approvedBy = approval.approvedBy || event.actor_id;
+  if (!isDecisionOwner(approvedBy, state, event.thread_id) && !isDecisionOwner(event.actor_id, state, event.thread_id)) {
+    addError(state, event, `protocol amendment approval requires decision_owner authority ${approvedBy}`);
+  }
+}
+
+function validateProtocolAmendmentRejectedEvent(event, state) {
+  const rejection = event.payload.protocolAmendmentRejection || event.payload.amendmentRejection;
+  if (!rejection) {
+    addError(state, event, "ProtocolAmendmentRejected payload missing protocolAmendmentRejection");
+    return;
+  }
+  for (const reason of validateProtocolAmendmentRejection(rejection, state.events)) {
+    addError(state, event, reason);
+  }
+  const rejectedBy = rejection.rejectedBy || event.actor_id;
+  if (!isDecisionOwner(rejectedBy, state, event.thread_id) && !isDecisionOwner(event.actor_id, state, event.thread_id)) {
+    addError(state, event, `protocol amendment rejection requires decision_owner authority ${rejectedBy}`);
+  }
+}
+
+function validateProtocolAmendmentSupersededEvent(event, state) {
+  const supersession = event.payload.protocolAmendmentSupersession || event.payload.amendmentSupersession;
+  if (!supersession) {
+    addError(state, event, "ProtocolAmendmentSuperseded payload missing protocolAmendmentSupersession");
+    return;
+  }
+  for (const reason of validateProtocolAmendmentSupersession(supersession, state.events)) {
+    addError(state, event, reason);
+  }
+  const supersededBy = supersession.supersededBy || event.actor_id;
+  if (!isDecisionOwner(supersededBy, state, event.thread_id) && !isDecisionOwner(event.actor_id, state, event.thread_id)) {
+    addError(state, event, `protocol amendment supersession requires decision_owner authority ${supersededBy}`);
   }
 }
 
@@ -1391,6 +1480,16 @@ function primaryObject(event) {
     || payload.evidenceRequirementReviewRecommendation
     || payload.revisitTriggerReviewRecommendation
     || payload.decisionGateReviewRecommendation
+    || payload.protocolAmendment
+    || payload.amendment
+    || payload.protocolAmendmentReview
+    || payload.amendmentReview
+    || payload.protocolAmendmentApproval
+    || payload.amendmentApproval
+    || payload.protocolAmendmentRejection
+    || payload.amendmentRejection
+    || payload.protocolAmendmentSupersession
+    || payload.amendmentSupersession
     || payload.evidence
     || payload.assumption
     || payload.claim

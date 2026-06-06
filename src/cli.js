@@ -20,6 +20,9 @@ const {
   adaptationForId
 } = require("./adaptation");
 const {
+  amendmentForId
+} = require("./amendments");
+const {
   attributionForContribution,
   attributionsForParticipant
 } = require("./attribution");
@@ -112,6 +115,14 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
         return adaptationShow(options, cwd);
       case "adaptation verify":
         return adaptationVerify(options, cwd);
+      case "amendment propose":
+        return amendmentPropose(options, cwd);
+      case "amendment list":
+        return amendmentList(options, cwd);
+      case "amendment show":
+        return amendmentShow(options, cwd);
+      case "amendment verify":
+        return amendmentVerify(options, cwd);
       case "thread fork":
         return threadFork(options, cwd);
       case "evidence commit":
@@ -564,6 +575,99 @@ function adaptationVerify(options, cwd) {
     valid: true,
     errors: [],
     adaptationValidationStatus: projection.adaptation.adaptationValidationStatus
+  });
+}
+
+function amendmentPropose(options, cwd) {
+  requireOption(options, "thread");
+  requireOption(options, "title");
+  requireOption(options, "type");
+  requireOption(options, "target");
+  requireOption(options, "rationale");
+  requireOption(options, "change");
+  const actor = participantFrom(options.proposedBy || options.actor || "Author", options.role || "contributor", options.kind || "human");
+  appendParticipant(actor, cwd, options.thread);
+  const at = nowIso();
+  const protocolAmendment = {
+    id: options.id || newId("amd", options.title),
+    object: "protocolAmendment",
+    title: options.title,
+    amendmentType: options.type,
+    target: options.target,
+    rationale: options.rationale,
+    proposedChange: options.change,
+    effectScope: options.effectScope || "future_only",
+    threadId: options.thread,
+    adaptationRecommendationIds: parseList(options.adaptation || options.adaptationRecommendation || options.adaptationRecommendations),
+    learningSignalIds: parseList(options.learning || options.learningSignal || options.learningSignals),
+    sourceEventIds: parseList(options.sourceEvent || options.sourceEvents),
+    proposedBy: actor.id,
+    proposedAt: at,
+    automaticAmendment: false,
+    implicitMutation: false,
+    hiddenPolicyMutation: false,
+    retroactiveMutation: false,
+    rewritesPastEvents: false,
+    recommendationBecomesAmendment: false
+  };
+  stripUndefined(protocolAmendment);
+  const event = createEvent({
+    type: "ProtocolAmendmentProposed",
+    threadId: options.thread,
+    actorId: actor.id,
+    at,
+    payload: { protocolAmendment }
+  });
+  appendEvent(event, cwd);
+  return print({ protocolAmendment, event });
+}
+
+function amendmentList(options, cwd) {
+  const projection = projectEvents(readValidEventsForOptions(options, cwd));
+  let amendments = options.thread
+    ? projection.amendments.amendments.filter((amendment) => amendment.threadId === options.thread)
+    : projection.amendments.amendments;
+  if (options.status) {
+    amendments = amendments.filter((amendment) => amendment.status === options.status);
+  }
+  return print({
+    schema: "clista.amendment.list.v0",
+    theorem: projection.amendments.theorem,
+    hardLaw: projection.amendments.hardLaw,
+    threadId: options.thread || null,
+    status: options.status || null,
+    count: amendments.length,
+    amendments
+  });
+}
+
+function amendmentShow(options, cwd) {
+  const amendmentId = options.amendment || options.amendmentId || options.id;
+  if (!amendmentId) {
+    throw new Error("Missing required option --amendment");
+  }
+  const projection = projectEvents(readValidEventsForOptions(options, cwd));
+  return print(amendmentForId(projection.amendments, amendmentId));
+}
+
+function amendmentVerify(options, cwd) {
+  const events = readEventsForOptions(options, cwd);
+  const result = validateEvents(events);
+  if (!result.valid) {
+    print({
+      schema: "clista.amendment.verify.v0",
+      valid: false,
+      errors: result.errors
+    });
+    process.exitCode = 1;
+    return;
+  }
+  const projection = projectEvents(events);
+  return print({
+    schema: "clista.amendment.verify.v0",
+    valid: true,
+    errors: [],
+    amendmentValidationStatus: projection.amendments.amendmentValidationStatus
   });
 }
 
@@ -1677,6 +1781,15 @@ function normalizeCommand(command, options) {
       }
     };
   }
+  if (command.startsWith("amendment show ")) {
+    return {
+      command: "amendment show",
+      options: {
+        ...options,
+        amendment: options.amendment || command.slice("amendment show ".length).trim()
+      }
+    };
+  }
   return { command, options };
 }
 
@@ -1885,6 +1998,10 @@ function usage() {
   clista adaptation list [--thread <threadId>] [--events <path>]
   clista adaptation show <adaptationId> [--events <path>]
   clista adaptation verify [--events <path>]
+  clista amendment propose --thread <threadId> --title <title> --type <type> --target <target> --rationale <text> --change <text>
+  clista amendment list [--thread <threadId>] [--status <status>] [--events <path>]
+  clista amendment show <amendmentId> [--events <path>]
+  clista amendment verify [--events <path>]
   clista thread fork --parent <threadId> --fork <forkThreadId> --title <title> --reason <reason> --through <eventId>
   clista evidence commit --thread <threadId> --source <source> --finding <finding>
   clista assumption declare --thread <threadId> --text <assumption>

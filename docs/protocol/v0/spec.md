@@ -66,6 +66,11 @@ Projected state is derived.
 - `EvidenceRequirementReviewRecommended`
 - `RevisitTriggerReviewRecommended`
 - `DecisionGateReviewRecommended`
+- `ProtocolAmendmentProposed`
+- `ProtocolAmendmentReviewed`
+- `ProtocolAmendmentApproved`
+- `ProtocolAmendmentRejected`
+- `ProtocolAmendmentSuperseded`
 - `EvidenceCommitted`
 - `AssumptionDeclared`
 - `ClaimCreated`
@@ -107,6 +112,7 @@ Projected state is derived.
 - provenance by contribution, source, and introducing event
 - pattern-level learning signals from outcome evidence
 - governance adaptation recommendations from learning signals
+- explicit protocol amendments and amendment history
 
 ## Required Validation
 
@@ -126,6 +132,7 @@ Validation checks:
 - provenance source existence, source timing, transformation, and source hash consistency
 - learning references, uncertainty, non-scoring, and non-authority-mutation boundaries
 - adaptation references, uncertainty, non-scoring, and non-governance-mutation boundaries
+- amendment references, approval authority, non-implicit-mutation, and non-retroactive boundaries
 
 ## Required Integrity
 
@@ -349,3 +356,61 @@ Adaptation must not:
 - prefer models or agents
 
 Actual governance changes remain explicit authorized governance events.
+
+## Required Amendments
+
+```text
+clista amendment propose
+clista amendment list
+clista amendment show <amendmentId>
+clista amendment verify
+```
+
+must record explicit protocol changes through authorized governance action.
+
+The theorem is:
+
+```text
+authorized_protocol_change = approve(amendment, governance_authority)
+```
+
+The hard law is:
+
+```text
+recommendation != amendment
+```
+
+Amendments may propose changes to:
+
+- protocol rules
+- governance requirements
+- evidence thresholds
+- revisit triggers
+- decision gates
+- schemas
+- validation policies
+- interpretive guidance
+
+Amendments may link to:
+
+- adaptation recommendations
+- learning signals
+- source events
+- rationale and review history
+
+Amendments must not:
+
+- activate automatically from learning
+- activate automatically from adaptation
+- change active protocol state without approval
+- mutate hidden policy
+- rewrite old event validity
+- change authority without governance validation
+
+Approval, rejection, and supersession require active governance authority.
+
+Rejected amendments have no active effect.
+
+Superseded amendments preserve history.
+
+Approved amendments affect future validation or governance behavior unless explicitly marked as interpretive guidance.

@@ -5,6 +5,11 @@ const {
   selectAdaptationForThread
 } = require("./adaptation");
 const {
+  buildAmendmentState,
+  projectAmendments,
+  selectAmendmentsForThread
+} = require("./amendments");
+const {
   buildAttributionState,
   projectAttribution,
   selectAttributionForThread
@@ -158,6 +163,37 @@ function emptyProjection() {
         agentRanking: false
       }
     },
+    amendments: {
+      schema: "clista.amendments.v0",
+      theorem: "authorized_protocol_change = approve(amendment, governance_authority)",
+      hardLaw: "recommendation != amendment",
+      amendments: [],
+      activeAmendments: [],
+      pendingAmendments: [],
+      rejectedAmendments: [],
+      supersededAmendments: [],
+      proposals: [],
+      reviews: [],
+      approvals: [],
+      rejections: [],
+      supersessions: [],
+      byAmendment: {},
+      historyByAmendment: {},
+      byAdaptationRecommendation: {},
+      byLearningSignal: {},
+      amendmentValidationStatus: {
+        valid: true,
+        amendmentCount: 0,
+        activeCount: 0,
+        pendingCount: 0,
+        rejectedCount: 0,
+        supersededCount: 0,
+        implicitMutation: false,
+        automaticAmendment: false,
+        retroactiveMutation: false,
+        recommendationBecomesAmendment: false
+      }
+    },
     events: []
   };
 }
@@ -194,6 +230,11 @@ function projectEvents(events) {
       case "EvidenceRequirementReviewRecommended":
       case "RevisitTriggerReviewRecommended":
       case "DecisionGateReviewRecommended":
+      case "ProtocolAmendmentProposed":
+      case "ProtocolAmendmentReviewed":
+      case "ProtocolAmendmentApproved":
+      case "ProtocolAmendmentRejected":
+      case "ProtocolAmendmentSuperseded":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -295,6 +336,7 @@ function projectEvents(events) {
   projection.provenance = projectProvenance(buildProvenanceState(projection.events));
   projection.learning = projectLearning(buildLearningState(projection));
   projection.adaptation = projectAdaptation(buildAdaptationState(projection));
+  projection.amendments = projectAmendments(buildAmendmentState(projection.events));
 
   return projection;
 }
@@ -360,6 +402,7 @@ function selectThreadState(projection, requestedThreadId) {
   const provenanceState = selectProvenanceForThread(projection.provenance, threadId);
   const learningState = selectLearningForThread(projection.learning, threadId);
   const adaptationState = selectAdaptationForThread(projection.adaptation, threadId);
+  const amendmentState = selectAmendmentsForThread(projection.amendments, threadId);
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -378,6 +421,7 @@ function selectThreadState(projection, requestedThreadId) {
     provenanceState,
     learningState,
     adaptationState,
+    amendmentState,
     events: projection.events
   });
 
@@ -414,6 +458,7 @@ function selectThreadState(projection, requestedThreadId) {
     provenanceState,
     learningState,
     adaptationState,
+    amendmentState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -436,6 +481,7 @@ function buildReasoningState({
   provenanceState,
   learningState,
   adaptationState,
+  amendmentState,
   events
 }) {
   return {
@@ -469,6 +515,7 @@ function buildReasoningState({
     provenance: provenanceState,
     learning: learningState,
     adaptation: adaptationState,
+    amendments: amendmentState,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -544,6 +591,9 @@ function exportProtocol(projection) {
     learningRecommendations: projection.learning.revisitRecommendations,
     adaptation: projection.adaptation,
     adaptationRecommendations: projection.adaptation.recommendations,
+    amendments: projection.amendments,
+    activeAmendments: projection.amendments.activeAmendments,
+    amendmentHistory: projection.amendments.historyByAmendment,
     events: projection.events
   };
 }
@@ -1149,6 +1199,16 @@ function primaryObject(event) {
     || payload.evidenceRequirementReviewRecommendation
     || payload.revisitTriggerReviewRecommendation
     || payload.decisionGateReviewRecommendation
+    || payload.protocolAmendment
+    || payload.amendment
+    || payload.protocolAmendmentReview
+    || payload.amendmentReview
+    || payload.protocolAmendmentApproval
+    || payload.amendmentApproval
+    || payload.protocolAmendmentRejection
+    || payload.amendmentRejection
+    || payload.protocolAmendmentSupersession
+    || payload.amendmentSupersession
     || null;
 }
 

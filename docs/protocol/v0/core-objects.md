@@ -129,3 +129,33 @@ It must not change authority, decision rules, governance thresholds, participant
 An explicit record that a governance adaptation recommendation was reviewed.
 
 It preserves auditability without applying the governance change. Actual protocol or governance changes still require authorized governance events.
+
+## Protocol Amendment
+
+An explicit proposed change to protocol rules, governance requirements, evidence thresholds, revisit triggers, decision gates, schemas, or validation policies.
+
+An amendment may reference learning signals and adaptation recommendations as rationale. Those references do not make it active.
+
+Only an approved amendment is active. Rejected amendments and superseded amendments remain in history without changing active protocol state.
+
+## Protocol Amendment Review
+
+A recorded review of an amendment rationale.
+
+It may support, reject, request changes, or comment on the amendment, but it does not make the amendment active.
+
+## Protocol Amendment Approval
+
+An authorized governance action that makes an amendment active for future validation or governance behavior.
+
+Approval must be explicit and authority-validated. It must not rewrite past event validity.
+
+## Protocol Amendment Rejection
+
+An authorized governance action that rejects an amendment.
+
+Rejected amendments do not alter active protocol state.
+
+## Protocol Amendment Supersession
+
+An authorized governance action that deactivates a previously approved amendment while preserving its history.
