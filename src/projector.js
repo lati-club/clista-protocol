@@ -1,4 +1,5 @@
 const { nowIso } = require("./events");
+const { evaluateMergeEligibility } = require("./merges");
 
 function emptyProjection() {
   return {
@@ -16,6 +17,11 @@ function emptyProjection() {
     reviews: {},
     decisionRecords: {},
     minorityReports: {},
+    mergeRequests: {},
+    mergeReviews: {},
+    mergeConflicts: {},
+    mergeConflictResolutions: {},
+    mergeCompletions: {},
     expectedOutcomes: {},
     outcomeAudits: {},
     decisionScores: {},
@@ -102,6 +108,24 @@ function projectEvents(events) {
         upsert(projection.decisionScores, payload.decisionScore);
         touchThread(projection, payload.decisionScore?.threadId, eventTimestamp(event));
         break;
+      case "MergeRequestOpened":
+        upsert(projection.mergeRequests, payload.mergeRequest);
+        break;
+      case "MergeReviewSubmitted":
+        upsert(projection.mergeReviews, payload.mergeReview);
+        applyMergeReviewStatus(projection, payload.mergeReview);
+        break;
+      case "MergeConflictDeclared":
+        upsert(projection.mergeConflicts, payload.mergeConflict);
+        break;
+      case "MergeConflictResolved":
+        upsert(projection.mergeConflictResolutions, payload.mergeConflictResolution);
+        applyMergeConflictResolution(projection, payload.mergeConflictResolution);
+        break;
+      case "MergeCompleted":
+        upsert(projection.mergeCompletions, payload.mergeCompletion);
+        applyMergeCompletion(projection, payload.mergeCompletion, eventTimestamp(event));
+        break;
       default:
         break;
     }
@@ -162,6 +186,7 @@ function selectThreadState(projection, requestedThreadId) {
   const forkLineage = selectForkLineage(projection, threadId);
   const changedAssumptions = selectChangedObjects(assumptionsWithParticipants, forkLineage?.changedAssumptionIds);
   const divergentClaims = forkLineage ? selectDivergentClaims(claims, forkLineage.changedClaimIds) : [];
+  const mergeState = selectMergeState(projection, threadId);
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -175,6 +200,7 @@ function selectThreadState(projection, requestedThreadId) {
     forkLineage,
     changedAssumptions,
     divergentClaims,
+    mergeState,
     events: projection.events
   });
 
@@ -205,6 +231,7 @@ function selectThreadState(projection, requestedThreadId) {
     forkLineage,
     changedAssumptions,
     divergentClaims,
+    mergeState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -222,6 +249,7 @@ function buildReasoningState({
   forkLineage,
   changedAssumptions,
   divergentClaims,
+  mergeState,
   events
 }) {
   return {
@@ -249,6 +277,8 @@ function buildReasoningState({
     fork_lineage: forkLineage,
     changed_assumptions: changedAssumptions,
     divergent_claims: divergentClaims,
+    merge_requests: mergeState.requests,
+    merge_completions: mergeState.completed,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -274,7 +304,8 @@ function selectAudit(projection, requestedThreadId) {
     assumptions: state.assumptions,
     claims: state.claims,
     positions: state.participantPositions,
-    objections: state.unresolvedObjections
+    objections: state.unresolvedObjections,
+    mergeState: state.mergeState
   };
 }
 
@@ -294,6 +325,11 @@ function exportProtocol(projection) {
     reviews: Object.values(projection.reviews),
     decisionRecords: Object.values(projection.decisionRecords),
     minorityReports: Object.values(projection.minorityReports),
+    mergeRequests: Object.values(projection.mergeRequests),
+    mergeReviews: Object.values(projection.mergeReviews),
+    mergeConflicts: Object.values(projection.mergeConflicts),
+    mergeConflictResolutions: Object.values(projection.mergeConflictResolutions),
+    mergeCompletions: Object.values(projection.mergeCompletions),
     expectedOutcomes: Object.values(projection.expectedOutcomes),
     outcomeAudits: Object.values(projection.outcomeAudits),
     decisionScores: Object.values(projection.decisionScores),
@@ -429,13 +465,53 @@ function attachMinorityReport(projection, minorityReport) {
   }
 }
 
+function applyMergeReviewStatus(projection, review) {
+  const request = projection.mergeRequests[review?.mergeRequestId];
+  if (!request || request.targetThreadId !== review?.threadId) {
+    return;
+  }
+  if (review.status === "request_changes") {
+    request.status = "changes_requested";
+  } else if (review.status === "reject") {
+    request.status = "rejected";
+  }
+}
+
+function applyMergeConflictResolution(projection, resolution) {
+  if (!resolution?.conflictId) {
+    return;
+  }
+  const conflict = projection.mergeConflicts[resolution.conflictId];
+  if (conflict) {
+    projection.mergeConflicts[conflict.id] = {
+      ...conflict,
+      status: "resolved",
+      resolution
+    };
+  }
+}
+
+function applyMergeCompletion(projection, completion, at) {
+  if (!completion) {
+    return;
+  }
+  const request = projection.mergeRequests[completion.mergeRequestId];
+  if (request) {
+    request.status = "merged";
+    touchThread(projection, request.targetThreadId, at);
+  }
+}
+
 function valuesForThreadScope(projection, threadId, collectionName, visited = new Set()) {
   const thread = projection.threads[threadId];
   const collection = projection[collectionName] || {};
   const directValues = valuesForThread(collection, threadId);
 
   if (!thread?.fork || visited.has(threadId)) {
-    return directValues;
+    return [
+      ...directValues,
+      ...mergedValuesForThread(projection, threadId, collectionName, directValues)
+    ];
   }
 
   visited.add(threadId);
@@ -446,7 +522,58 @@ function valuesForThreadScope(projection, threadId, collectionName, visited = ne
       ...object,
       inheritedFromThreadId: object.inheritedFromThreadId || fork.parentThreadId
     }));
-  return [...inheritedValues, ...directValues];
+  return [
+    ...inheritedValues,
+    ...directValues,
+    ...mergedValuesForThread(projection, threadId, collectionName, [...inheritedValues, ...directValues])
+  ];
+}
+
+function mergedValuesForThread(projection, threadId, collectionName, existingValues = []) {
+  const mergeableCollections = new Set([
+    "evidence",
+    "assumptions",
+    "claims",
+    "objections",
+    "decisionRecords",
+    "expectedOutcomes",
+    "outcomeAudits",
+    "decisionScores"
+  ]);
+  if (!mergeableCollections.has(collectionName)) {
+    return [];
+  }
+  const existingIds = new Set(existingValues.map((object) => object.id));
+  const merged = [];
+  for (const completion of Object.values(projection.mergeCompletions)) {
+    const request = projection.mergeRequests[completion.mergeRequestId];
+    if (!request || request.targetThreadId !== threadId) {
+      continue;
+    }
+    const sourceValues = valuesForThreadScope(projection, request.sourceForkThreadId, collectionName);
+    for (const object of sourceValues) {
+      if (!(completion.acceptedObjectIds || []).includes(object.id) || existingIds.has(object.id)) {
+        continue;
+      }
+      if (object.inheritedFromThreadId && object.inheritedFromThreadId === threadId) {
+        continue;
+      }
+      existingIds.add(object.id);
+      merged.push({
+        ...object,
+        threadId,
+        sourceObjectId: object.id,
+        sourceThreadId: object.threadId,
+        mergedFromThreadId: request.sourceForkThreadId,
+        mergeRequestId: request.id,
+        mergeCompletionId: completion.id,
+        status: collectionName === "objections" && (completion.preservedObjectionIds || []).includes(object.id)
+          ? "preserved"
+          : object.status
+      });
+    }
+  }
+  return merged;
 }
 
 function eventsThroughBoundary(events, inheritedThroughEventId) {
@@ -465,6 +592,100 @@ function selectChangedObjects(objects, ids = []) {
 function selectDivergentClaims(claims, changedClaimIds = []) {
   const wanted = new Set(changedClaimIds || []);
   return claims.filter((claim) => wanted.has(claim.id) || !claim.inheritedFromThreadId);
+}
+
+function selectMergeState(projection, threadId) {
+  const requests = Object.values(projection.mergeRequests)
+    .filter((request) => request.targetThreadId === threadId || request.sourceForkThreadId === threadId)
+    .map((request) => selectMergeRequestState(projection, request.id));
+  return {
+    schema: "clista.mergeState.v0",
+    threadId,
+    requests,
+    open: requests.filter((request) => !request.completion),
+    completed: requests.filter((request) => request.completion),
+    preservedDissent: requests.flatMap((request) => request.preservedObjections),
+    rejectedObjects: requests.flatMap((request) => request.rejectedObjects)
+  };
+}
+
+function selectMergeRequestState(projection, requestId) {
+  const request = projection.mergeRequests[requestId];
+  if (!request) {
+    return {
+      schema: "clista.mergeRequestState.v0",
+      requestId,
+      error: "Merge request not found"
+    };
+  }
+  const reviews = Object.values(projection.mergeReviews)
+    .filter((review) => review.mergeRequestId === request.id);
+  const conflicts = Object.values(projection.mergeConflicts)
+    .filter((conflict) => conflict.mergeRequestId === request.id);
+  const resolutions = Object.values(projection.mergeConflictResolutions)
+    .filter((resolution) => resolution.mergeRequestId === request.id);
+  const completion = Object.values(projection.mergeCompletions)
+    .find((candidate) => candidate.mergeRequestId === request.id) || null;
+  const proposedObjects = selectProposedMergeObjects(projection, request);
+  return {
+    schema: "clista.mergeRequestState.v0",
+    request,
+    sourceForkThread: projection.threads[request.sourceForkThreadId] || null,
+    targetThread: projection.threads[request.targetThreadId] || null,
+    forkLineage: selectForkLineage(projection, request.sourceForkThreadId),
+    proposedObjects,
+    reviews,
+    conflicts,
+    resolutions,
+    eligibility: evaluateMergeEligibility(projection.events, request.id),
+    completion,
+    acceptedObjects: completion ? selectObjectsByIds(proposedObjects.all, completion.acceptedObjectIds) : [],
+    preservedObjections: completion ? selectObjectsByIds(proposedObjects.objections, completion.preservedObjectionIds) : [],
+    rejectedObjects: completion ? selectObjectsByIds(proposedObjects.all, completion.rejectedObjectIds) : [],
+    auditTrail: auditTrailForMergeRequest(projection, request.id)
+  };
+}
+
+function selectProposedMergeObjects(projection, request) {
+  const sourceObjects = objectsForThreadScope(projection, request.sourceForkThreadId);
+  const assumptions = selectObjectsByIds(sourceObjects.assumptions, request.proposedAssumptionIds);
+  const evidence = selectObjectsByIds(sourceObjects.evidence, request.proposedEvidenceIds);
+  const claims = selectObjectsByIds(sourceObjects.claims, request.proposedClaimIds);
+  const objections = selectObjectsByIds(sourceObjects.objections, request.proposedObjectionIds);
+  const decisionRecords = selectObjectsByIds(sourceObjects.decisionRecords, request.proposedDecisionRecordIds);
+  const all = [
+    ...assumptions,
+    ...evidence,
+    ...claims,
+    ...objections,
+    ...decisionRecords
+  ];
+  return {
+    assumptions,
+    evidence,
+    claims,
+    objections,
+    decisionRecords,
+    all
+  };
+}
+
+function objectsForThreadScope(projection, threadId) {
+  return {
+    evidence: valuesForThreadScope(projection, threadId, "evidence"),
+    assumptions: valuesForThreadScope(projection, threadId, "assumptions"),
+    claims: valuesForThreadScope(projection, threadId, "claims"),
+    objections: valuesForThreadScope(projection, threadId, "objections"),
+    decisionRecords: valuesForThreadScope(projection, threadId, "decisionRecords"),
+    expectedOutcomes: valuesForThreadScope(projection, threadId, "expectedOutcomes"),
+    outcomeAudits: valuesForThreadScope(projection, threadId, "outcomeAudits"),
+    decisionScores: valuesForThreadScope(projection, threadId, "decisionScores")
+  };
+}
+
+function selectObjectsByIds(objects, ids = []) {
+  const byId = new Map((objects || []).map((object) => [object.id, object]));
+  return (ids || []).map((id) => byId.get(id) || { id, missing: true });
 }
 
 function selectForkLineage(projection, threadId) {
@@ -638,6 +859,27 @@ function auditTrailForThread(projection, threadId) {
   ];
 }
 
+function auditTrailForMergeRequest(projection, requestId) {
+  return projection.events
+    .filter((event) => {
+      const payload = event.payload || {};
+      return payload.mergeRequest?.id === requestId
+        || payload.mergeReview?.mergeRequestId === requestId
+        || payload.mergeConflict?.mergeRequestId === requestId
+        || payload.mergeConflictResolution?.mergeRequestId === requestId
+        || payload.mergeCompletion?.mergeRequestId === requestId;
+    })
+    .map((event) => ({
+      event_id: eventId(event),
+      event_type: eventType(event),
+      timestamp: eventTimestamp(event),
+      actor_id: eventActorId(event),
+      thread_id: eventThreadId(event),
+      object_id: primaryObject(event)?.id,
+      summary: summarizeEvent(event)
+    }));
+}
+
 function eventId(event) {
   return event.event_id || event.id;
 }
@@ -673,6 +915,11 @@ function primaryObject(event) {
     || payload.review
     || payload.decisionRecord
     || payload.minorityReport
+    || payload.mergeRequest
+    || payload.mergeReview
+    || payload.mergeConflict
+    || payload.mergeConflictResolution
+    || payload.mergeCompletion
     || payload.expectedOutcome
     || payload.outcomeAudit
     || payload.decisionScore
@@ -702,5 +949,7 @@ module.exports = {
   projectEvents,
   selectAudit,
   selectForkLineage,
+  selectMergeRequestState,
+  selectMergeState,
   selectThreadState
 };

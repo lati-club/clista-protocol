@@ -50,6 +50,11 @@ Projected state is derived.
 - `ExpectedOutcomeDeclared`
 - `OutcomeAudited`
 - `DecisionScored`
+- `MergeRequestOpened`
+- `MergeReviewSubmitted`
+- `MergeConflictDeclared`
+- `MergeConflictResolved`
+- `MergeCompleted`
 
 ## Required Projection
 
@@ -65,6 +70,7 @@ Projected state is derived.
 - decision status
 - audit trail
 - fork lineage
+- merge state
 
 ## Required Validation
 

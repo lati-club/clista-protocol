@@ -10,6 +10,22 @@ The container for a reasoning question.
 
 A divergent reasoning thread that inherits parent thread state through a declared event boundary.
 
+## Merge Request
+
+A governed request to integrate fork reasoning into an ancestor thread without erasing dissent.
+
+## Merge Review
+
+A governance response to a merge request.
+
+## Merge Conflict
+
+A declared incompatibility between parent reasoning and fork reasoning.
+
+## Merge Completion
+
+The immutable record of accepted, rejected, and preserved fork reasoning after merge governance succeeds.
+
 ## Participant
 
 A human, agent, tool, or system actor with a declared role.

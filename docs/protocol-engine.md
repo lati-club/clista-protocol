@@ -30,6 +30,10 @@ The protocol core defines:
 - `review`
 - `decisionRecord`
 - `minorityReport`
+- `mergeRequest`
+- `mergeReview`
+- `mergeConflict`
+- `mergeCompletion`
 - `outcomeAudit`
 
 See `schemas/clista-protocol.schema.json`.
@@ -66,6 +70,11 @@ Supported events:
 - `ExpectedOutcomeDeclared`
 - `OutcomeAudited`
 - `DecisionScored`
+- `MergeRequestOpened`
+- `MergeReviewSubmitted`
+- `MergeConflictDeclared`
+- `MergeConflictResolved`
+- `MergeCompleted`
 
 The local store lives at:
 
@@ -90,6 +99,9 @@ npm run clista -- decision merge --thread thd_example --request drq_example --de
 npm run clista -- outcome expect --thread thd_example --decision dcr_example --metric revenue_growth --operator ">" --target 0.15 --review-date 2027-03-01
 npm run clista -- outcome audit --thread thd_example --expected exo_example --actual 0.08 --result failed --summary "Revenue growth missed target." --auditor "Troy"
 npm run clista -- decision score --thread thd_example --decision dcr_example --score 0.4 --status failed --rationale "The expected outcome was not met." --audits out_example
+npm run clista -- merge open --source thd_example_alt --target thd_example --summary "Integrate useful fork reasoning."
+npm run clista -- merge eligibility --request mrg_example
+npm run clista -- merge complete --request mrg_example --merged-by "Troy"
 npm run clista -- state show --thread thd_example
 npm run clista -- audit show --thread thd_example
 npm run clista -- fork lineage --thread thd_example_alt

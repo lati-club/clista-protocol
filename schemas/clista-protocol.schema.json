@@ -19,6 +19,11 @@
     "reviews",
     "decisionRecords",
     "minorityReports",
+    "mergeRequests",
+    "mergeReviews",
+    "mergeConflicts",
+    "mergeConflictResolutions",
+    "mergeCompletions",
     "expectedOutcomes",
     "outcomeAudits",
     "decisionScores",
@@ -103,6 +108,36 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/minorityReport"
+      }
+    },
+    "mergeRequests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mergeRequest"
+      }
+    },
+    "mergeReviews": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mergeReview"
+      }
+    },
+    "mergeConflicts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mergeConflict"
+      }
+    },
+    "mergeConflictResolutions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mergeConflictResolution"
+      }
+    },
+    "mergeCompletions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mergeCompletion"
       }
     },
     "expectedOutcomes": {
@@ -954,6 +989,387 @@
         }
       }
     },
+    "mergeRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mergeRequestId",
+        "object",
+        "threadId",
+        "sourceForkThreadId",
+        "targetThreadId",
+        "openedBy",
+        "openedAt",
+        "summary"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "mergeRequestId": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "mergeRequest"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceForkThreadId": {
+          "$ref": "#/$defs/id"
+        },
+        "targetThreadId": {
+          "$ref": "#/$defs/id"
+        },
+        "openedBy": {
+          "$ref": "#/$defs/id"
+        },
+        "openedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "review",
+            "changes_requested",
+            "rejected",
+            "merged"
+          ]
+        },
+        "proposedAssumptionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "proposedEvidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "proposedClaimIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "proposedObjectionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "proposedDecisionRecordIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "mergeReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "mergeRequestId",
+        "reviewerId",
+        "status",
+        "summary",
+        "reviewedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "mergeReview"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "mergeRequestId": {
+          "$ref": "#/$defs/id"
+        },
+        "reviewerId": {
+          "$ref": "#/$defs/id"
+        },
+        "reviewerParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "status": {
+          "enum": [
+            "approve",
+            "request_changes",
+            "reject"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requiredChanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reviewedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "mergeConflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "conflictId",
+        "object",
+        "threadId",
+        "mergeRequestId",
+        "conflictType",
+        "parentObjectId",
+        "forkObjectId",
+        "summary",
+        "declaredAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "conflictId": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "mergeConflict"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "mergeRequestId": {
+          "$ref": "#/$defs/id"
+        },
+        "conflictType": {
+          "enum": [
+            "assumption",
+            "claim",
+            "evidence",
+            "objection",
+            "decision",
+            "outcome"
+          ]
+        },
+        "parentObjectId": {
+          "$ref": "#/$defs/id"
+        },
+        "forkObjectId": {
+          "$ref": "#/$defs/id"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "declaredBy": {
+          "$ref": "#/$defs/id"
+        },
+        "declaredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resolution": {
+          "$ref": "#/$defs/mergeConflictResolution"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "mergeConflictResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "mergeRequestId",
+        "conflictId",
+        "resolution",
+        "rationale",
+        "resolvedBy",
+        "resolvedAt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "mergeConflictResolution"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "mergeRequestId": {
+          "$ref": "#/$defs/id"
+        },
+        "conflictId": {
+          "$ref": "#/$defs/id"
+        },
+        "resolution": {
+          "enum": [
+            "accept_parent",
+            "accept_fork",
+            "preserve_both",
+            "supersede",
+            "reject_fork"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolvedBy": {
+          "$ref": "#/$defs/id"
+        },
+        "resolvedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "mergeCompletion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "mergeRequestId",
+        "mergedBy",
+        "mergedAt",
+        "acceptedObjectIds",
+        "preservedObjectionIds",
+        "rejectedObjectIds",
+        "authorityTrail"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "mergeCompletion"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "mergeRequestId": {
+          "$ref": "#/$defs/id"
+        },
+        "mergedBy": {
+          "$ref": "#/$defs/id"
+        },
+        "mergedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "acceptedObjectIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "preservedObjectionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "rejectedObjectIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "authorityTrail": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "participantId",
+              "source"
+            ],
+            "properties": {
+              "participantId": {
+                "$ref": "#/$defs/id"
+              },
+              "role": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
     "expectedOutcome": {
       "type": "object",
       "additionalProperties": false,
@@ -1271,7 +1687,12 @@
             "MinorityReportFiled",
             "ExpectedOutcomeDeclared",
             "OutcomeAudited",
-            "DecisionScored"
+            "DecisionScored",
+            "MergeRequestOpened",
+            "MergeReviewSubmitted",
+            "MergeConflictDeclared",
+            "MergeConflictResolved",
+            "MergeCompleted"
           ]
         },
         "thread_id": {

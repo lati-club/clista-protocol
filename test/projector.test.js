@@ -59,6 +59,11 @@ test("exports all protocol object collections from the event log", () => {
   assert.equal(exported.reviews.length, 1);
   assert.equal(exported.decisionRecords.length, 1);
   assert.equal(exported.minorityReports.length, 1);
+  assert.equal(exported.mergeRequests.length, 0);
+  assert.equal(exported.mergeReviews.length, 0);
+  assert.equal(exported.mergeConflicts.length, 0);
+  assert.equal(exported.mergeConflictResolutions.length, 0);
+  assert.equal(exported.mergeCompletions.length, 0);
   assert.equal(exported.events.length, 19);
 });
 
@@ -142,12 +147,14 @@ test("thread-0001 reasoning state is reconstructed from .clista/events.ndjson on
     "outcome_status",
     "failed_assumptions",
     "failed_evidence",
-    "fork_lineage",
-    "changed_assumptions",
-    "divergent_claims",
-    "next_action",
-    "audit_summary"
-  ]);
+	    "fork_lineage",
+	    "changed_assumptions",
+	    "divergent_claims",
+	    "merge_requests",
+	    "merge_completions",
+	    "next_action",
+	    "audit_summary"
+	  ]);
   assert.equal(reasoning.question, "How should ClisTa be architected?");
   assert.equal(reasoning.decision.summary, "Build ClisTa as a protocol-first append-only reasoning engine.");
   assert.match(reasoning.rationale, /reasoning can be stored as protocol state/);
@@ -163,10 +170,12 @@ test("thread-0001 reasoning state is reconstructed from .clista/events.ndjson on
   assert.equal(reasoning.outcome_status, "unknown");
   assert.equal(reasoning.failed_assumptions.length, 0);
   assert.equal(reasoning.failed_evidence.length, 0);
-  assert.equal(reasoning.fork_lineage, null);
-  assert.equal(reasoning.changed_assumptions.length, 0);
-  assert.equal(reasoning.divergent_claims.length, 0);
-  assert.equal(reasoning.next_action, "Implement and prove Milestone 0: Protocol Spine Proven.");
+	  assert.equal(reasoning.fork_lineage, null);
+	  assert.equal(reasoning.changed_assumptions.length, 0);
+	  assert.equal(reasoning.divergent_claims.length, 0);
+	  assert.equal(reasoning.merge_requests.length, 0);
+	  assert.equal(reasoning.merge_completions.length, 0);
+	  assert.equal(reasoning.next_action, "Implement and prove Milestone 0: Protocol Spine Proven.");
   assert.equal(reasoning.audit_summary.source, "append_only_event_log");
   assert.equal(reasoning.audit_summary.external_state_used, false);
 });
