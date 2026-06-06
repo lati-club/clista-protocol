@@ -134,6 +134,7 @@ Validation checks:
 - adaptation references, uncertainty, non-scoring, and non-governance-mutation boundaries
 - amendment references, approval authority, non-implicit-mutation, and non-retroactive boundaries
 - compatibility capability support, verification-layer support, active-amendment support, and fail-closed boundaries
+- interoperability semantic preservation, event-type preservation, object-meaning preservation, and explicit-degradation boundaries
 
 ## Required Integrity
 
@@ -182,7 +183,7 @@ A Continuity Packet must be integrity-gated and must preserve:
 - projection hash
 - state hash
 - resume status: `verified`, `degraded`, or `rejected`
-- verification status for integrity, attribution, provenance, learning, adaptation, amendments, and compatibility
+- verification status for integrity, attribution, provenance, learning, adaptation, amendments, compatibility, and interoperability
 - current question
 - current decision
 - assumptions
@@ -198,6 +199,7 @@ A Continuity Packet must be integrity-gated and must preserve:
 - adaptation state
 - amendment state
 - compatibility state
+- interoperability state
 - next action
 
 Continuity must reject packets that trust transcript replay, trust model memory, skip failed verification, create authority, approve amendments, mutate governance, mutate imported state, or bypass validation.
@@ -236,6 +238,40 @@ Compatibility must verify:
 - unknown required capability fails closed
 
 Compatibility must reject packets that silently downgrade verification, ignore unsupported amendments, accept unknown required capabilities, treat partial compatibility as full validity, mutate imported state to fit local capabilities, or treat compatibility as governance approval.
+
+## Required Interoperability
+
+```text
+clista interoperability check
+clista interoperability show
+clista interoperability verify
+```
+
+must verify that a compatible exchange preserves protocol meaning across contexts.
+
+The theorem is:
+
+```text
+protocol_interoperability = preserve(meaning, across_compatible_contexts)
+```
+
+The hard law is:
+
+```text
+translation != reinterpretation
+```
+
+Interoperability must verify:
+
+- exchange format is declared and supported
+- required semantics are recognized
+- optional unsupported semantics degrade explicitly
+- event types preserve protocol meaning
+- source event types are declared in the interoperability profile
+- object meanings match for claims, assumptions, evidence, decisions, authority, attribution, provenance, learning signals, adaptation recommendations, amendments, continuity, compatibility, and interoperability
+- compatibility failures prevent interoperability acceptance
+
+Interoperability must reject packets that silently remap event meanings, flatten authority into metadata, flatten provenance into notes, treat learning signals as scores, treat adaptation recommendations as amendments, treat continuity packets as transcript summaries, accept unknown required semantics, or accept semantically degraded state as fully valid.
 
 ## Required Identity
 

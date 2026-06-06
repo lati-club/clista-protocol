@@ -65,6 +65,14 @@ clista compatibility verify --packet continuity.json
 
 If it verifies the packet against the local protocol capability set, required verification layers, and active amendment support, portable reasoning can fail closed instead of relying on best effort acceptance.
 
+The interoperability command is:
+
+```text
+clista interoperability verify --packet continuity.json
+```
+
+If it verifies declared semantics, event meanings, and object meanings, portable reasoning can preserve protocol meaning instead of merely matching packet structure.
+
 The identity command is:
 
 ```text
@@ -132,6 +140,8 @@ Recommendation is not amendment. Amendments require explicit approval by active 
 Continuity is not transcript replay. A resumed thread is trusted because projected state verifies, not because a model remembers the conversation.
 
 Compatibility is not best effort acceptance. Unsupported state is not valid state.
+
+Interoperability is not semantic loss. Translation is not reinterpretation.
 
 ## Repository Boundary
 

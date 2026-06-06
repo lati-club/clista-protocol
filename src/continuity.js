@@ -7,13 +7,14 @@ const {
   stableStringify,
   verifyEventIntegrity
 } = require("./integrity");
+const { buildInteroperabilityProfile } = require("./interoperability");
 const { projectEvents, selectThreadState } = require("./projector");
 const { validateEvents } = require("./validator");
 
 const CONTINUITY_FILE = "continuity.json";
 const CONTINUITY_PROTOCOL = "clista";
 const CONTINUITY_PACKET_TYPE = "continuity";
-const CONTINUITY_PROTOCOL_VERSION = "0.15.0";
+const CONTINUITY_PROTOCOL_VERSION = "0.16.0";
 const CONTINUITY_SCHEMA_VERSION = "clista.continuity.packet.v0";
 const CONTINUITY_THEOREM = "reasoning_continuity = resume(project(event_log), verification_state)";
 const CONTINUITY_HARD_LAW = "context transfer != memory trust";
@@ -33,7 +34,8 @@ const CONTINUITY_CAPABILITY_SET = [
   "learning",
   "adaptation",
   "amendments",
-  "compatibility"
+  "compatibility",
+  "interoperability"
 ];
 
 const REQUIRED_VERIFICATION_LAYERS = [
@@ -44,7 +46,8 @@ const REQUIRED_VERIFICATION_LAYERS = [
   "learning",
   "adaptation",
   "amendments",
-  "compatibility"
+  "compatibility",
+  "interoperability"
 ];
 
 function continuityPacketPath(cwd = process.cwd()) {
@@ -94,6 +97,7 @@ function exportContinuityPacket(events, options = {}) {
     exported_at: exportedAt,
     integrity: materials.integrity,
     verification_state: materials.verificationState,
+    interoperability_profile: materials.interoperabilityProfile,
     source_events: clone(events),
     continuity_state: materials.continuityState
   };
@@ -115,6 +119,9 @@ function verifyContinuityPacket(packet) {
   } else {
     validateVerificationStateShape(packet.verification_state, reasons);
     validateNoContinuityMutation(packet.verification_state, reasons);
+  }
+  if (!packet?.interoperability_profile || typeof packet.interoperability_profile !== "object" || Array.isArray(packet.interoperability_profile)) {
+    reasons.push(reason("interoperability_profile", "interoperability_profile must be an object"));
   }
   validateCapabilitySet(packet?.capability_set, reasons);
 
@@ -186,6 +193,9 @@ function verifyContinuityPacket(packet) {
         if (stableStringify(packet.verification_state || {}) !== stableStringify(materials.verificationState)) {
           reasons.push(reason("verification_state", "verification_state does not match recomputed verification state"));
         }
+        if (stableStringify(packet.interoperability_profile || {}) !== stableStringify(materials.interoperabilityProfile)) {
+          reasons.push(reason("interoperability_profile", "interoperability_profile does not match recomputed semantic profile"));
+        }
       }
     }
   }
@@ -203,6 +213,7 @@ function verifyContinuityPacket(packet) {
     projectionHash: packet?.projection_hash || null,
     stateHash: packet?.state_hash || null,
     verificationState: packet?.verification_state || null,
+    interoperabilityProfile: packet?.interoperability_profile || null,
     reasons
   };
 }
@@ -229,6 +240,7 @@ function resumeContinuityPacket(packet) {
     protocol_version: packet.protocol_version,
     clista_protocol_version: packet.clista_protocol_version,
     verification_state: packet.verification_state,
+    interoperability_profile: packet.interoperability_profile,
     continuity_state: packet.continuity_state
   };
 }
@@ -272,6 +284,7 @@ function summarizeContinuityPacket(packet) {
     adaptation_state: state.adaptation_state,
     amendment_state: state.amendment_state,
     compatibility_state: state.compatibility_state,
+    interoperability_state: state.interoperability_state,
     integrity_state: state.integrity_state,
     verification_state: packet.verification_state
   };
@@ -322,6 +335,7 @@ function buildContinuityMaterials(events, requestedThreadId) {
         verificationStatus
       });
   const stateHash = continuityState ? contentHash(continuityState) : null;
+  const interoperabilityProfile = buildInteroperabilityProfile();
   const verificationState = buildVerificationState({
     validation,
     integrity,
@@ -343,7 +357,8 @@ function buildContinuityMaterials(events, requestedThreadId) {
     projectionHash,
     continuityState,
     stateHash,
-    verificationState
+    verificationState,
+    interoperabilityProfile
   };
 }
 
@@ -390,6 +405,7 @@ function buildContinuityState(state, { eventLogHash, integrity, strictIntegrity,
     adaptation_state: state.adaptationState || {},
     amendment_state: state.amendmentState || {},
     compatibility_state: state.compatibilityState || {},
+    interoperability_state: state.interoperabilityState || {},
     verification_status: {
       status: verificationStatus.status,
       verification_mode: strictIntegrity.valid ? "strict" : "compatibility",
@@ -518,6 +534,7 @@ function buildVerificationState({
     adaptationValidationStatus: projection.adaptation?.adaptationValidationStatus || null,
     amendmentValidationStatus: projection.amendments?.amendmentValidationStatus || null,
     compatibilityValidationStatus: projection.compatibility?.compatibilityValidationStatus || null,
+    interoperabilityValidationStatus: projection.interoperability?.interoperabilityValidationStatus || null,
     transcriptReplay: false,
     memoryTrust: false,
     authorityCreated: false,
@@ -538,7 +555,8 @@ function determineResumeStatus({ validation, integrity, strictIntegrity, project
     learning: projection.learning?.learningValidationStatus?.valid,
     adaptation: projection.adaptation?.adaptationValidationStatus?.valid,
     amendments: projection.amendments?.amendmentValidationStatus?.valid,
-    compatibility: projection.compatibility?.compatibilityValidationStatus?.valid
+    compatibility: projection.compatibility?.compatibilityValidationStatus?.valid,
+    interoperability: projection.interoperability?.interoperabilityValidationStatus?.valid
   };
 
   for (const layer of REQUIRED_VERIFICATION_LAYERS) {
@@ -589,7 +607,8 @@ function validateVerificationStateShape(verificationState, reasons) {
     ["learningValidationStatus", verificationState.learningValidationStatus],
     ["adaptationValidationStatus", verificationState.adaptationValidationStatus],
     ["amendmentValidationStatus", verificationState.amendmentValidationStatus],
-    ["compatibilityValidationStatus", verificationState.compatibilityValidationStatus]
+    ["compatibilityValidationStatus", verificationState.compatibilityValidationStatus],
+    ["interoperabilityValidationStatus", verificationState.interoperabilityValidationStatus]
   ]) {
     if (!status || typeof status !== "object") {
       reasons.push(reason(`verification_state.${field}`, `missing verification layer ${field}`));

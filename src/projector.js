@@ -21,6 +21,10 @@ const {
 const { buildIdentityState, projectIdentity } = require("./identity");
 const { PROTOCOL_VERSION, verifyEventIntegrity } = require("./integrity");
 const {
+  buildInteroperabilityState,
+  projectInteroperability
+} = require("./interoperability");
+const {
   buildLearningState,
   projectLearning,
   selectLearningForThread
@@ -202,7 +206,7 @@ function emptyProjection() {
       schema: "clista.compatibility.v0",
       theorem: "protocol_compatibility = verify(capability_set, amendment_state, validation_requirements)",
       hardLaw: "unsupported_state != valid_state",
-      compatibilityProtocolVersion: "0.15.0",
+      compatibilityProtocolVersion: "0.16.0",
       localProtocolVersion: PROTOCOL_VERSION,
       localCapabilitySet: [],
       supportedContinuityProtocolVersions: [],
@@ -229,6 +233,44 @@ function emptyProjection() {
         importedStateMutation: false,
         governanceApproval: false,
         amendmentApproval: false
+      }
+    },
+    interoperability: {
+      schema: "clista.interoperability.v0",
+      theorem: "protocol_interoperability = preserve(meaning, across_compatible_contexts)",
+      hardLaw: "translation != reinterpretation",
+      interoperabilityProtocolVersion: "0.16.0",
+      localProtocolVersion: PROTOCOL_VERSION,
+      supportedExchangeFormats: [],
+      supportedSemantics: [],
+      supportedEventTypes: [],
+      objectSemantics: {},
+      profiles: [],
+      mappings: [],
+      checks: [],
+      degradations: [],
+      failures: [],
+      acceptances: [],
+      byProfile: {},
+      byMapping: {},
+      interoperabilityValidationStatus: {
+        valid: true,
+        semanticCount: 0,
+        eventTypeCount: 0,
+        profileCount: 0,
+        mappingCount: 0,
+        checkCount: 0,
+        degradationCount: 0,
+        failureCount: 0,
+        acceptanceCount: 0,
+        semanticLossAccepted: false,
+        semanticReinterpretation: false,
+        silentSemanticDegradation: false,
+        authorityFlattened: false,
+        provenanceFlattened: false,
+        learningSignalsAsScores: false,
+        adaptationRecommendationsAsAmendments: false,
+        continuityAsTranscriptSummary: false
       }
     },
     events: []
@@ -277,6 +319,12 @@ function projectEvents(events) {
       case "CompatibilityFailureRecorded":
       case "CompatibilityDegradationRecorded":
       case "CompatibilityAcceptanceRecorded":
+      case "InteroperabilityProfileDeclared":
+      case "SemanticMappingRecorded":
+      case "InteroperabilityCheckRecorded":
+      case "SemanticDegradationRecorded":
+      case "InteroperabilityFailureRecorded":
+      case "InteroperabilityAcceptanceRecorded":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -380,6 +428,7 @@ function projectEvents(events) {
   projection.adaptation = projectAdaptation(buildAdaptationState(projection));
   projection.amendments = projectAmendments(buildAmendmentState(projection.events));
   projection.compatibility = projectCompatibility(buildCompatibilityState(projection));
+  projection.interoperability = projectInteroperability(buildInteroperabilityState(projection));
 
   return projection;
 }
@@ -447,6 +496,7 @@ function selectThreadState(projection, requestedThreadId) {
   const adaptationState = selectAdaptationForThread(projection.adaptation, threadId);
   const amendmentState = selectAmendmentsForThread(projection.amendments, threadId);
   const compatibilityState = projection.compatibility;
+  const interoperabilityState = projection.interoperability;
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -467,6 +517,7 @@ function selectThreadState(projection, requestedThreadId) {
     adaptationState,
     amendmentState,
     compatibilityState,
+    interoperabilityState,
     events: projection.events
   });
 
@@ -505,6 +556,7 @@ function selectThreadState(projection, requestedThreadId) {
     adaptationState,
     amendmentState,
     compatibilityState,
+    interoperabilityState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -529,6 +581,7 @@ function buildReasoningState({
   adaptationState,
   amendmentState,
   compatibilityState,
+  interoperabilityState,
   events
 }) {
   return {
@@ -564,6 +617,7 @@ function buildReasoningState({
     adaptation: adaptationState,
     amendments: amendmentState,
     compatibility: compatibilityState,
+    interoperability: interoperabilityState,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -643,6 +697,7 @@ function exportProtocol(projection) {
     activeAmendments: projection.amendments.activeAmendments,
     amendmentHistory: projection.amendments.historyByAmendment,
     compatibility: projection.compatibility,
+    interoperability: projection.interoperability,
     events: projection.events
   };
 }

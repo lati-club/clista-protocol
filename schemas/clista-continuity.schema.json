@@ -23,6 +23,7 @@
     "resume_status",
     "exported_at",
     "integrity",
+    "interoperability_profile",
     "verification_state",
     "source_events",
     "continuity_state"
@@ -35,7 +36,7 @@
       "const": "continuity"
     },
     "protocol_version": {
-      "const": "0.15.0"
+      "const": "0.16.0"
     },
     "schema_version": {
       "const": "clista.continuity.packet.v0"
@@ -73,6 +74,11 @@
         {
           "contains": {
             "const": "compatibility"
+          }
+        },
+        {
+          "contains": {
+            "const": "interoperability"
           }
         }
       ]
@@ -125,6 +131,9 @@
         }
       }
     },
+    "interoperability_profile": {
+      "$ref": "#/$defs/interoperabilityProfile"
+    },
     "verification_state": {
       "$ref": "#/$defs/verificationState"
     },
@@ -148,6 +157,123 @@
     "hash": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "interoperabilityProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "interoperabilityProtocolVersion",
+        "localProtocolVersion",
+        "exchangeFormat",
+        "requiredSemantics",
+        "optionalSemantics",
+        "eventTypes",
+        "objectSemantics",
+        "semanticLossAccepted",
+        "semanticReinterpretation",
+        "silentSemanticDegradation",
+        "authorityFlattened",
+        "provenanceFlattened",
+        "learningSignalsAsScores",
+        "adaptationRecommendationsAsAmendments",
+        "continuityAsTranscriptSummary",
+        "semanticHash"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.interoperability.profile.v0"
+        },
+        "theorem": {
+          "const": "protocol_interoperability = preserve(meaning, across_compatible_contexts)"
+        },
+        "hardLaw": {
+          "const": "translation != reinterpretation"
+        },
+        "interoperabilityProtocolVersion": {
+          "const": "0.16.0"
+        },
+        "localProtocolVersion": {
+          "const": "clista.protocol.v0"
+        },
+        "exchangeFormat": {
+          "const": "clista.continuity.packet.v0"
+        },
+        "requiredSemantics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": {
+            "const": "authority_context"
+          }
+        },
+        "optionalSemantics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "eventTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": {
+            "const": "InteroperabilityProfileDeclared"
+          }
+        },
+        "objectSemantics": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "required": [
+            "claim",
+            "assumption",
+            "evidence",
+            "decision",
+            "authority",
+            "attribution",
+            "provenance",
+            "learning_signal",
+            "adaptation_recommendation",
+            "amendment",
+            "continuity",
+            "compatibility",
+            "interoperability"
+          ]
+        },
+        "semanticLossAccepted": {
+          "const": false
+        },
+        "semanticReinterpretation": {
+          "const": false
+        },
+        "silentSemanticDegradation": {
+          "const": false
+        },
+        "authorityFlattened": {
+          "const": false
+        },
+        "provenanceFlattened": {
+          "const": false
+        },
+        "learningSignalsAsScores": {
+          "const": false
+        },
+        "adaptationRecommendationsAsAmendments": {
+          "const": false
+        },
+        "continuityAsTranscriptSummary": {
+          "const": false
+        },
+        "semanticHash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
     },
     "continuityState": {
       "type": "object",
@@ -178,6 +304,7 @@
         "adaptation_state",
         "amendment_state",
         "compatibility_state",
+        "interoperability_state",
         "verification_status",
         "integrity_state",
         "status",
@@ -284,6 +411,10 @@
           "additionalProperties": true
         },
         "compatibility_state": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "interoperability_state": {
           "type": "object",
           "additionalProperties": true
         },
@@ -403,6 +534,7 @@
         "adaptationValidationStatus",
         "amendmentValidationStatus",
         "compatibilityValidationStatus",
+        "interoperabilityValidationStatus",
         "transcriptReplay",
         "memoryTrust",
         "authorityCreated",
@@ -428,7 +560,7 @@
           ]
         },
         "continuityProtocolVersion": {
-          "const": "0.15.0"
+          "const": "0.16.0"
         },
         "verificationMode": {
           "enum": [

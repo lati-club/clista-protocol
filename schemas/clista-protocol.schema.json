@@ -52,6 +52,7 @@
     "activeAmendments",
     "amendmentHistory",
     "compatibility",
+    "interoperability",
     "events"
   ],
   "properties": {
@@ -303,6 +304,9 @@
     "compatibility": {
       "$ref": "#/$defs/compatibilityProjection"
     },
+    "interoperability": {
+      "$ref": "#/$defs/interoperabilityProjection"
+    },
     "events": {
       "type": "array",
       "items": {
@@ -397,7 +401,7 @@
           "const": "unsupported_state != valid_state"
         },
         "compatibilityProtocolVersion": {
-          "const": "0.15.0"
+          "const": "0.16.0"
         },
         "localProtocolVersion": {
           "const": "clista.protocol.v0"
@@ -409,7 +413,14 @@
           },
           "contains": {
             "const": "compatibility"
-          }
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "interoperability"
+              }
+            }
+          ]
         },
         "supportedVerificationLayers": {
           "type": "array",
@@ -418,7 +429,14 @@
           },
           "contains": {
             "const": "compatibility"
-          }
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "interoperability"
+              }
+            }
+          ]
         },
         "supportedAmendmentTypes": {
           "type": "array",
@@ -458,6 +476,189 @@
               "const": false
             },
             "amendmentApproval": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "interoperabilityProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "interoperabilityProtocolVersion",
+        "localProtocolVersion",
+        "supportedExchangeFormats",
+        "supportedSemantics",
+        "supportedEventTypes",
+        "objectSemantics",
+        "profiles",
+        "mappings",
+        "checks",
+        "degradations",
+        "failures",
+        "acceptances",
+        "byProfile",
+        "byMapping",
+        "interoperabilityValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.interoperability.v0"
+        },
+        "theorem": {
+          "const": "protocol_interoperability = preserve(meaning, across_compatible_contexts)"
+        },
+        "hardLaw": {
+          "const": "translation != reinterpretation"
+        },
+        "interoperabilityProtocolVersion": {
+          "const": "0.16.0"
+        },
+        "localProtocolVersion": {
+          "const": "clista.protocol.v0"
+        },
+        "supportedExchangeFormats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": {
+            "const": "clista.continuity.packet.v0"
+          }
+        },
+        "supportedSemantics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": {
+            "const": "authority_context"
+          }
+        },
+        "supportedEventTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "contains": {
+            "const": "InteroperabilityProfileDeclared"
+          }
+        },
+        "objectSemantics": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "required": [
+            "claim",
+            "assumption",
+            "evidence",
+            "decision",
+            "authority",
+            "attribution",
+            "provenance",
+            "learning_signal",
+            "adaptation_recommendation",
+            "amendment",
+            "continuity",
+            "compatibility",
+            "interoperability"
+          ]
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "degradations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "acceptances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "byProfile": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "byMapping": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "interoperabilityValidationStatus": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "valid",
+            "semanticLossAccepted",
+            "semanticReinterpretation",
+            "silentSemanticDegradation",
+            "authorityFlattened",
+            "provenanceFlattened",
+            "learningSignalsAsScores",
+            "adaptationRecommendationsAsAmendments",
+            "continuityAsTranscriptSummary"
+          ],
+          "properties": {
+            "valid": {
+              "const": true
+            },
+            "semanticLossAccepted": {
+              "const": false
+            },
+            "semanticReinterpretation": {
+              "const": false
+            },
+            "silentSemanticDegradation": {
+              "const": false
+            },
+            "authorityFlattened": {
+              "const": false
+            },
+            "provenanceFlattened": {
+              "const": false
+            },
+            "learningSignalsAsScores": {
+              "const": false
+            },
+            "adaptationRecommendationsAsAmendments": {
+              "const": false
+            },
+            "continuityAsTranscriptSummary": {
               "const": false
             }
           }
@@ -3539,6 +3740,12 @@
             "CompatibilityFailureRecorded",
             "CompatibilityDegradationRecorded",
             "CompatibilityAcceptanceRecorded",
+            "InteroperabilityProfileDeclared",
+            "SemanticMappingRecorded",
+            "InteroperabilityCheckRecorded",
+            "SemanticDegradationRecorded",
+            "InteroperabilityFailureRecorded",
+            "InteroperabilityAcceptanceRecorded",
             "AssumptionDeclared",
             "EvidenceCommitted",
             "ClaimCreated",

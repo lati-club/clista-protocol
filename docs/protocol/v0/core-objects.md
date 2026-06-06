@@ -173,6 +173,7 @@ It is not a transcript, not model memory, not governance approval, and not a new
 A deterministic record of whether transferred reasoning state is `verified`, `degraded`, or `rejected`.
 
 It records required verification layers for integrity, attribution, provenance, learning, adaptation, amendments, and compatibility.
+M16 adds interoperability verification status so a resumed packet records whether protocol meaning can survive exchange.
 
 ## Compatibility Context
 
@@ -185,3 +186,21 @@ It is not governance approval and does not mutate imported state.
 A verification result that classifies a continuity packet as `compatible`, `degraded`, `incompatible`, or `rejected` for a specific receiving context.
 
 Unsupported required capabilities or unsupported active amendments fail closed.
+
+## Interoperability Profile
+
+A deterministic declaration of exchange format, required semantics, optional semantics, supported event types, and protocol object meanings.
+
+It is not a transcript summary, not source reputation, not participant scoring, and not structural acceptance.
+
+## Semantic Mapping
+
+An explicit mapping from one declared protocol semantic to the same semantic in another compatible context.
+
+Translation must preserve meaning. A semantic mapping cannot reinterpret authority, provenance, learning signals, adaptation recommendations, amendments, continuity, or compatibility as plain metadata.
+
+## Interoperability Check
+
+A verification result that classifies a continuity packet as `interoperable`, `degraded`, `incompatible`, or `rejected` for a specific semantic profile.
+
+Unknown required semantics, unsupported event meanings, or changed protocol object meanings fail closed. Optional unsupported semantics may degrade only when the degradation is explicit.

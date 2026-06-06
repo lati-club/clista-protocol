@@ -47,6 +47,10 @@ const {
   verifyEventIntegrity
 } = require("./integrity");
 const {
+  summarizeProtocolInteroperability,
+  verifyProtocolInteroperability
+} = require("./interoperability");
+const {
   continuityPacketPath,
   exportContinuityPacket,
   formatContinuityReasons,
@@ -178,6 +182,12 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
         return compatibilityShow(options, cwd);
       case "compatibility verify":
         return compatibilityVerify(options, cwd);
+      case "interoperability check":
+        return interoperabilityCheck(options, cwd);
+      case "interoperability show":
+        return interoperabilityShow(options, cwd);
+      case "interoperability verify":
+        return interoperabilityVerify(options, cwd);
       case "state show":
         return stateShow(options, cwd);
       case "audit show":
@@ -1693,6 +1703,31 @@ function compatibilityVerify(options, cwd) {
   return compatibilityCheck(options, cwd);
 }
 
+function interoperabilityCheck(options, cwd) {
+  const packet = readContinuityPacketForOptions(options, cwd);
+  const compatibilityResult = compatibilityResultFromCli(packet, options);
+  const result = verifyProtocolInteroperability(packet, interoperabilityOptionsFromCli(options, compatibilityResult));
+  print(result);
+  if (!result.valid) {
+    process.exitCode = 1;
+  }
+}
+
+function interoperabilityShow(options, cwd) {
+  const packet = readContinuityPacketForOptions(options, cwd);
+  const compatibilityResult = compatibilityResultFromCli(packet, options);
+  const result = verifyProtocolInteroperability(packet, interoperabilityOptionsFromCli(options, compatibilityResult));
+  const summary = summarizeProtocolInteroperability(result);
+  print(summary);
+  if (!summary.valid) {
+    process.exitCode = 1;
+  }
+}
+
+function interoperabilityVerify(options, cwd) {
+  return interoperabilityCheck(options, cwd);
+}
+
 function compatibilityOptionsFromCli(options, continuityVerification) {
   const result = { continuityVerification };
   const supportedAmendmentIds = parseList(options.supportAmendment || options.supportedAmendment || options.supportedAmendments);
@@ -1706,6 +1741,28 @@ function compatibilityOptionsFromCli(options, continuityVerification) {
   }
   if (supportedVerificationLayers.length) {
     result.supportedVerificationLayers = supportedVerificationLayers;
+  }
+  return result;
+}
+
+function compatibilityResultFromCli(packet, options) {
+  const continuityVerification = verifyContinuityPacket(packet);
+  return verifyProtocolCompatibility(packet, compatibilityOptionsFromCli(options, continuityVerification));
+}
+
+function interoperabilityOptionsFromCli(options, compatibilityResult) {
+  const result = { compatibilityResult };
+  const supportedSemantics = parseList(options.supportSemantic || options.supportedSemantic || options.supportedSemantics);
+  const supportedEventTypes = parseList(options.supportEventType || options.supportedEventType || options.supportedEventTypes);
+  const supportedExchangeFormats = parseList(options.supportExchangeFormat || options.supportedExchangeFormat || options.supportedExchangeFormats);
+  if (supportedSemantics.length) {
+    result.supportedSemantics = supportedSemantics;
+  }
+  if (supportedEventTypes.length) {
+    result.supportedEventTypes = supportedEventTypes;
+  }
+  if (supportedExchangeFormats.length) {
+    result.supportedExchangeFormats = supportedExchangeFormats;
   }
   return result;
 }
@@ -1884,6 +1941,17 @@ function normalizeCommand(command, options) {
         options: {
           ...options,
           packet: options.packet || command.slice(`${compatibilityCommand} `.length).trim()
+        }
+      };
+    }
+  }
+  for (const interoperabilityCommand of ["interoperability check", "interoperability show", "interoperability verify"]) {
+    if (command.startsWith(`${interoperabilityCommand} `)) {
+      return {
+        command: interoperabilityCommand,
+        options: {
+          ...options,
+          packet: options.packet || command.slice(`${interoperabilityCommand} `.length).trim()
         }
       };
     }
@@ -2131,6 +2199,9 @@ function usage() {
   clista compatibility check [--packet <path>] [--support-amendment <amendmentId>]
   clista compatibility show [--packet <path>]
   clista compatibility verify [--packet <path>]
+  clista interoperability check [--packet <path>]
+  clista interoperability show [--packet <path>]
+  clista interoperability verify [--packet <path>]
   clista state show [--thread <threadId>] [--events <path>]
   clista audit show [--thread <threadId>] [--events <path>]
   clista fork lineage --thread <forkThreadId> [--events <path>]
