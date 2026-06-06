@@ -95,3 +95,23 @@ A derived source-lineage record for a reasoning contribution.
 It records source type, source id, introducing event, transformation, source hash where available, and whether the source was available at contribution event time.
 
 Provenance does not score truth. It keeps the audit trail neutral.
+
+## Learning Signal
+
+A pattern-level observation derived from outcome evidence.
+
+It may reference contributions, outcomes, provenance, and governance objects.
+
+It must not assign participant scores, source scores, model rankings, or authority changes.
+
+## Learning Pattern
+
+A projected grouping of learning signals by reasoning pattern.
+
+It describes a repeatable reasoning pattern, not a participant, source, agent, model, or institution.
+
+## Learning Recommendation
+
+A non-authoritative revisit suggestion derived from learning signals.
+
+It may recommend future review. It must not mutate governance authority automatically.

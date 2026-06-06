@@ -15,6 +15,12 @@ const {
   computeEventHash
 } = require("./integrity");
 const {
+  validateLearningRecommendation,
+  validateLearningSignal,
+  validateOutcomeReview,
+  validatePatternObservation
+} = require("./learning");
+const {
   VALID_AUTHORITIES,
   VALID_AUTHORITY_SCOPES,
   applyIdentityEvent,
@@ -109,6 +115,18 @@ function validateEvents(events) {
         break;
       case "ContributionAttributionRevoked":
         validateContributionAttributionRevoked(event, state);
+        break;
+      case "LearningSignalRecorded":
+        validateLearningSignalRecorded(event, state);
+        break;
+      case "PatternObservationRecorded":
+        validatePatternObservationRecorded(event, state);
+        break;
+      case "OutcomeReviewRecorded":
+        validateOutcomeReviewRecorded(event, state);
+        break;
+      case "LearningRecommendationRecorded":
+        validateLearningRecommendationRecorded(event, state);
         break;
       case "ThreadCreated":
         validateThreadCreated(event, state);
@@ -466,6 +484,50 @@ function validateContributionAttributionRevoked(event, state) {
     addError(state, event, `attribution revocation requires decision_owner authority ${revokedBy}`);
   }
   for (const reason of validateAttributionRevocation(revocation, state.events)) {
+    addError(state, event, reason);
+  }
+}
+
+function validateLearningSignalRecorded(event, state) {
+  const signal = event.payload.learningSignal;
+  if (!signal) {
+    addError(state, event, "LearningSignalRecorded payload missing learningSignal");
+    return;
+  }
+  for (const reason of validateLearningSignal(signal, state.events)) {
+    addError(state, event, reason);
+  }
+}
+
+function validatePatternObservationRecorded(event, state) {
+  const observation = event.payload.patternObservation;
+  if (!observation) {
+    addError(state, event, "PatternObservationRecorded payload missing patternObservation");
+    return;
+  }
+  for (const reason of validatePatternObservation(observation, state.events)) {
+    addError(state, event, reason);
+  }
+}
+
+function validateOutcomeReviewRecorded(event, state) {
+  const review = event.payload.outcomeReview;
+  if (!review) {
+    addError(state, event, "OutcomeReviewRecorded payload missing outcomeReview");
+    return;
+  }
+  for (const reason of validateOutcomeReview(review, state.events)) {
+    addError(state, event, reason);
+  }
+}
+
+function validateLearningRecommendationRecorded(event, state) {
+  const recommendation = event.payload.learningRecommendation;
+  if (!recommendation) {
+    addError(state, event, "LearningRecommendationRecorded payload missing learningRecommendation");
+    return;
+  }
+  for (const reason of validateLearningRecommendation(recommendation, state.events)) {
     addError(state, event, reason);
   }
 }
@@ -1243,6 +1305,10 @@ function primaryObject(event) {
     || payload.attributionCorrection
     || payload.attributionDispute
     || payload.attributionRevocation
+    || payload.learningSignal
+    || payload.patternObservation
+    || payload.outcomeReview
+    || payload.learningRecommendation
     || payload.evidence
     || payload.assumption
     || payload.claim

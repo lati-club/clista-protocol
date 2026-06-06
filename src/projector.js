@@ -6,6 +6,11 @@ const {
 } = require("./attribution");
 const { buildIdentityState, projectIdentity } = require("./identity");
 const { PROTOCOL_VERSION, verifyEventIntegrity } = require("./integrity");
+const {
+  buildLearningState,
+  projectLearning,
+  selectLearningForThread
+} = require("./learning");
 const { evaluateMergeEligibility } = require("./merges");
 const {
   buildProvenanceState,
@@ -89,6 +94,34 @@ function emptyProjection() {
         revokedCount: 0
       }
     },
+    learning: {
+      schema: "clista.learning.v0",
+      theorem: "protocol_learning = update(reasoning_patterns, outcome_evidence)",
+      hardLaw: "learning != reputation",
+      patterns: [],
+      signals: [],
+      outcomeCorrelations: [],
+      assumptionReviews: [],
+      objectionReviews: [],
+      evidenceReviews: [],
+      governanceReviews: [],
+      patternObservations: [],
+      outcomeReviews: [],
+      revisitRecommendations: [],
+      bySignal: {},
+      byPattern: {},
+      byOutcome: {},
+      learningValidationStatus: {
+        valid: true,
+        signalCount: 0,
+        patternCount: 0,
+        recommendationCount: 0,
+        actorScoring: false,
+        sourceScoring: false,
+        modelRanking: false,
+        authorityMutation: false
+      }
+    },
     events: []
   };
 }
@@ -115,6 +148,11 @@ function projectEvents(events) {
       case "ContributionAttributionCorrected":
       case "ContributionAttributionDisputed":
       case "ContributionAttributionRevoked":
+        break;
+      case "LearningSignalRecorded":
+      case "PatternObservationRecorded":
+      case "OutcomeReviewRecorded":
+      case "LearningRecommendationRecorded":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -214,6 +252,7 @@ function projectEvents(events) {
   }, {});
   projection.attribution = projectAttribution(buildAttributionState(projection.events), identityState);
   projection.provenance = projectProvenance(buildProvenanceState(projection.events));
+  projection.learning = projectLearning(buildLearningState(projection));
 
   return projection;
 }
@@ -277,6 +316,7 @@ function selectThreadState(projection, requestedThreadId) {
   const mergeState = selectMergeState(projection, threadId);
   const attributionState = selectAttributionForThread(projection.attribution, threadId);
   const provenanceState = selectProvenanceForThread(projection.provenance, threadId);
+  const learningState = selectLearningForThread(projection.learning, threadId);
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -293,6 +333,7 @@ function selectThreadState(projection, requestedThreadId) {
     mergeState,
     attributionState,
     provenanceState,
+    learningState,
     events: projection.events
   });
 
@@ -327,6 +368,7 @@ function selectThreadState(projection, requestedThreadId) {
     identityState: projection.identity,
     attributionState,
     provenanceState,
+    learningState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -347,6 +389,7 @@ function buildReasoningState({
   mergeState,
   attributionState,
   provenanceState,
+  learningState,
   events
 }) {
   return {
@@ -378,6 +421,7 @@ function buildReasoningState({
     merge_completions: mergeState.completed,
     attribution: attributionState,
     provenance: provenanceState,
+    learning: learningState,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -447,6 +491,10 @@ function exportProtocol(projection) {
     attributionRevocations: projection.attribution.revocations,
     provenance: projection.provenance,
     contributionProvenance: projection.provenance.provenance,
+    learning: projection.learning,
+    learningSignals: projection.learning.signals,
+    learningPatterns: projection.learning.patterns,
+    learningRecommendations: projection.learning.revisitRecommendations,
     events: projection.events
   };
 }
@@ -1043,6 +1091,10 @@ function primaryObject(event) {
     || payload.expectedOutcome
     || payload.outcomeAudit
     || payload.decisionScore
+    || payload.learningSignal
+    || payload.patternObservation
+    || payload.outcomeReview
+    || payload.learningRecommendation
     || null;
 }
 

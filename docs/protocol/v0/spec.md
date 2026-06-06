@@ -96,6 +96,7 @@ Projected state is derived.
 - active and revoked authorities
 - attribution by contribution, participant, and source event
 - provenance by contribution, source, and introducing event
+- pattern-level learning signals from outcome evidence
 
 ## Required Validation
 
@@ -113,6 +114,7 @@ Validation checks:
 - protocol and hash schema versions
 - attribution source, participant, role, authority, and event-time provenance
 - provenance source existence, source timing, transformation, and source hash consistency
+- learning references, uncertainty, non-scoring, and non-authority-mutation boundaries
 
 ## Required Integrity
 
@@ -235,3 +237,60 @@ Supported transformations are:
 - `merged`
 
 Provenance is not truth ranking. It records where a contribution came from and how it entered state; it does not score sources, participants, agents, or models.
+
+## Required Learning
+
+```text
+clista learning review
+clista learning list
+clista learning show <learningId>
+clista learning verify
+```
+
+must derive pattern-level learning signals from outcome evidence.
+
+The theorem is:
+
+```text
+protocol_learning = update(reasoning_patterns, outcome_evidence)
+```
+
+The hard law is:
+
+```text
+learning != reputation
+```
+
+Learning may review:
+
+- expected outcomes
+- actual outcomes
+- decision results
+- assumption accuracy
+- claim support or failure
+- evidence sufficiency
+- objection validity
+- governance review auditability
+- merge and fork lineage
+- provenance completeness
+- revisit triggers
+
+Learning outputs must remain pattern-level:
+
+Good:
+
+- `assumption_with_evidence_provenance_failed`
+- `claims_supported_failed_decision`
+- `governance_reviews_documented_rationale`
+- `failed_outcome_requires_revisit`
+
+Invalid:
+
+- participant reputation
+- participant scores
+- source scores
+- model rankings
+- agent rankings
+- automatic authority changes
+
+Learning recommendations may suggest future governance review. They must not change authority automatically.

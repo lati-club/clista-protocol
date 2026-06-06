@@ -80,6 +80,14 @@ clista provenance verify
 
 If it verifies where each contribution came from, what transformation introduced it, and whether source lineage was available at contribution time, accountability becomes auditability without becoming scoring.
 
+The learning command is:
+
+```text
+clista learning review
+```
+
+If it derives pattern-level learning signals from outcomes without ranking participants, sources, agents, or models, reasoning can improve without becoming reputation.
+
 Anti-pattern:
 
 ```text
@@ -89,6 +97,8 @@ vibes with hashes
 A system that hashes artifacts without proving who authored them, what authority they carried, or why their contributions should be trusted.
 
 Provenance is not truth ranking. It records source lineage; it does not score sources, participants, or models.
+
+Learning is not reputation. It updates reasoning patterns from outcome evidence; it does not change participant authority or assign trust scores.
 
 ## Repository Boundary
 

@@ -154,6 +154,7 @@ test("thread-0001 reasoning state is reconstructed from .clista/events.ndjson on
 	    "merge_completions",
 	    "attribution",
 	    "provenance",
+	    "learning",
 	    "next_action",
 	    "audit_summary"
 	  ]);
@@ -179,6 +180,7 @@ test("thread-0001 reasoning state is reconstructed from .clista/events.ndjson on
 	  assert.equal(reasoning.merge_completions.length, 0);
 	  assert.ok(reasoning.attribution.attributions.length > 0);
 	  assert.ok(reasoning.provenance.provenance.length > 0);
+	  assert.equal(reasoning.learning.hardLaw, "learning != reputation");
 	  assert.equal(reasoning.next_action, "Implement and prove Milestone 0: Protocol Spine Proven.");
   assert.equal(reasoning.audit_summary.source, "append_only_event_log");
   assert.equal(reasoning.audit_summary.external_state_used, false);

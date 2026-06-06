@@ -42,6 +42,10 @@
     "attributionRevocations",
     "provenance",
     "contributionProvenance",
+    "learning",
+    "learningSignals",
+    "learningPatterns",
+    "learningRecommendations",
     "events"
   ],
   "properties": {
@@ -245,6 +249,27 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/contributionProvenance"
+      }
+    },
+    "learning": {
+      "$ref": "#/$defs/learningProjection"
+    },
+    "learningSignals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/learningSignal"
+      }
+    },
+    "learningPatterns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/learningPattern"
+      }
+    },
+    "learningRecommendations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/learningRecommendation"
       }
     },
     "events": {
@@ -1022,6 +1047,270 @@
           }
         },
         "provenanceValidationStatus": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "learningConfidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "learningSignal": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "signalType",
+        "pattern",
+        "relatedContributions",
+        "outcomeRefs",
+        "finding",
+        "confidence",
+        "actorScoring",
+        "sourceScoring",
+        "modelRanking",
+        "authorityMutation",
+        "learningHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "enum": [
+            "learningSignal",
+            "learningRecommendation"
+          ]
+        },
+        "signalType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "relatedContributions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outcomeRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provenanceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "finding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/learningConfidence"
+        },
+        "actorScoring": {
+          "const": false
+        },
+        "sourceScoring": {
+          "const": false
+        },
+        "modelRanking": {
+          "const": false
+        },
+        "authorityMutation": {
+          "const": false
+        },
+        "generatedFromEventIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "learningHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "learningRecommendation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/learningSignal"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "object": {
+              "const": "learningRecommendation"
+            },
+            "recommendationType": {
+              "type": "string"
+            },
+            "recommendation": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "learningPattern": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "pattern",
+        "signalCount",
+        "signalIds",
+        "confidence",
+        "actorScoring",
+        "sourceScoring",
+        "modelRanking"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "learningPattern"
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signalCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "signalIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "confidence": {
+          "$ref": "#/$defs/learningConfidence"
+        },
+        "actorScoring": {
+          "const": false
+        },
+        "sourceScoring": {
+          "const": false
+        },
+        "modelRanking": {
+          "const": false
+        }
+      }
+    },
+    "learningProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "patterns",
+        "signals",
+        "outcomeCorrelations",
+        "assumptionReviews",
+        "objectionReviews",
+        "evidenceReviews",
+        "governanceReviews",
+        "revisitRecommendations",
+        "bySignal",
+        "byPattern",
+        "byOutcome",
+        "learningValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.learning.v0"
+        },
+        "theorem": {
+          "const": "protocol_learning = update(reasoning_patterns, outcome_evidence)"
+        },
+        "hardLaw": {
+          "const": "learning != reputation"
+        },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningPattern"
+          }
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningSignal"
+          }
+        },
+        "outcomeCorrelations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningSignal"
+          }
+        },
+        "assumptionReviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningSignal"
+          }
+        },
+        "objectionReviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningSignal"
+          }
+        },
+        "evidenceReviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningSignal"
+          }
+        },
+        "governanceReviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningSignal"
+          }
+        },
+        "revisitRecommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/learningRecommendation"
+          }
+        },
+        "bySignal": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "byPattern": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "byOutcome": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "learningValidationStatus": {
           "type": "object",
           "additionalProperties": true
         }
@@ -2493,6 +2782,10 @@
             "ContributionAttributionCorrected",
             "ContributionAttributionDisputed",
             "ContributionAttributionRevoked",
+            "LearningSignalRecorded",
+            "PatternObservationRecorded",
+            "OutcomeReviewRecorded",
+            "LearningRecommendationRecorded",
             "AssumptionDeclared",
             "EvidenceCommitted",
             "ClaimCreated",
