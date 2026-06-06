@@ -942,7 +942,8 @@ function verificationLayerStatus(verificationState, layer) {
     interoperability: "interoperabilityValidationStatus",
     federation: "federationValidationStatus",
     negotiation: "negotiationValidationStatus",
-    delegation: "delegationValidationStatus"
+    delegation: "delegationValidationStatus",
+    execution: "executionValidationStatus"
   };
   return verificationState?.[mapping[layer] || layer];
 }

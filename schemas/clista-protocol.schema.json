@@ -56,6 +56,7 @@
     "federation",
     "negotiation",
     "delegation",
+    "execution",
     "events"
   ],
   "properties": {
@@ -318,6 +319,9 @@
     },
     "delegation": {
       "$ref": "#/$defs/delegationProjection"
+    },
+    "execution": {
+      "$ref": "#/$defs/executionProjection"
     },
     "events": {
       "type": "array",
@@ -748,6 +752,277 @@
         "reason": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "executionStatus": {
+      "enum": [
+        "active",
+        "completed",
+        "failed",
+        "rolled_back",
+        "violated"
+      ]
+    },
+    "executionAuthorizationRef": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "decision",
+            "delegation"
+          ]
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "executionEvidence": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "executionRecord": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "threadId",
+        "actorId",
+        "authorizationRef",
+        "actionType",
+        "scope",
+        "constraints",
+        "status",
+        "attribution",
+        "authorityCreated",
+        "executionAsAuthorization",
+        "consensusCreated",
+        "executionAsConsensus",
+        "governanceApproval",
+        "amendmentApproval",
+        "completionByAssertionOnly",
+        "silentCompletion",
+        "silentFailure",
+        "silentRollback",
+        "intentOnly"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "executionRecord"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "actorId": {
+          "$ref": "#/$defs/id"
+        },
+        "authorizationRef": {
+          "$ref": "#/$defs/executionAuthorizationRef"
+        },
+        "delegationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "decisionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "actionType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "status": {
+          "$ref": "#/$defs/executionStatus"
+        },
+        "startedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "completedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "failedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rolledBackAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionEvidence"
+          }
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "failureReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rollbackReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attribution": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "actorId",
+            "authorizationRef",
+            "actionType"
+          ]
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionViolation"
+          }
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "executionAsAuthorization": {
+          "const": false
+        },
+        "consensusCreated": {
+          "const": false
+        },
+        "executionAsConsensus": {
+          "const": false
+        },
+        "governanceApproval": {
+          "const": false
+        },
+        "amendmentApproval": {
+          "const": false
+        },
+        "completionByAssertionOnly": {
+          "const": false
+        },
+        "silentCompletion": {
+          "const": false
+        },
+        "silentFailure": {
+          "const": false
+        },
+        "silentRollback": {
+          "const": false
+        },
+        "intentOnly": {
+          "const": false
+        }
+      }
+    },
+    "executionViolation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "object",
+        "executionId",
+        "threadId",
+        "violationType",
+        "reason",
+        "detectedByParticipantId",
+        "authorityCreated",
+        "executionAsAuthorization",
+        "consensusCreated",
+        "executionAsConsensus",
+        "governanceApproval",
+        "amendmentApproval"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "object": {
+          "const": "executionViolation"
+        },
+        "executionId": {
+          "$ref": "#/$defs/id"
+        },
+        "threadId": {
+          "$ref": "#/$defs/id"
+        },
+        "violationType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detectedByParticipantId": {
+          "$ref": "#/$defs/id"
+        },
+        "detectedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authorityCreated": {
+          "const": false
+        },
+        "executionAsAuthorization": {
+          "const": false
+        },
+        "consensusCreated": {
+          "const": false
+        },
+        "executionAsConsensus": {
+          "const": false
+        },
+        "governanceApproval": {
+          "const": false
+        },
+        "amendmentApproval": {
+          "const": false
         }
       }
     },
@@ -1702,6 +1977,253 @@
               "const": false
             },
             "delegatedConsensus": {
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "executionProjection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "theorem",
+        "hardLaw",
+        "executionProtocolVersion",
+        "localProtocolVersion",
+        "statuses",
+        "records",
+        "active",
+        "completed",
+        "failed",
+        "rolled_back",
+        "violated",
+        "starts",
+        "completions",
+        "failures",
+        "rollbacks",
+        "violations",
+        "byExecution",
+        "byStart",
+        "byCompletion",
+        "byFailure",
+        "byRollback",
+        "byViolation",
+        "completionsByExecution",
+        "failuresByExecution",
+        "rollbacksByExecution",
+        "violationsByExecution",
+        "executionValidationStatus"
+      ],
+      "properties": {
+        "schema": {
+          "const": "clista.execution.v0"
+        },
+        "theorem": {
+          "const": "protocol_execution = perform(authorized_action, under_verified_constraints)"
+        },
+        "hardLaw": {
+          "const": "execution != intent"
+        },
+        "executionProtocolVersion": {
+          "const": "0.20.0"
+        },
+        "localProtocolVersion": {
+          "const": "clista.protocol.v0"
+        },
+        "statuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionStatus"
+          }
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "active": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "completed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "failed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "rolled_back": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "violated": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "starts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "completions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "rollbacks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionViolation"
+          }
+        },
+        "byExecution": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "byStart": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "byCompletion": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "byFailure": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "byRollback": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/executionRecord"
+          }
+        },
+        "byViolation": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/executionViolation"
+          }
+        },
+        "completionsByExecution": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/executionRecord"
+            }
+          }
+        },
+        "failuresByExecution": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/executionRecord"
+            }
+          }
+        },
+        "rollbacksByExecution": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/executionRecord"
+            }
+          }
+        },
+        "violationsByExecution": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/executionViolation"
+            }
+          }
+        },
+        "executionValidationStatus": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "valid",
+            "authorityCreated",
+            "executionAsAuthorization",
+            "consensusCreated",
+            "executionAsConsensus",
+            "governanceApproval",
+            "amendmentApproval",
+            "completionByAssertionOnly",
+            "silentCompletion",
+            "silentFailure",
+            "silentRollback"
+          ],
+          "properties": {
+            "valid": {
+              "const": true
+            },
+            "authorityCreated": {
+              "const": false
+            },
+            "executionAsAuthorization": {
+              "const": false
+            },
+            "consensusCreated": {
+              "const": false
+            },
+            "executionAsConsensus": {
+              "const": false
+            },
+            "governanceApproval": {
+              "const": false
+            },
+            "amendmentApproval": {
+              "const": false
+            },
+            "completionByAssertionOnly": {
+              "const": false
+            },
+            "silentCompletion": {
+              "const": false
+            },
+            "silentFailure": {
+              "const": false
+            },
+            "silentRollback": {
               "const": false
             }
           }
@@ -4808,6 +5330,11 @@
             "DelegationRevoked",
             "DelegationExpired",
             "DelegationViolationRecorded",
+            "ExecutionStarted",
+            "ExecutionCompleted",
+            "ExecutionFailed",
+            "ExecutionRolledBack",
+            "ExecutionViolationRecorded",
             "AssumptionDeclared",
             "EvidenceCommitted",
             "ClaimCreated",

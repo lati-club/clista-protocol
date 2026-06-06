@@ -2,7 +2,7 @@ const { PROTOCOL_VERSION, contentHash } = require("./integrity");
 
 const INTEROPERABILITY_SCHEMA = "clista.interoperability.v0";
 const INTEROPERABILITY_VERIFY_SCHEMA = "clista.interoperability.verify.v0";
-const INTEROPERABILITY_PROTOCOL_VERSION = "0.19.0";
+const INTEROPERABILITY_PROTOCOL_VERSION = "0.20.0";
 const INTEROPERABILITY_THEOREM = "protocol_interoperability = preserve(meaning, across_compatible_contexts)";
 const INTEROPERABILITY_HARD_LAW = "translation != reinterpretation";
 
@@ -30,7 +30,8 @@ const REQUIRED_SEMANTICS = [
   "interoperability_status",
   "federation_status",
   "negotiation_status",
-  "delegation_status"
+  "delegation_status",
+  "execution_status"
 ];
 
 const SUPPORTED_SEMANTICS = REQUIRED_SEMANTICS;
@@ -92,6 +93,11 @@ const SUPPORTED_EVENT_TYPES = [
   "DelegationRevoked",
   "DelegationExpired",
   "DelegationViolationRecorded",
+  "ExecutionStarted",
+  "ExecutionCompleted",
+  "ExecutionFailed",
+  "ExecutionRolledBack",
+  "ExecutionViolationRecorded",
   "AssumptionDeclared",
   "EvidenceCommitted",
   "ClaimCreated",
@@ -129,7 +135,8 @@ const OBJECT_SEMANTICS = {
   interoperability: "meaning_preservation_status_not_structural_acceptance",
   federation: "independent_context_alignment_not_shared_authority",
   negotiation: "explicit_exchange_terms_not_authority_transfer",
-  delegation: "scoped_action_permission_not_authority_surrender"
+  delegation: "scoped_action_permission_not_authority_surrender",
+  execution: "performed_action_under_verified_constraints_not_intent"
 };
 
 const INTEROPERABILITY_EVENT_TYPES = new Set([

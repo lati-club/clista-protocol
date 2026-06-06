@@ -89,6 +89,14 @@ clista negotiation verify
 
 If it verifies exchange terms without authority transfer, independent ClisTa contexts can resolve differences without merging governance.
 
+The execution command is:
+
+```text
+clista execution verify
+```
+
+If it verifies performed action with evidence under authorized scope and constraints, execution can be trusted without treating intent as completion.
+
 The identity command is:
 
 ```text
@@ -166,6 +174,8 @@ Negotiation is not authority transfer. Agreement is not governance merger.
 Delegation is not authority surrender. Delegated action is scoped and attributable.
 
 Non-participant delegation is not actor exemption. Every delegate that records action resolves to an accountable participant.
+
+Execution is not intent. Completion requires evidence that the authorized action was performed under verified scope and constraints.
 
 ## Repository Boundary
 

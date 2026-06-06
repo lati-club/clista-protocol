@@ -36,7 +36,7 @@
       "const": "continuity"
     },
     "protocol_version": {
-      "const": "0.19.0"
+      "const": "0.20.0"
     },
     "schema_version": {
       "const": "clista.continuity.packet.v0"
@@ -89,6 +89,16 @@
         {
           "contains": {
             "const": "negotiation"
+          }
+        },
+        {
+          "contains": {
+            "const": "delegation"
+          }
+        },
+        {
+          "contains": {
+            "const": "execution"
           }
         }
       ]
@@ -203,7 +213,7 @@
           "const": "translation != reinterpretation"
         },
         "interoperabilityProtocolVersion": {
-          "const": "0.19.0"
+          "const": "0.20.0"
         },
         "localProtocolVersion": {
           "const": "clista.protocol.v0"
@@ -320,6 +330,7 @@
         "federation_state",
         "negotiation_state",
         "delegation_state",
+        "execution_state",
         "verification_status",
         "integrity_state",
         "status",
@@ -445,6 +456,10 @@
           "type": "object",
           "additionalProperties": true
         },
+        "execution_state": {
+          "type": "object",
+          "additionalProperties": true
+        },
         "verification_status": {
           "type": "object",
           "additionalProperties": true,
@@ -565,6 +580,7 @@
         "federationValidationStatus",
         "negotiationValidationStatus",
         "delegationValidationStatus",
+        "executionValidationStatus",
         "transcriptReplay",
         "memoryTrust",
         "authorityCreated",
@@ -590,7 +606,7 @@
           ]
         },
         "continuityProtocolVersion": {
-          "const": "0.19.0"
+          "const": "0.20.0"
         },
         "verificationMode": {
           "enum": [

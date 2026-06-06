@@ -297,3 +297,17 @@ Expiration does not mutate the original grant.
 A record that a delegated action exceeded or attempted to exceed its scope.
 
 Violation preserves accountability without expanding delegate authority.
+
+## Execution Record
+
+A lifecycle record that an authorized action started, completed, failed, or rolled back under verified constraints.
+
+It records the accountable actor, authorization reference, optional delegation or decision reference, action type, scope, constraints, status, lifecycle timestamps, evidence, and attribution.
+
+Completion requires evidence. Execution does not create authority, imply consensus, approve amendments, or merge governance.
+
+## Execution Violation
+
+A record that execution exceeded, attempted to exceed, or failed to satisfy its authorized scope or constraints.
+
+Violation is projected onto execution state and preserves accountability without converting intent into completed action.

@@ -31,6 +31,7 @@ that another human or agent can reload later.
 18. Protocol negotiation
 19. Protocol delegation
 19.1. Delegation actor boundary
+20. Protocol execution
 
 ## Protocol Objects
 
@@ -185,6 +186,7 @@ npm run clista -- federation check --packet continuity.json
 npm run clista -- federation verify
 npm run clista -- negotiation check --packet continuity.json
 npm run clista -- negotiation verify
+npm run clista -- execution verify
 npm run clista -- identity show --participant par_troy
 npm run clista -- attribution list --thread thd_example
 npm run clista -- attribution show clm_example

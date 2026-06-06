@@ -24,6 +24,11 @@ const {
   selectDelegationForThread
 } = require("./delegation");
 const {
+  buildExecutionState,
+  projectExecution,
+  selectExecutionForThread
+} = require("./execution");
+const {
   buildFederationState,
   projectFederation,
   selectFederationForThread
@@ -221,7 +226,7 @@ function emptyProjection() {
       schema: "clista.compatibility.v0",
       theorem: "protocol_compatibility = verify(capability_set, amendment_state, validation_requirements)",
       hardLaw: "unsupported_state != valid_state",
-      compatibilityProtocolVersion: "0.19.0",
+      compatibilityProtocolVersion: "0.20.0",
       localProtocolVersion: PROTOCOL_VERSION,
       localCapabilitySet: [],
       supportedContinuityProtocolVersions: [],
@@ -254,7 +259,7 @@ function emptyProjection() {
       schema: "clista.interoperability.v0",
       theorem: "protocol_interoperability = preserve(meaning, across_compatible_contexts)",
       hardLaw: "translation != reinterpretation",
-      interoperabilityProtocolVersion: "0.19.0",
+      interoperabilityProtocolVersion: "0.20.0",
       localProtocolVersion: PROTOCOL_VERSION,
       supportedExchangeFormats: [],
       supportedSemantics: [],
@@ -413,6 +418,54 @@ function emptyProjection() {
         delegatedConsensus: false
       }
     },
+    execution: {
+      schema: "clista.execution.v0",
+      theorem: "protocol_execution = perform(authorized_action, under_verified_constraints)",
+      hardLaw: "execution != intent",
+      executionProtocolVersion: "0.20.0",
+      localProtocolVersion: PROTOCOL_VERSION,
+      statuses: ["active", "completed", "failed", "rolled_back", "violated"],
+      records: [],
+      active: [],
+      completed: [],
+      failed: [],
+      rolled_back: [],
+      violated: [],
+      starts: [],
+      completions: [],
+      failures: [],
+      rollbacks: [],
+      violations: [],
+      byExecution: {},
+      byStart: {},
+      byCompletion: {},
+      byFailure: {},
+      byRollback: {},
+      byViolation: {},
+      completionsByExecution: {},
+      failuresByExecution: {},
+      rollbacksByExecution: {},
+      violationsByExecution: {},
+      executionValidationStatus: {
+        valid: true,
+        recordCount: 0,
+        activeCount: 0,
+        completedCount: 0,
+        failedCount: 0,
+        rolledBackCount: 0,
+        violationCount: 0,
+        authorityCreated: false,
+        executionAsAuthorization: false,
+        consensusCreated: false,
+        executionAsConsensus: false,
+        governanceApproval: false,
+        amendmentApproval: false,
+        completionByAssertionOnly: false,
+        silentCompletion: false,
+        silentFailure: false,
+        silentRollback: false
+      }
+    },
     events: []
   };
 }
@@ -484,6 +537,11 @@ function projectEvents(events) {
       case "DelegationRevoked":
       case "DelegationExpired":
       case "DelegationViolationRecorded":
+      case "ExecutionStarted":
+      case "ExecutionCompleted":
+      case "ExecutionFailed":
+      case "ExecutionRolledBack":
+      case "ExecutionViolationRecorded":
         break;
       case "ThreadCreated":
         upsert(projection.threads, payload.thread);
@@ -591,6 +649,7 @@ function projectEvents(events) {
   projection.federation = projectFederation(buildFederationState(projection));
   projection.negotiation = projectNegotiation(buildNegotiationState(projection));
   projection.delegation = projectDelegation(buildDelegationState(projection));
+  projection.execution = projectExecution(buildExecutionState(projection));
 
   return projection;
 }
@@ -662,6 +721,7 @@ function selectThreadState(projection, requestedThreadId) {
   const federationState = selectFederationForThread(projection.federation, threadId);
   const negotiationState = selectNegotiationForThread(projection.negotiation, threadId);
   const delegationState = selectDelegationForThread(projection.delegation, threadId);
+  const executionState = selectExecutionForThread(projection.execution, threadId);
   const reasoningState = buildReasoningState({
     thread,
     evidence: supportingEvidence,
@@ -686,6 +746,7 @@ function selectThreadState(projection, requestedThreadId) {
     federationState,
     negotiationState,
     delegationState,
+    executionState,
     events: projection.events
   });
 
@@ -728,6 +789,7 @@ function selectThreadState(projection, requestedThreadId) {
     federationState,
     negotiationState,
     delegationState,
+    executionState,
     auditTrail: auditTrailForThread(projection, threadId)
   };
 }
@@ -756,6 +818,7 @@ function buildReasoningState({
   federationState,
   negotiationState,
   delegationState,
+  executionState,
   events
 }) {
   return {
@@ -795,6 +858,7 @@ function buildReasoningState({
     federation: federationState,
     negotiation: negotiationState,
     delegation: delegationState,
+    execution: executionState,
     next_action: decisionRecord?.nextAction || null,
     audit_summary: {
       source: "append_only_event_log",
@@ -878,6 +942,7 @@ function exportProtocol(projection) {
     federation: projection.federation,
     negotiation: projection.negotiation,
     delegation: projection.delegation,
+    execution: projection.execution,
     events: projection.events
   };
 }

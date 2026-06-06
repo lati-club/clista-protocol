@@ -143,7 +143,7 @@ Projected state is derived.
 - pattern-level learning signals from outcome evidence
 - governance adaptation recommendations from learning signals
 - explicit protocol amendments and amendment history
-- portability, interoperability, federation, negotiation, and delegation status
+- portability, interoperability, federation, negotiation, delegation, and execution status
 
 ## Required Validation
 
@@ -431,6 +431,47 @@ Delegation must verify:
 - revoked, expired, or violated grants cannot silently continue
 
 Delegation must reject records that surrender authority, transfer authority permanently, mutate governance, create unbounded action, omit attribution, create automatic consensus, create delegated consensus, or treat delegated action as underlying authority.
+
+## Required Execution
+
+```text
+clista execution start
+clista execution complete
+clista execution fail
+clista execution rollback
+clista execution list
+clista execution show <executionId>
+clista execution verify
+```
+
+must record performed action under verified authorization, scope, constraints, evidence, and accountability.
+
+The theorem is:
+
+```text
+protocol_execution = perform(authorized_action, under_verified_constraints)
+```
+
+The hard law is:
+
+```text
+execution != intent
+```
+
+Execution must verify:
+
+- actor resolves to a known accountable participant
+- actor_id matches the execution actor
+- execution references an approved decision or active delegation
+- delegated execution actor matches the accountable delegate
+- delegated execution matches granted action and scope
+- execution constraints preserve delegation limits or decision conditions
+- completion includes evidence
+- failure is explicit
+- rollback references a prior completed or failed execution and includes evidence
+- violations are projected, not silently ignored
+
+Execution must reject records that create authority, imply consensus, approve amendments, merge governance, complete by assertion, silently complete, silently fail, silently rollback, or treat intent as performed action.
 
 ## Required Identity
 
