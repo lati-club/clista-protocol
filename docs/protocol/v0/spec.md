@@ -113,3 +113,27 @@ clista integrity verify --strict
 ```
 
 must reject logs missing canonical protocol version, hash version, content hashes, or previous hashes after the genesis event.
+
+## Required Continuity
+
+```text
+clista continuity export
+clista continuity verify --packet <path>
+clista continuity import --packet <path>
+clista continuity summary --packet <path>
+```
+
+must transfer projected reasoning state across contexts without relying on the full conversation transcript.
+
+A Continuity Packet must be integrity-gated and must preserve:
+
+- current question
+- current decision
+- assumptions
+- claims
+- open objections
+- governance state
+- outcome state
+- fork lineage
+- merge state
+- next action

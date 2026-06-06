@@ -22,6 +22,15 @@ const {
   verifyEventIntegrity
 } = require("./integrity");
 const {
+  continuityPacketPath,
+  exportContinuityPacket,
+  formatContinuityReasons,
+  readContinuityPacketAt,
+  summarizeContinuityPacket,
+  verifyContinuityPacket,
+  writeContinuityPacket
+} = require("./continuity");
+const {
   exportProtocol,
   projectEvents,
   selectAudit,
@@ -74,6 +83,14 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
         return validateCommand(options, cwd);
       case "integrity verify":
         return integrityVerify(options, cwd);
+      case "continuity export":
+        return continuityExport(options, cwd);
+      case "continuity verify":
+        return continuityVerify(options, cwd);
+      case "continuity import":
+        return continuityImport(options, cwd);
+      case "continuity summary":
+        return continuitySummary(options, cwd);
       case "state show":
         return stateShow(options, cwd);
       case "audit show":
@@ -1047,6 +1064,68 @@ function integrityVerify(options, cwd) {
   }
 }
 
+function continuityExport(options, cwd) {
+  const events = readEventsForOptions(options, cwd);
+  const packet = exportContinuityPacket(events, { threadId: options.thread });
+  if (options.out) {
+    const outPath = path.resolve(cwd, options.out);
+    fs.writeFileSync(outPath, `${JSON.stringify(packet, null, 2)}\n`, "utf8");
+    return print({
+      schema: "clista.continuity.export.v0",
+      packet: outPath,
+      source_thread_id: packet.source_thread_id,
+      event_log_hash: packet.event_log_hash,
+      projection_hash: packet.projection_hash,
+      state_hash: packet.state_hash,
+      verification_mode: packet.verification_mode
+    });
+  }
+  return print(packet);
+}
+
+function continuityVerify(options, cwd) {
+  requireOption(options, "packet");
+  const packet = readContinuityPacketAt(path.resolve(cwd, options.packet));
+  const result = verifyContinuityPacket(packet);
+  print(result);
+  if (!result.valid) {
+    process.exitCode = 1;
+  }
+}
+
+function continuityImport(options, cwd) {
+  requireOption(options, "packet");
+  const sourcePath = path.resolve(cwd, options.packet);
+  const packet = readContinuityPacketAt(sourcePath);
+  const verification = verifyContinuityPacket(packet);
+  if (!verification.valid) {
+    throw new Error(formatContinuityReasons(verification.reasons));
+  }
+  const importedPath = writeContinuityPacket(packet, cwd, {
+    replace: booleanOption(options.replace, false)
+  });
+  return print({
+    schema: "clista.continuity.import.v0",
+    imported: true,
+    source: sourcePath,
+    packet: importedPath,
+    source_thread_id: packet.source_thread_id,
+    event_log_hash: packet.event_log_hash,
+    projection_hash: packet.projection_hash,
+    state_hash: packet.state_hash,
+    verification_mode: packet.verification_mode
+  });
+}
+
+function continuitySummary(options, cwd) {
+  const packet = readContinuityPacketForOptions(options, cwd);
+  const summary = summarizeContinuityPacket(packet);
+  print(summary);
+  if (!summary.valid) {
+    process.exitCode = 1;
+  }
+}
+
 function validateCommand(options, cwd) {
   const events = readEventsForOptions(options, cwd);
   const result = validateEvents(events);
@@ -1100,6 +1179,13 @@ function readImportEventsAt(sourcePath) {
     throw new Error("Protocol export missing events array");
   }
   return exported.events;
+}
+
+function readContinuityPacketForOptions(options, cwd) {
+  if (options.packet) {
+    return readContinuityPacketAt(path.resolve(cwd, options.packet));
+  }
+  return readContinuityPacketAt(continuityPacketPath(cwd));
 }
 
 function readValidEventsForOptions(options, cwd) {
@@ -1292,6 +1378,10 @@ function usage() {
   clista merge complete --request <mergeRequestId>
   clista validate [--events <path>]
   clista integrity verify [--events <path>] [--strict]
+  clista continuity export [--events <path>] [--thread <threadId>] [--out <path>]
+  clista continuity verify --packet <path>
+  clista continuity import --packet <path> [--replace true]
+  clista continuity summary [--packet <path>]
   clista state show [--thread <threadId>] [--events <path>]
   clista audit show [--thread <threadId>] [--events <path>]
   clista fork lineage --thread <forkThreadId> [--events <path>]

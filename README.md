@@ -48,6 +48,14 @@ If it verifies canonical hashes, the event log can be trusted as history rather 
 
 For v0.6 chained logs, add `--strict` to require protocol versions, hash versions, and previous-hash links.
 
+The continuity command is:
+
+```text
+clista continuity export --out continuity.json
+```
+
+If it produces a verifiable Continuity Packet, projected reasoning state can survive context loss without treating the transcript as memory.
+
 ## Repository Boundary
 
 This repository is `clista-protocol`.

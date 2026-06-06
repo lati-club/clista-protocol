@@ -18,6 +18,7 @@ that another human or agent can reload later.
 5. Outcomes and learning
 6. Forks and merges
 7. Local event-log integrity
+8. Protocol continuity packets
 
 ## Protocol Objects
 
@@ -118,6 +119,10 @@ npm run clista -- merge eligibility --request mrg_example
 npm run clista -- merge complete --request mrg_example --merged-by "Troy"
 npm run clista -- validate
 npm run clista -- integrity verify
+npm run clista -- continuity export --out continuity.json
+npm run clista -- continuity verify --packet continuity.json
+npm run clista -- continuity import --packet continuity.json
+npm run clista -- continuity summary --packet continuity.json
 npm run clista -- state show --thread thd_example
 npm run clista -- audit show --thread thd_example
 npm run clista -- fork lineage --thread thd_example_alt
