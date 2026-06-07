@@ -45,8 +45,8 @@ npm run clista -- state show
 npm run clista -- export
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
-npm run clista -- release verify --tag v0.30.1-protocol-release
-npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.30.1-protocol-release
+npm run clista -- release verify --tag v0.30.2-protocol-release
+npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.30.2-protocol-release
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
@@ -136,7 +136,7 @@ The scenario demo succeeds when `examples/scenario-demo/events.ndjson` validates
 | Integrity failure | Event hashes or chain links do not match. | Integrity reasons and head hash. | `npm run clista -- integrity verify --events <path>` |
 | Continuity degraded | The packet is valid only under explicit compatibility mode. | `verificationMode`, `resumeStatus`, and `degradationReasons`. | `npm run clista -- continuity verify --packet continuity.json` |
 | Release manifest missing | The manifest path is absent. | The manifest path or whether a manifest should be generated. | `npm run clista -- release manifest --out .clista/release-manifest.json` |
-| Release verify failed | Manifest, source, tag, package, hash, verifier, or boundary checks failed. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.30.1-protocol-release` |
+| Release verify failed | Manifest, source, tag, package, hash, verifier, or boundary checks failed. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.30.2-protocol-release` |
 | Package/tag/version mismatch | `package.json` version and release tag version disagree, or the tag points to a different commit. | `package.json`, `git tag`, and `git rev-parse HEAD`. | `npm run clista -- release verify --tag <tag>` |
 | Runtime verify failed | The local runtime does not match the supplied manifest. | `drift`, `warnings`, and `violations`. | `npm run clista -- runtime verify --manifest .clista/release-manifest.json` |
 | Runtime audit failed | The documented runtime verification path is missing, unclear, not executable, or overclaims. | `checks` and `violations`. | `npm run clista -- runtime audit --manifest .clista/release-manifest.json` |
