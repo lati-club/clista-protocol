@@ -77,11 +77,16 @@ npm run clista -- state show
 npm run clista -- export
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
-npm run clista -- release verify --tag v0.29.0-product-narrative-pass
-npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.29.0-product-narrative-pass
+npm run clista -- release verify --tag v0.30.0-protocol-release
+npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.30.0-protocol-release
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
+
+Expected outcomes on a fresh clone: every command above exits 0. The two continuity steps
+report `resumeStatus: "degraded"` — the bundled origin thread predates v0.24 — and list the
+legacy causes in `degradationReasons`. Degraded continuity on this fixture is the documented
+boundary, not a broken install.
 
 Run the scenario demo to inspect the yes shape directly:
 
@@ -124,9 +129,9 @@ M29 is a product narrative pass over existing documentation. It does not add pro
 | Missing required option | A command needs another flag. | `npm run clista -- help` for the command shape. | Rerun with the missing `--<option>`. |
 | Validation failure | The event log is not trusted protocol state. | The returned `event_id`, `event_type`, and `reason`. | `npm run clista -- validate --events <path>` |
 | Integrity failure | Hashes or event-chain evidence do not match. | Integrity reasons and the event log head. | `npm run clista -- integrity verify --events <path>` |
-| Continuity degraded | The packet is valid but not strict for the current boundary. | `verificationMode`, `resumeStatus`, and `reasons`. | `npm run clista -- continuity verify --packet continuity.json` |
+| Continuity degraded | The packet is valid but not strict for the current boundary. | `verificationMode`, `resumeStatus`, and `degradationReasons`. | `npm run clista -- continuity verify --packet continuity.json` |
 | Release manifest missing | A supplied manifest path is absent. | The manifest path or whether one should be generated. | `npm run clista -- release manifest --out .clista/release-manifest.json` |
-| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.29.0-product-narrative-pass` |
+| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.30.0-protocol-release` |
 | Package/tag/version mismatch | `package.json` version and the release tag disagree, or the tag points elsewhere. | `package.json`, `git tag`, and `git rev-parse HEAD`. | `npm run clista -- release verify --tag <tag>` |
 | Runtime verify failed | The current runtime drifted from the supplied manifest. | `drift`, `warnings`, and `violations`. | `npm run clista -- runtime verify --manifest .clista/release-manifest.json` |
 | Runtime audit failed | The documented runtime verification path is missing, unclear, not executable, or overclaims. | `checks` and `violations`. | `npm run clista -- runtime audit --manifest .clista/release-manifest.json` |
@@ -443,3 +448,8 @@ This repository is `clista-protocol`.
 It is not `clista-app`, `clista-ui`, or `clista-platform`.
 
 Do not build UI, agent orchestration, graph databases, governance portals, or platform features until the protocol spine works.
+
+## License
+
+Code is licensed under Apache-2.0 (see `LICENSE`). Documentation and the debate prompt pack
+are licensed under CC BY 4.0. Attribution: lati-cooki.

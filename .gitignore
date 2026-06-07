@@ -2,3 +2,5 @@
 !.clista/events.ndjson
 node_modules/
 npm-debug.log*
+continuity.json
+package-lock.json

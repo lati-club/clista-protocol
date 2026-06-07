@@ -806,7 +806,7 @@ function addAuditCheck(result, id, valid, reason, extra = {}) {
   };
   result.checks.push(check);
   if (!check.valid) {
-    addFinding(result, "violations", id, reason, extra);
+    addFinding(result, "violations", id, `check failed: ${reason}`, extra);
   }
   return check;
 }

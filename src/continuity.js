@@ -230,8 +230,27 @@ function verifyContinuityPacket(packet) {
     stateHash: packet?.state_hash || null,
     verificationState: packet?.verification_state || null,
     interoperabilityProfile: packet?.interoperability_profile || null,
+    degradationReasons: packet?.resume_status === "degraded" ? summarizeDegradation(events) : [],
     reasons
   };
+}
+
+function summarizeDegradation(events) {
+  if (!Array.isArray(events)) {
+    return ["source_events unavailable; cannot derive degradation cause"];
+  }
+  const strict = verifyEventIntegrity(events, { strict: true });
+  if (strict.valid) {
+    return [];
+  }
+  const counts = new Map();
+  for (const entry of strict.reasons || []) {
+    const key = typeof entry === "string" ? entry : entry?.reason || JSON.stringify(entry);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return Array.from(counts.entries()).map(
+    ([key, count]) => (count > 1 ? `${key} (x${count} events)` : key)
+  );
 }
 
 function resumeContinuityPacket(packet) {
