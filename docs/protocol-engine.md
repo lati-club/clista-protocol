@@ -214,6 +214,12 @@ The local store lives at:
 
 ## CLI
 
+For the fresh-user workflow, start with:
+
+```text
+docs/quickstart.md
+```
+
 ```text
 npm run clista -- init
 npm run clista -- participant declare --name "Troy" --id par_troy

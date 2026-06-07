@@ -4483,6 +4483,14 @@ function help() {
 
 function usage() {
   return `Usage:
+  # First commands from a local checkout
+  npm run clista -- validate
+  npm run clista -- state show
+  npm run clista -- export
+  npm run clista -- continuity verify --packet continuity.json
+  npm run clista -- release verify
+
+  # Installed binary command list
   clista init
   clista thread create --title <title> --question <question>
   clista participant declare --name <name> [--id <participantId>] [--thread <threadId>]

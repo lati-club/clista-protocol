@@ -15,6 +15,74 @@ Reasoning state is output.
 Commit Evidence -> Pull Decision -> Track Audit
 ```
 
+## Quickstart
+
+Prerequisite:
+
+```text
+Node.js >=18
+```
+
+Clone and run from a local checkout:
+
+```sh
+git clone https://github.com/lati-cooki/clista-protocol.git
+cd clista-protocol
+npm install
+```
+
+Use the local CLI through the package script:
+
+```sh
+npm run clista -- help
+```
+
+First successful workflow:
+
+```sh
+npm run clista -- validate
+npm run clista -- state show
+npm run clista -- export
+npm run clista -- continuity export --out continuity.json
+npm run clista -- continuity verify --packet continuity.json
+npm run clista -- release verify
+```
+
+Success means:
+
+| Command | Success means | Success does not mean |
+| --- | --- | --- |
+| `validate` | The append-only event log passed validator checks. | Every claim is true or wise. |
+| `state show` | ClisTa reconstructed reasoning state from events. | The transcript is memory or authority. |
+| `export` | Projected protocol state can be serialized for portability. | The export grants trust, governance, or approval. |
+| `continuity verify` | A continuity packet matches its event log, projection, state hash, and required verification layers. | Context transfer is trusted memory or central authority. |
+| `release verify` | The release artifact binds source, tag, package version, CLI, schema, hashes, and verifier results. | The release is trusted, approved, compatible by itself, or authorized as governance. |
+
+Failure triage:
+
+| Failure | What it means | Inspect next | Likely next command |
+| --- | --- | --- | --- |
+| Missing file | A path argument points to a file that does not exist. | The path and current directory. | `pwd` then rerun with the correct `--events`, `--packet`, or `--manifest` path. |
+| Missing required option | A command needs another flag. | `npm run clista -- help` for the command shape. | Rerun with the missing `--<option>`. |
+| Validation failure | The event log is not trusted protocol state. | The returned `event_id`, `event_type`, and `reason`. | `npm run clista -- validate --events <path>` |
+| Integrity failure | Hashes or event-chain evidence do not match. | Integrity reasons and the event log head. | `npm run clista -- integrity verify --events <path>` |
+| Continuity degraded | The packet is valid but not strict for the current boundary. | `verificationMode`, `resumeStatus`, and `reasons`. | `npm run clista -- continuity verify --packet continuity.json` |
+| Release manifest missing | A supplied manifest path is absent. | The manifest path or whether one should be generated. | `npm run clista -- release manifest --out .clista/release-manifest.json` |
+| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify` |
+| Package/tag/version mismatch | `package.json` version and the release tag disagree, or the tag points elsewhere. | `package.json`, `git tag`, and `git rev-parse HEAD`. | `npm run clista -- release verify --tag <tag>` |
+
+Release exists does not mean release is trusted. `clista release verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, publishing verification, or compatibility proof.
+
+M25 release manifests are repository artifacts, not reasoning-state events. `state show` and `export` may omit release state by design: conversation is input, reasoning state is output, and release verification proves the artifact boundary rather than the conversation state.
+
+Continuity may report `protocolVersion: "0.24.0"` while the package release is `0.25.0` or a later `0.25.x` cleanup release. Continuity reflects the latest reasoning-state portability boundary; the package version reflects the current released artifact. M25 binds the package artifact without adding a new continuity state layer.
+
+For the expanded first-run guide, see:
+
+```text
+docs/quickstart.md
+```
+
 ## Protocol Spine
 
 - Append-only NDJSON event log.
