@@ -2,9 +2,18 @@
 
 ## Product Thesis
 
-ClisTa is a protocol engine for accountable reasoning.
+ClisTa changes the shape of yes.
 
-It does not try to preserve every conversation as long-term memory. It converts reasoning into structured artifacts that can be reloaded, reviewed, challenged, merged, and audited.
+Here’s a yes — now trace its shape.
+
+A normal decision system records `approved / rejected`. ClisTa records the accountable state that made the decision durable: evidence, assumptions, objections, minority reports, authority trails, provenance traces, bounded scope, verification state, and proceed / blocked / degraded status.
+
+Core law:
+
+```text
+Conversation is input.
+Reasoning state is output.
+```
 
 Core slogan:
 
@@ -31,7 +40,7 @@ None of those systems should define the protocol.
 
 Verified baseline:
 
-- Completed through M28: External Replay Audit
+- Completed through M29: Product Narrative Pass
 
 Next selected milestone:
 
@@ -42,76 +51,71 @@ Status:
 - M28 complete
 - M28 real external replay observed once: PASS
 - Surrounding quickstart hygiene defects found and patched
-- M29 not selected
-- M29 not started
-- Next decision: pause or invite a second real external replay before selecting M29
+- M29 product narrative pass complete
+- M29 changed narrative documentation only
+- M30 not selected
+- Next decision: pause or select the next milestone from observed friction
 
 M28 audited the existing M27 scenario. It did not expand the product surface.
 
-The theorem is:
+M29 updated the public explanation so the README leads with what ClisTa does before the defensive boundary disclaimers.
+
+The M29 theorem is:
 
 ```text
-external_replay = verify(non_builder_can_reproduce_scenario, from_public_artifact_and_docs)
+product_narrative = explain(accountable_decision_state, before_boundary_disclaimers)
 ```
 
 Hard law:
 
 ```text
-scenario_exists != externally_reproducible_scenario
+guardrails_are_required != guardrails_are_the_product
 ```
 
 Allowed scope:
 
-- `examples/scenario-demo/`
-- README scenario instructions
-- documented commands
-- expected state/export
-- attribution/provenance traceability
-- GitHub-visible artifact path
-- fresh non-builder assumptions
+- README narrative opening
+- quickstart product framing
+- protocol milestone documentation
+- roadmap milestone tracking
+- package version / release metadata when required by milestone convention
 
 Explicitly out of scope:
 
-- installer
-- distribution layer
-- network behavior
+- runtime features
+- protocol semantics
+- schema changes
+- verifier behavior
+- new commands
+- expected-state comparator
+- M30
 - UI
 - agents
-- product pitch cleanup
-- external testing program
-- M29
+- platform features
+- marketing fluff
 
-M27 proved that a realistic demo workflow exists. M28 proved, by repository tests and one real external replay observation, that a non-builder can reproduce that workflow from the public artifact and understand the state it produces.
-
-Before M29, the next useful step is either to pause or invite a second real external replay observation. One actual non-builder has run the M28 path from the GitHub-visible artifact and reported quickstart hygiene friction that was patched. This is a decision pause, not a new protocol milestone and not an external testing program.
+M27 proved that a realistic demo workflow exists. M28 proved, by repository tests and one real external replay observation, that a non-builder can reproduce that workflow from the public artifact and understand the state it produces. M29 makes that value legible at the top of the public docs: the limited beta approval is not just a yes, but a yes with its accountability structure fused on.
 
 Candidate next milestones remain unselected:
 
 | Candidate | What it would prove |
 | --- | --- |
-| M29 Artifact Installation | A fresh user can install and use the artifact path. |
-| M29 Protocol Distribution | Verified state can move across environments. |
-| M29 Product Narrative Pass | The public explanation matches the verified artifact. |
-
-Candidate M29 logic remains evidence-bound:
-
-| If the next real replay shows... | Then choose... |
-| --- | --- |
-| installation or setup friction | M29 Artifact Installation |
-| replay succeeds but the user does not understand why it matters | M29 Product Narrative Pass |
-| replay succeeds and the next problem is moving verified state across machines or environments | M29 Protocol Distribution |
+| Artifact Installation | A fresh user can install and use the artifact path. |
+| Protocol Distribution | Verified state can move across environments. |
+| Next Replay Observation | Another non-builder reaches the same understanding from the public docs. |
 
 Holding state:
 
 ```text
-latest_verified_milestone = M28
+latest_verified_milestone = M29
 m28_real_external_replay_observed_once = PASS
+m29_product_narrative_pass = complete
 next_selected_milestone = none
-decision_pause = pause_or_second_real_external_replay
+decision_pause = pause_or_select_from_observed_friction
 safe_to_build_from = yes
 ```
 
-The protocol should choose the next milestone from observed friction rather than starting distribution, narrative, UI, agents, or platform work.
+The protocol should choose the next milestone from observed friction rather than starting distribution, UI, agents, or platform work by default.
 
 ## Phase 0: Protocol Spike
 
@@ -138,7 +142,6 @@ Acceptance test:
 ```text
 Given only the exported ClisTa JSON,
 another agent can answer:
-
 What was decided?
 Why?
 Who dissented?
@@ -258,199 +261,18 @@ Why:
 
 - Role-based agents map cleanly to participants.
 - Checkpointed graph execution maps cleanly to deliberation phases.
-- Human review maps cleanly to governance review.
+- Human interrupt maps cleanly to review gates.
+- StateGraph persistence maps cleanly to ClisTa continuity.
 
-Initial roles:
-
-- Author
-- Research Agent
-- Dissent Agent
-- Risk Agent
-- Decision Owner
-
-Agent rule:
+Adapter rule:
 
 ```text
-Agents may propose ClisTa objects.
-Only authorized participants can endorse, review, or merge them.
+agent output is input to ClisTa;
+ClisTa state is not agent memory
 ```
 
-Acceptance test:
+## Phase 4: Interop / Distribution
 
-```text
-A LangGraph flow opens a decision request,
-adds evidence and objections,
-then pauses for a human decision owner to review and merge.
-```
+Goal: make ClisTa states portable across tools and institutions without merging authority.
 
-## Phase 4: Search And Retrieval
-
-Goal: retrieve relevant evidence, claims, objections, and prior decisions.
-
-Use later, not in the MVP:
-
-- Qdrant for semantic retrieval.
-- OpenSearch for keyword, faceted, timeline, and hybrid search.
-
-Index:
-
-- Evidence text.
-- Artifact summaries.
-- Claim text.
-- Objection text.
-- Decision records.
-- Minority reports.
-- Outcome audits.
-
-Acceptance test:
-
-```text
-Ask: "Have we made a similar decision before?"
-ClisTa returns prior decisions, evidence, dissent, and outcomes.
-```
-
-## Phase 5: Graph Projection
-
-Goal: query reasoning relationships directly.
-
-Use later:
-
-- Neo4j if graph queries become a central product surface.
-- Apache AGE if Postgres should remain the main operational database.
-
-Graph relationships:
-
-- evidence supports claim
-- evidence contradicts claim
-- claim supports decision request
-- objection challenges claim
-- position endorses claim
-- review approves decision request
-- decision preserves minority report
-- outcome audit evaluates decision
-
-Acceptance test:
-
-```text
-Show every decision that depended on a claim later contradicted by audited outcomes.
-```
-
-## Phase 6: Collaboration Layer
-
-Goal: support live and local-first editing of draft artifacts.
-
-Use later:
-
-- Yjs for browser-native live collaboration.
-- Automerge for local-first/offline reasoning documents.
-
-Important boundary:
-
-Drafts can be collaborative.
-Committed evidence, merged decisions, and minority reports are immutable.
-
-Acceptance test:
-
-```text
-Multiple participants edit a draft decision request together.
-When submitted, ClisTa records an immutable decision request event.
-```
-
-## Phase 7: Governance Workflows
-
-Goal: support real institutional decision rules.
-
-Use later:
-
-- Temporal for long-running review workflows, reminders, deadlines, scheduled audits, and retries.
-- Decidim as a design reference for participatory proposals and voting.
-- Open Collective as a design reference for financial accountability and public ledger patterns.
-
-Governance checks:
-
-- Is evidence sufficient?
-- Are unresolved objections visible?
-- Are decision owners authorized?
-- Are minority reports preserved?
-- Is an outcome review scheduled?
-
-Acceptance test:
-
-```text
-A decision request cannot merge until required reviewers have responded,
-open objections are either resolved or preserved,
-and an outcome audit date is recorded.
-```
-
-## Phase 8: Public Reasoning Network
-
-Goal: make reasoning forkable, reviewable, and improvable across groups.
-
-Network workflow:
-
-```text
-Create Thread
-Commit Evidence
-Take Positions
-Deliberate
-Pull Decision
-Publish
-Fork
-Improve
-Merge
-Track Outcomes
-```
-
-Public features:
-
-- Published decision records.
-- Forkable reasoning threads.
-- Public evidence bundles.
-- Reviewable decision requests.
-- Preserved dissent.
-- Outcome comparison.
-- Reputation based on evidence quality and decision outcomes.
-
-Acceptance test:
-
-```text
-Another group forks a public decision thread,
-adds new evidence,
-opens an improved decision request,
-and links its outcome back to the original.
-```
-
-## Recommended Build Order
-
-1. Finish the protocol spike.
-2. Add append-only events.
-3. Add first-class evidence, position, objection, decision request, review, alignment, minority report, and outcome audit objects.
-4. Build `state show` and `audit show`.
-5. Run the first real ClisTa decision through the protocol.
-6. Add a LangGraph adapter only after the protocol objects are stable.
-7. Add search when there are enough evidence commits to justify retrieval.
-8. Add graph projection when relationship queries become painful in JSON.
-9. Add collaboration when drafts become multi-user.
-10. Add Temporal when governance becomes long-running.
-
-## Near-Term Milestone
-
-The next milestone is not a UI.
-
-It is this:
-
-```text
-One real ClisTa thread becomes a durable reasoning repository.
-```
-
-Definition of done:
-
-- The thread has committed evidence.
-- Claims are linked to evidence.
-- Participants have declared positions.
-- Objections are preserved.
-- A decision request is opened.
-- A decision owner merges or rejects it.
-- Minority dissent remains attached.
-- `state show` explains the current state.
-- `audit show` explains how the decision happened.
+Build only after protocol objects and verification boundaries are stable.
