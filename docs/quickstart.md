@@ -47,6 +47,14 @@ npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
 
+To replay the scenario demo:
+
+```sh
+node src/cli.js validate --events examples/scenario-demo/events.ndjson
+node src/cli.js state show --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
+node src/cli.js export --events examples/scenario-demo/events.ndjson
+```
+
 This is the minimum release usage path:
 
 1. Validate the append-only event log.
@@ -58,6 +66,8 @@ This is the minimum release usage path:
 7. Write a local release manifest.
 8. Verify the runtime against that existing manifest.
 9. Audit that a fresh user can discover and execute runtime verification without insider context.
+
+The scenario demo is a separate M27 replay path. It proves that a realistic reasoning lifecycle can be understood from documented commands and projected state.
 
 ## Reading Success
 
@@ -85,6 +95,8 @@ This means the event log passed protocol validation. It does not mean every clai
 Generating `.clista/release-manifest.json` is useful for local practice. Independent runtime proof depends on comparing against a manifest produced at the release boundary, not silently generating one inside runtime verification.
 
 `runtime audit` succeeds when it returns `valid: true` and `runtimeUsable: true`. It checks that README, quickstart, protocol docs, CLI help, missing-manifest behavior, valid-manifest behavior, and runtime verification boundaries are clear enough for a fresh user.
+
+The scenario demo succeeds when `examples/scenario-demo/events.ndjson` validates, `state show` reconstructs thread `thd_scenario_demo`, and `export` serializes the resulting protocol state. Inspect `examples/scenario-demo/expected-state.json` for the compact expected decision, evidence, assumptions, claims, positions, objection, reviews, and minority report.
 
 ## Reading Failures
 
@@ -131,6 +143,12 @@ Runtime verification does not touch reasoning state, append events, or change pr
 
 Runtime usage audit does not create trusted release status, runtime trust, protocol authority, governance approval, amendment approval, compatibility proof, or any new reasoning-state record.
 
+## Scenario Demo Boundary
+
+The M27 scenario demo makes protocol state understandable, but it is not a product platform.
+
+It does not implement distribution, artifact installation, network behavior, UI, agents, pitch cleanup, external user testing, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
+
 ## Release Versus Reasoning State
 
 M25 release manifests are repository artifacts, not append-only reasoning events.
@@ -154,9 +172,9 @@ Continuity may report:
 }
 ```
 
-while `package.json` reports `0.25.0` or a later package release such as `0.26.1`.
+while `package.json` reports `0.25.0` or a later package release such as `0.27.0`.
 
-That is expected. Continuity reflects the latest reasoning-state portability boundary. Package and release versions reflect repository artifact releases. M25 verifies the release artifact, M26 verifies the local runtime, and M26.1 audits runtime verification usability. They do not add a new continuity state layer.
+That is expected. Continuity reflects the latest reasoning-state portability boundary. Package and release versions reflect repository artifact releases. M25 verifies the release artifact, M26 verifies the local runtime, M26.1 audits runtime verification usability, and M27 adds a documented scenario fixture. They do not add a new continuity state layer.
 
 ## Next Useful Commands
 

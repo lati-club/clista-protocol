@@ -39,8 +39,9 @@ that another human or agent can reload later.
 25. Protocol release
 26. Protocol runtime verification
 26.1. Runtime usage audit
+27. Protocol scenario/demo workflow
 
-The compressed primitive map for M0-M25 is:
+The compressed primitive map for M0-M27 is:
 
 ```text
 docs/protocol/v0/primitive-map.md
@@ -210,6 +211,8 @@ M25 release manifests are repository artifacts, not event-log records. They do n
 
 M26 runtime verification is a local artifact/runtime check. It does not add event-log records.
 
+M27 scenario/demo workflow is a documented fixture replay. It does not add event-log records, a scenario primitive, distribution behavior, installer behavior, network behavior, UI, agents, trust, protocol authority, governance approval, amendment approval, compatibility proof, or product readiness.
+
 The local store lives at:
 
 ```text
@@ -256,10 +259,13 @@ npm run clista -- recovery plan --recovery rcv_example --plan "Quarantine invali
 npm run clista -- recovery quarantine --recovery rcv_example --reason "Invalid event remains visible but not trusted."
 npm run clista -- recovery apply --recovery rcv_example --summary "Applied reviewed repair marker without rewriting history."
 npm run clista -- recovery verify --recovery rcv_example
-npm run clista -- release manifest --tag v0.26.0-protocol-runtime-verification --out .clista/release-manifest.json
+npm run clista -- release manifest --tag v0.27.0-protocol-scenario-demo --out .clista/release-manifest.json
 npm run clista -- release verify --manifest .clista/release-manifest.json
 npm run clista -- release show --manifest .clista/release-manifest.json
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
+npm run clista -- validate --events examples/scenario-demo/events.ndjson
+npm run clista -- state show --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
+npm run clista -- export --events examples/scenario-demo/events.ndjson
 npm run clista -- merge open --source thd_example_alt --target thd_example --summary "Integrate useful fork reasoning."
 npm run clista -- merge eligibility --request mrg_example
 npm run clista -- merge complete --request mrg_example --merged-by "Troy"
@@ -335,6 +341,22 @@ delegation -> execution -> outcome -> outcome learning
 ```
 
 Use read-only commands with `--events examples/action-chain/events.ndjson` to inspect it without appending to the canonical log.
+
+## Scenario Demo Fixture
+
+The M27 scenario demo lives at:
+
+```text
+examples/scenario-demo/events.ndjson
+```
+
+It proves:
+
+```text
+scenario_usability = reproduce(realistic_reasoning_lifecycle, from_documented_commands_and_projected_state)
+```
+
+Use read-only commands with `--events examples/scenario-demo/events.ndjson` to validate, project, export, and inspect the demo state without appending to the canonical log.
 
 ## Architecture Rule
 

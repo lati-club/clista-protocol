@@ -51,6 +51,14 @@ npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
 
+Run the scenario demo to inspect one realistic reasoning lifecycle:
+
+```sh
+node src/cli.js validate --events examples/scenario-demo/events.ndjson
+node src/cli.js state show --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
+node src/cli.js export --events examples/scenario-demo/events.ndjson
+```
+
 Success means:
 
 | Command | Success means | Success does not mean |
@@ -62,6 +70,7 @@ Success means:
 | `release verify` | The release artifact binds source, tag, package version, CLI, schema, hashes, and verifier results. | The release is trusted, approved, compatible by itself, or authorized as governance. |
 | `runtime verify` | The local runtime matches an existing release manifest. | Running ClisTa is trust, OS attestation, CI trust, or remote runtime trust. |
 | `runtime audit` | The documented runtime verification path is discoverable, executable, clear, and bounded. | Verified runtime is trust, protocol authority, governance approval, amendment approval, or compatibility proof. |
+| Scenario demo commands | A realistic fixture can be validated, projected, exported, and inspected as durable reasoning state. | The demo is a product platform, distribution proof, installation proof, UI, agents, trust, governance approval, amendment approval, compatibility proof, or protocol authority. |
 
 Failure triage:
 
@@ -84,9 +93,11 @@ Runtime verification requires an existing release manifest. It does not silently
 
 Runtime usage audit checks whether a fresh user can follow the documented path to runtime verification without insider context. `clista runtime audit` does not create trusted release status, runtime trust, protocol authority, governance approval, amendment approval, compatibility proof, or any new reasoning-state record.
 
+The M27 scenario demo lives in `examples/scenario-demo/`. It uses existing `validate`, `state show`, `export`, `attribution list`, and `provenance trace` commands to make one realistic reasoning lifecycle understandable from its event fixture. The demo workflow does not implement distribution, installation, UI, agents, pitch cleanup, external user testing, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
+
 M25 release manifests are repository artifacts, not reasoning-state events. `state show` and `export` may omit release state by design: conversation is input, reasoning state is output, and release verification proves the artifact boundary rather than the conversation state.
 
-Continuity may report `protocolVersion: "0.24.0"` while the package release is `0.25.0` or a later artifact release such as `0.26.1`. Continuity reflects the latest reasoning-state portability boundary; the package version reflects the current released artifact. M25 binds the package artifact, M26 verifies the local runtime, and M26.1 audits runtime verification usability without adding a new continuity state layer.
+Continuity may report `protocolVersion: "0.24.0"` while the package release is `0.25.0` or a later artifact release such as `0.27.0`. Continuity reflects the latest reasoning-state portability boundary; the package version reflects the current released artifact. M25 binds the package artifact, M26 verifies the local runtime, M26.1 audits runtime verification usability, and M27 adds a documented scenario fixture without adding a new continuity state layer.
 
 For the expanded first-run guide, see:
 
@@ -249,6 +260,22 @@ clista runtime audit --manifest .clista/release-manifest.json
 ```
 
 If it verifies the documented path, ClisTa can show that runtime verification is discoverable and bounded for a fresh user. M26.1 runtime usage audit is not trusted release status, runtime trust, protocol authority, governance approval, amendment approval, compatibility proof, or M27.
+
+The protocol scenario demo is:
+
+```text
+examples/scenario-demo/
+```
+
+Run it with:
+
+```text
+clista validate --events examples/scenario-demo/events.ndjson
+clista state show --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
+clista export --events examples/scenario-demo/events.ndjson
+```
+
+If it validates, projects, and exports, ClisTa can show one realistic reasoning lifecycle as durable state. M27 scenario/demo workflow is not protocol distribution, artifact installation, product readiness, UI, agents, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
 
 The identity command is:
 

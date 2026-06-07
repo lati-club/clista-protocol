@@ -1,0 +1,56 @@
+{
+  "schema": "clista.scenario.expected-state.v0",
+  "scenarioId": "scenario-demo",
+  "threadId": "thd_scenario_demo",
+  "theorem": "scenario_usability = reproduce(realistic_reasoning_lifecycle, from_documented_commands_and_projected_state)",
+  "hardLaw": "demo_workflow != product",
+  "question": "Should the support team run a limited assistant beta before broader rollout?",
+  "decision": {
+    "id": "dcr_limited_beta",
+    "status": "approved",
+    "summary": "Run a bounded support assistant beta using redacted sample tickets only.",
+    "nextAction": "Run the redacted-ticket beta and inspect the exported reasoning state before any expansion."
+  },
+  "durableState": {
+    "evidenceIds": [
+      "evd_wait_time_pressure",
+      "evd_staff_capacity_limit",
+      "evd_privacy_risk",
+      "evd_redacted_fixture_ready"
+    ],
+    "assumptionIds": [
+      "asm_beta_scope_is_small",
+      "asm_redaction_required"
+    ],
+    "claimIds": [
+      "clm_run_limited_beta",
+      "clm_beta_requires_guardrails",
+      "clm_beta_with_guardrails"
+    ],
+    "positionIds": [
+      "pos_delivery_support",
+      "pos_research_support",
+      "pos_privacy_conditional"
+    ],
+    "objectionIds": [
+      "obj_unredacted_data_risk"
+    ],
+    "reviewIds": [
+      "rev_privacy_conditions",
+      "rev_maya_approve"
+    ],
+    "minorityReportIds": [
+      "mnr_privacy_gate"
+    ],
+    "eventCount": 23
+  },
+  "boundary": {
+    "trusted": false,
+    "protocolAuthority": false,
+    "governanceApproval": false,
+    "amendmentApproval": false,
+    "compatibilityProof": false,
+    "distributionProof": false,
+    "productReady": false
+  }
+}

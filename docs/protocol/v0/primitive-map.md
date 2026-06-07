@@ -246,6 +246,41 @@ Preserved laws:
 - Release does not create protocol authority, approve governance, approve amendments, prove compatibility by itself, or mutate reasoning state.
 - A manifest must distinguish `release_exists` from `release_verified`.
 
+## Runtime And Usage Boundary
+
+What it does:
+
+Verifies the local runtime against an existing release manifest and audits whether a fresh user can discover and execute that verification path.
+
+Milestones:
+
+- M26 Protocol Runtime Verification
+- M26.1 Runtime Usage Audit
+
+Preserved laws:
+
+- Running is not verified.
+- Verified runtime is not usable runtime.
+- Runtime verification requires an existing release manifest.
+- Runtime verification and runtime usage audit do not append events, mutate projected state, create trust, create protocol authority, approve governance, approve amendments, or prove compatibility.
+
+## Scenario Demo Boundary
+
+What it does:
+
+Provides a realistic fixture replay so a fresh user can validate, project, export, and inspect durable reasoning state from documented commands.
+
+Milestones:
+
+- M27 Protocol Scenario / Demo Workflow
+
+Preserved laws:
+
+- Demo workflow is not product.
+- Scenario replay is not distribution.
+- Scenario replay is not artifact installation.
+- Scenario replay does not add protocol primitives, event types, validation rules, projection behavior, export behavior, network behavior, UI, agents, trust, protocol authority, governance approval, amendment approval, compatibility proof, or product readiness.
+
 ## Decision Outcomes And Protocol Outcomes
 
 M3 decision outcome means:
@@ -286,7 +321,7 @@ The names overlap because M21 reuses the CLI namespace for a narrower execution-
 
 Layer protocol versions mark capability boundaries. For example, delegation remains `0.19.0`, execution remains `0.20.0`, outcome remains `0.21.0`, outcome learning remains `0.22.0`, review remains `0.23.0`, and recovery is `0.24.0` until those layer behaviors change.
 
-Package and release versions mark repository releases. A feature release can advance to `v0.26.0` while unchanged M19-M24 layer versions stay at their original capability boundaries.
+Package and release versions mark repository releases. A feature release can advance to `v0.27.0` while unchanged M19-M24 layer versions stay at their original capability boundaries.
 
 M25 Protocol Release has its own `release_protocol_version: "0.25.0"` because release manifests are repository artifacts, not projected reasoning-state layers.
 

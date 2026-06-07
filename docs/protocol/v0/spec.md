@@ -72,6 +72,8 @@ M25 Protocol Release uses `release_protocol_version: "0.25.0"` in the release ma
 
 M26 Protocol Runtime Verification and M26.1 Runtime Usage Audit are repository/runtime verifiers. They do not add event types, projected release state, protocol authority, governance approval, amendment approval, or compatibility proof.
 
+M27 Protocol Scenario / Demo Workflow is a documented fixture replay. It does not add event types, validation rules, projection behavior, export behavior, distribution proof, installation proof, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
+
 ## Core Events
 
 - `ThreadCreated`
