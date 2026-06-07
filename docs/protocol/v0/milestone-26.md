@@ -32,7 +32,8 @@ Runtime verification may:
 - compare schema file hashes against the manifest
 - verify Git commit and tag when running from a repository checkout
 - report dirty tracked files as hard drift
-- report untracked files as warnings
+- report unexpected untracked files as warnings
+- ignore documented untracked first-run artifacts that are not runtime identity
 - rerun required verifier commands and compare reproducible verifier outputs
 - return machine-readable runtime verification output
 
@@ -67,7 +68,7 @@ For M26, runtime environment means:
 - working tree cleanliness
 - required verifier command availability and reproducibility
 
-Generated workflow artifacts such as `continuity.json` are not runtime identity.
+Generated workflow artifacts such as `continuity.json` and `package-lock.json` are not runtime identity when they are untracked first-run artifacts.
 
 ## Release Manifest Dependency
 
@@ -148,7 +149,8 @@ Hard drift includes:
 
 Warnings include:
 
-- untracked files
+- unexpected untracked files
+- documented first-run workflow artifacts
 - unsupported Node range syntax
 - missing Git metadata when outside a repository checkout
 - volatile verifier stdout hash changes when exit code and output schema reproduce

@@ -142,6 +142,20 @@ test("runtime verification warns for untracked files without invalidating runtim
   assertWarning(result, "untracked_files");
 });
 
+test("runtime verification ignores documented first-run artifacts as runtime identity", () => {
+  const cwd = createRuntimeRepo();
+  const manifestPath = writeRuntimeManifest(cwd);
+  writeFileSync(path.join(cwd, "continuity.json"), "{\"schema\":\"clista.continuity.packet.v0\"}\n", "utf8");
+  writeFileSync(path.join(cwd, "package-lock.json"), "{\"lockfileVersion\":3}\n", "utf8");
+  const result = verifyRuntime({ cwd, manifestPath, cliPath: path.join(cwd, "src", "cli.js") });
+
+  assert.equal(result.valid, true, reasons(result));
+  assert.equal(result.runtimeVerified, true);
+  assert.equal(result.workingTreeClean, true);
+  assertWarning(result, "documented_workflow_artifacts");
+  assert.equal(result.drift.some((item) => item.violationType === "dirty_working_tree"), false);
+});
+
 test("runtime verification fails when a required verifier cannot reproduce", () => {
   const cwd = createRuntimeRepo();
   const manifest = validManifest(cwd);

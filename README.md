@@ -45,8 +45,8 @@ npm run clista -- state show
 npm run clista -- export
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
-npm run clista -- release verify
-npm run clista -- release manifest --out .clista/release-manifest.json
+npm run clista -- release verify --tag v0.28.1-replay-hygiene
+npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.28.1-replay-hygiene
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
@@ -84,14 +84,14 @@ Failure triage:
 | Integrity failure | Hashes or event-chain evidence do not match. | Integrity reasons and the event log head. | `npm run clista -- integrity verify --events <path>` |
 | Continuity degraded | The packet is valid but not strict for the current boundary. | `verificationMode`, `resumeStatus`, and `reasons`. | `npm run clista -- continuity verify --packet continuity.json` |
 | Release manifest missing | A supplied manifest path is absent. | The manifest path or whether one should be generated. | `npm run clista -- release manifest --out .clista/release-manifest.json` |
-| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify` |
+| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.28.1-replay-hygiene` |
 | Package/tag/version mismatch | `package.json` version and the release tag disagree, or the tag points elsewhere. | `package.json`, `git tag`, and `git rev-parse HEAD`. | `npm run clista -- release verify --tag <tag>` |
 | Runtime verify failed | The current runtime drifted from the supplied manifest. | `drift`, `warnings`, and `violations`. | `npm run clista -- runtime verify --manifest .clista/release-manifest.json` |
 | Runtime audit failed | The documented runtime verification path is missing, unclear, not executable, or overclaims. | `checks` and `violations`. | `npm run clista -- runtime audit --manifest .clista/release-manifest.json` |
 
 Release exists does not mean release is trusted. `clista release verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, publishing verification, or compatibility proof.
 
-Runtime verification requires an existing release manifest. It does not silently generate a fresh manifest, because generated proof can describe the current drifted runtime. `clista runtime verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, compatibility proof, package publishing trust, OS attestation, CI trust, or remote runtime trust.
+Runtime verification requires an existing release manifest. It does not silently generate a fresh manifest, because generated proof can describe the current drifted runtime. Documented first-run artifacts such as `continuity.json` and `package-lock.json` are not runtime identity. `clista runtime verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, compatibility proof, package publishing trust, OS attestation, CI trust, or remote runtime trust.
 
 Runtime usage audit checks whether a fresh user can follow the documented path to runtime verification without insider context. `clista runtime audit` does not create trusted release status, runtime trust, protocol authority, governance approval, amendment approval, compatibility proof, or any new reasoning-state record.
 
@@ -99,7 +99,7 @@ The M27 scenario demo lives in `examples/scenario-demo/`. It uses existing `vali
 
 M25 release manifests are repository artifacts, not reasoning-state events. `state show` and `export` may omit release state by design: conversation is input, reasoning state is output, and release verification proves the artifact boundary rather than the conversation state.
 
-Continuity may report `protocolVersion: "0.24.0"` while the package release is `0.25.0` or a later artifact release such as `0.28.0`. Continuity reflects the latest reasoning-state portability boundary; the package version reflects the current released artifact. M25 binds the package artifact, M26 verifies the local runtime, M26.1 audits runtime verification usability, M27 adds a documented scenario fixture, and M28 audits external replay of that fixture without adding a new continuity state layer.
+Continuity may report `protocolVersion: "0.24.0"` while the package release is `0.25.0` or a later artifact release such as `0.28.1`. Continuity reflects the latest reasoning-state portability boundary; the package version reflects the current released artifact. M25 binds the package artifact, M26 verifies the local runtime, M26.1 audits runtime verification usability, M27 adds a documented scenario fixture, and M28 audits external replay of that fixture without adding a new continuity state layer.
 
 For the expanded first-run guide, see:
 
@@ -292,7 +292,7 @@ clista attribution list --thread thd_scenario_demo --events examples/scenario-de
 clista provenance trace dcr_limited_beta --events examples/scenario-demo/events.ndjson
 ```
 
-If the scenario can be found, validated, projected, exported, compared with expected state, and inspected for attribution/provenance without hidden builder state or absolute local paths, ClisTa has proven M28 external replay for this scenario. M28 external replay audit is not installation, distribution, network behavior, UI, agents, pitch cleanup, external user testing, M29, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
+If the scenario can be found, validated, projected, exported, manually compared with expected state, and inspected for attribution/provenance without hidden builder state or absolute local paths, ClisTa has proven M28 external replay for this scenario. M28 external replay audit does not add an expected-state comparator command, and is not installation, distribution, network behavior, UI, agents, pitch cleanup, external user testing, M29, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
 
 The identity command is:
 

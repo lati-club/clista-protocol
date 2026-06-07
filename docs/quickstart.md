@@ -41,8 +41,8 @@ npm run clista -- state show
 npm run clista -- export
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
-npm run clista -- release verify
-npm run clista -- release manifest --out .clista/release-manifest.json
+npm run clista -- release verify --tag v0.28.1-replay-hygiene
+npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.28.1-replay-hygiene
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
@@ -64,8 +64,8 @@ This is the minimum release usage path:
 3. Export portable protocol state.
 4. Produce a continuity packet.
 5. Verify the continuity packet.
-6. Verify the release artifact.
-7. Write a local release manifest.
+6. Verify the release artifact against the published patch tag.
+7. Write a local release manifest for the same tag.
 8. Verify the runtime against that existing manifest.
 9. Audit that a fresh user can discover and execute runtime verification without insider context.
 
@@ -98,7 +98,7 @@ Generating `.clista/release-manifest.json` is useful for local practice. Indepen
 
 `runtime audit` succeeds when it returns `valid: true` and `runtimeUsable: true`. It checks that README, quickstart, protocol docs, CLI help, missing-manifest behavior, valid-manifest behavior, and runtime verification boundaries are clear enough for a fresh user.
 
-The scenario demo succeeds when `examples/scenario-demo/events.ndjson` validates, `state show` reconstructs thread `thd_scenario_demo`, and `export` serializes the resulting protocol state. External replay succeeds when those commands, plus `attribution list` and `provenance trace dcr_limited_beta`, work from a clean checkout using only repo-relative public files. Inspect `examples/scenario-demo/expected-state.json` for the compact expected decision, evidence, assumptions, claims, positions, objection, reviews, and minority report.
+The scenario demo succeeds when `examples/scenario-demo/events.ndjson` validates, `state show` reconstructs thread `thd_scenario_demo`, and `export` serializes the resulting protocol state. External replay succeeds when those commands, plus `attribution list` and `provenance trace dcr_limited_beta`, work from a clean checkout using only repo-relative public files. Inspect `examples/scenario-demo/expected-state.json` manually for the compact expected decision, evidence, assumptions, claims, positions, objection, reviews, and minority report; there is no comparator command in M28.1.
 
 ## Reading Failures
 
@@ -110,7 +110,7 @@ The scenario demo succeeds when `examples/scenario-demo/events.ndjson` validates
 | Integrity failure | Event hashes or chain links do not match. | Integrity reasons and head hash. | `npm run clista -- integrity verify --events <path>` |
 | Continuity degraded | The packet is valid only under explicit compatibility mode. | `verificationMode`, `resumeStatus`, and `reasons`. | `npm run clista -- continuity verify --packet continuity.json` |
 | Release manifest missing | The manifest path is absent. | The manifest path or whether a manifest should be generated. | `npm run clista -- release manifest --out .clista/release-manifest.json` |
-| Release verify failed | Manifest, source, tag, package, hash, verifier, or boundary checks failed. | `reasons` and `violations`. | `npm run clista -- release verify` |
+| Release verify failed | Manifest, source, tag, package, hash, verifier, or boundary checks failed. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.28.1-replay-hygiene` |
 | Package/tag/version mismatch | `package.json` version and release tag version disagree, or the tag points to a different commit. | `package.json`, `git tag`, and `git rev-parse HEAD`. | `npm run clista -- release verify --tag <tag>` |
 | Runtime verify failed | The local runtime does not match the supplied manifest. | `drift`, `warnings`, and `violations`. | `npm run clista -- runtime verify --manifest .clista/release-manifest.json` |
 | Runtime audit failed | The documented runtime verification path is missing, unclear, not executable, or overclaims. | `checks` and `violations`. | `npm run clista -- runtime audit --manifest .clista/release-manifest.json` |
@@ -136,6 +136,8 @@ Release verification does not create protocol authority, approve governance, app
 Running ClisTa does not mean the runtime is verified.
 
 `clista runtime verify` requires an existing release manifest and compares the current local runtime against it. It does not silently generate a manifest, because that would turn the current runtime into circular proof.
+
+Documented first-run artifacts such as `continuity.json` and `package-lock.json` are not runtime identity. Runtime verification may warn that they exist, but they do not create dirty runtime drift by themselves.
 
 Runtime verification does not create runtime trust, protocol authority, governance approval, amendment approval, compatibility proof, package publishing trust, OS security attestation, CI trust, or remote runtime trust.
 
@@ -176,7 +178,7 @@ Continuity may report:
 }
 ```
 
-while `package.json` reports `0.25.0` or a later package release such as `0.28.0`.
+while `package.json` reports `0.25.0` or a later package release such as `0.28.1`.
 
 That is expected. Continuity reflects the latest reasoning-state portability boundary. Package and release versions reflect repository artifact releases. M25 verifies the release artifact, M26 verifies the local runtime, M26.1 audits runtime verification usability, M27 adds a documented scenario fixture, and M28 audits external replay of that fixture. They do not add a new continuity state layer.
 

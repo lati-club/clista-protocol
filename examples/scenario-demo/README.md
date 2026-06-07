@@ -52,6 +52,8 @@ The compact expected state summary is:
 examples/scenario-demo/expected-state.json
 ```
 
+M28.1 keeps comparison manual. There is no expected-state comparator command.
+
 The key durable output is an approved decision:
 
 ```text

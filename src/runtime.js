@@ -64,6 +64,11 @@ const STATE_SNAPSHOT_PATHS = [
   ".clista/continuity.json"
 ];
 
+const DOCUMENTED_WORKFLOW_ARTIFACTS = new Set([
+  "continuity.json",
+  "package-lock.json"
+]);
+
 const REQUIRED_BOUNDARY_TERMS = [
   "runtime trust",
   "protocol authority",
@@ -633,25 +638,42 @@ function verifyWorkingTree(cwd, result) {
   }
   const status = gitOutput(cwd, ["status", "--porcelain"]) || "";
   const lines = status.split(/\r?\n/).map((line) => line.trimEnd()).filter(Boolean);
-  if (!lines.length) {
+  const tracked = lines.filter((line) => !line.startsWith("??"));
+  const untracked = lines.filter((line) => line.startsWith("??"));
+  const untrackedPaths = untracked.map((line) => line.slice(3).trim());
+  const documentedArtifacts = untrackedPaths.filter(isDocumentedWorkflowArtifact);
+  const unexpectedUntracked = untrackedPaths.filter((filePath) => !isDocumentedWorkflowArtifact(filePath));
+  if (!tracked.length && !unexpectedUntracked.length) {
     result.workingTreeClean = true;
+    if (documentedArtifacts.length) {
+      addFinding(result, "warnings", "documented_workflow_artifacts", "documented first-run artifacts are not runtime identity", {
+        files: documentedArtifacts
+      });
+    }
     return;
   }
   result.workingTreeClean = false;
-  const tracked = lines.filter((line) => !line.startsWith("??"));
-  const untracked = lines.filter((line) => line.startsWith("??"));
   if (tracked.length) {
     addFinding(result, "violations", "dirty_tracked_files", "tracked working tree files are dirty", {
       files: tracked.map((line) => line.slice(3).trim())
     });
     addFinding(result, "drift", "dirty_working_tree", "tracked working tree files are dirty");
   }
-  if (untracked.length) {
+  if (documentedArtifacts.length) {
+    addFinding(result, "warnings", "documented_workflow_artifacts", "documented first-run artifacts are not runtime identity", {
+      files: documentedArtifacts
+    });
+  }
+  if (unexpectedUntracked.length) {
     addFinding(result, "warnings", "untracked_files", "working tree has untracked files", {
-      files: untracked.map((line) => line.slice(3).trim())
+      files: unexpectedUntracked
     });
     addFinding(result, "drift", "dirty_working_tree", "working tree has untracked files");
   }
+}
+
+function isDocumentedWorkflowArtifact(filePath) {
+  return DOCUMENTED_WORKFLOW_ARTIFACTS.has(normalizePath(filePath));
 }
 
 function verifyRequiredVerifiers(manifest, cwd, options, result) {

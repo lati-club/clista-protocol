@@ -260,7 +260,7 @@ npm run clista -- recovery plan --recovery rcv_example --plan "Quarantine invali
 npm run clista -- recovery quarantine --recovery rcv_example --reason "Invalid event remains visible but not trusted."
 npm run clista -- recovery apply --recovery rcv_example --summary "Applied reviewed repair marker without rewriting history."
 npm run clista -- recovery verify --recovery rcv_example
-npm run clista -- release manifest --tag v0.28.0-external-replay-audit --out .clista/release-manifest.json
+npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.28.1-replay-hygiene
 npm run clista -- release verify --manifest .clista/release-manifest.json
 npm run clista -- release show --manifest .clista/release-manifest.json
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
