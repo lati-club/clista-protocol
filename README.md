@@ -77,8 +77,8 @@ npm run clista -- state show
 npm run clista -- export
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
-npm run clista -- release verify --tag v0.30.0-protocol-release
-npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.30.0-protocol-release
+npm run clista -- release verify --tag v0.30.1-protocol-release
+npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.30.1-protocol-release
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
@@ -131,7 +131,7 @@ M29 is a product narrative pass over existing documentation. It does not add pro
 | Integrity failure | Hashes or event-chain evidence do not match. | Integrity reasons and the event log head. | `npm run clista -- integrity verify --events <path>` |
 | Continuity degraded | The packet is valid but not strict for the current boundary. | `verificationMode`, `resumeStatus`, and `degradationReasons`. | `npm run clista -- continuity verify --packet continuity.json` |
 | Release manifest missing | A supplied manifest path is absent. | The manifest path or whether one should be generated. | `npm run clista -- release manifest --out .clista/release-manifest.json` |
-| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.30.0-protocol-release` |
+| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.30.1-protocol-release` |
 | Package/tag/version mismatch | `package.json` version and the release tag disagree, or the tag points elsewhere. | `package.json`, `git tag`, and `git rev-parse HEAD`. | `npm run clista -- release verify --tag <tag>` |
 | Runtime verify failed | The current runtime drifted from the supplied manifest. | `drift`, `warnings`, and `violations`. | `npm run clista -- runtime verify --manifest .clista/release-manifest.json` |
 | Runtime audit failed | The documented runtime verification path is missing, unclear, not executable, or overclaims. | `checks` and `violations`. | `npm run clista -- runtime audit --manifest .clista/release-manifest.json` |
@@ -448,6 +448,15 @@ This repository is `clista-protocol`.
 It is not `clista-app`, `clista-ui`, or `clista-platform`.
 
 Do not build UI, agent orchestration, graph databases, governance portals, or platform features until the protocol spine works.
+
+## Run the Debate Pack on Your Own Decision
+
+`pack/` is the distributable Stage 0 debate pack: `PROMPT_PACK.md` (roles, rules, close
+protocol), `LEDGER_TEMPLATE.md` (the artifact of record), and `RUNBOOK.md` (how to run an
+instrumented external run and where to report it). It works with AI agents from any vendor,
+humans, or both. External runs feed a public, bidirectional gate (`pack/GATES.md`): if five
+external runs don't materialize by 2026-09-07, or runs show no advantage, the productization
+claim dies on the record. Failed and abandoned runs are explicitly wanted evidence.
 
 ## License
 
