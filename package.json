@@ -1,7 +1,8 @@
 {
   "name": "clista-protocol",
-  "version": "0.29.0",
+  "version": "0.30.0",
   "private": true,
+  "license": "Apache-2.0",
   "description": "Protocol-first ClisTa reasoning engine.",
   "bin": {
     "clista": "src/cli.js"
