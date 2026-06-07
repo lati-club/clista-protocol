@@ -1,18 +1,50 @@
 # ClisTa Protocol
 
-ClisTa is a protocol engine for accountable reasoning.
+Here’s a yes — now trace its shape.
 
-It does not preserve conversations as the primary asset. It preserves the reasoning state produced by conversations.
+ClisTa changes the shape of yes.
+
+A normal decision system records:
+
+```text
+approved / rejected
+```
+
+ClisTa records an accountable decision state:
+
+- evidence carried into the decision
+- assumptions that shaped the decision
+- objections that survived approval
+- minority reports
+- authority trails
+- provenance traces
+- bounded scope
+- verification state
+- proceed / blocked / degraded status
+
+In the M27 scenario replay, the limited beta approval was not a boolean. It was a yes with its accountability structure fused on:
+
+- 4 evidence items
+- 2 assumptions
+- 3 claims
+- a privacy objection that survived the yes
+- 2 governance reviews
+- a minority report
+- a provenance trace
+- authority context
+- bounded scope: redacted sample tickets only
+
+That is the product value of the protocol: ClisTa turns raw decisions into accountable state. It does not just record that a decision was made. It records the shape that made the decision accountable.
+
+```text
+conversation -> event log -> projection -> verification -> accountable state
+```
+
+Operating law:
 
 ```text
 Conversation is input.
 Reasoning state is output.
-```
-
-## Core Loop
-
-```text
-Commit Evidence -> Pull Decision -> Track Audit
 ```
 
 ## Quickstart
@@ -45,13 +77,13 @@ npm run clista -- state show
 npm run clista -- export
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
-npm run clista -- release verify --tag v0.28.1-replay-hygiene
-npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.28.1-replay-hygiene
+npm run clista -- release verify --tag v0.29.0-product-narrative-pass
+npm run clista -- release manifest --out .clista/release-manifest.json --tag v0.29.0-product-narrative-pass
 npm run clista -- runtime verify --manifest .clista/release-manifest.json
 npm run clista -- runtime audit --manifest .clista/release-manifest.json
 ```
 
-Run the scenario demo to inspect one realistic reasoning lifecycle:
+Run the scenario demo to inspect the yes shape directly:
 
 ```sh
 node src/cli.js validate --events examples/scenario-demo/events.ndjson
@@ -61,7 +93,17 @@ node src/cli.js attribution list --thread thd_scenario_demo --events examples/sc
 node src/cli.js provenance trace dcr_limited_beta --events examples/scenario-demo/events.ndjson
 ```
 
-Success means:
+Inspect `examples/scenario-demo/expected-state.json` manually for the compact expected decision, evidence, assumptions, claims, positions, objection, reviews, and minority report. M29 does not add a comparator command.
+
+## What This Proves
+
+The M27 scenario demo lives in `examples/scenario-demo/`. It uses existing `validate`, `state show`, `export`, `attribution list`, and `provenance trace` commands to make one realistic reasoning lifecycle understandable from its event fixture.
+
+M28 audits that the same scenario can be replayed from a clean public checkout without hidden builder state, unpublished files, absolute local paths, or mutation of unrelated `.clista` state.
+
+M29 is a product narrative pass over existing documentation. It does not add protocol behavior. It makes the public explanation match the verified artifact: a replayable decision state whose evidence, assumptions, objections, minority reports, authority context, and provenance can be traced.
+
+## Success Means
 
 | Command | Success means | Success does not mean |
 | --- | --- | --- |
@@ -74,7 +116,7 @@ Success means:
 | `runtime audit` | The documented runtime verification path is discoverable, executable, clear, and bounded. | Verified runtime is trust, protocol authority, governance approval, amendment approval, or compatibility proof. |
 | Scenario demo commands | A realistic fixture can be validated, projected, exported, and inspected as durable reasoning state from repo-relative public files. | The demo is a product platform, distribution proof, installation proof, UI, agents, trust, governance approval, amendment approval, compatibility proof, or protocol authority. |
 
-Failure triage:
+## Failure Triage
 
 | Failure | What it means | Inspect next | Likely next command |
 | --- | --- | --- | --- |
@@ -84,22 +126,10 @@ Failure triage:
 | Integrity failure | Hashes or event-chain evidence do not match. | Integrity reasons and the event log head. | `npm run clista -- integrity verify --events <path>` |
 | Continuity degraded | The packet is valid but not strict for the current boundary. | `verificationMode`, `resumeStatus`, and `reasons`. | `npm run clista -- continuity verify --packet continuity.json` |
 | Release manifest missing | A supplied manifest path is absent. | The manifest path or whether one should be generated. | `npm run clista -- release manifest --out .clista/release-manifest.json` |
-| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.28.1-replay-hygiene` |
+| Release verify failed | The release artifact does not match its manifest or boundary rules. | `reasons` and `violations`. | `npm run clista -- release verify --tag v0.29.0-product-narrative-pass` |
 | Package/tag/version mismatch | `package.json` version and the release tag disagree, or the tag points elsewhere. | `package.json`, `git tag`, and `git rev-parse HEAD`. | `npm run clista -- release verify --tag <tag>` |
 | Runtime verify failed | The current runtime drifted from the supplied manifest. | `drift`, `warnings`, and `violations`. | `npm run clista -- runtime verify --manifest .clista/release-manifest.json` |
 | Runtime audit failed | The documented runtime verification path is missing, unclear, not executable, or overclaims. | `checks` and `violations`. | `npm run clista -- runtime audit --manifest .clista/release-manifest.json` |
-
-Release exists does not mean release is trusted. `clista release verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, publishing verification, or compatibility proof.
-
-Runtime verification requires an existing release manifest. It does not silently generate a fresh manifest, because generated proof can describe the current drifted runtime. Documented first-run artifacts such as `continuity.json` and `package-lock.json` are not runtime identity. `clista runtime verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, compatibility proof, package publishing trust, OS attestation, CI trust, or remote runtime trust.
-
-Runtime usage audit checks whether a fresh user can follow the documented path to runtime verification without insider context. `clista runtime audit` does not create trusted release status, runtime trust, protocol authority, governance approval, amendment approval, compatibility proof, or any new reasoning-state record.
-
-The M27 scenario demo lives in `examples/scenario-demo/`. It uses existing `validate`, `state show`, `export`, `attribution list`, and `provenance trace` commands to make one realistic reasoning lifecycle understandable from its event fixture. M28 audits that the same scenario can be replayed from a clean public checkout without hidden builder state, unpublished files, absolute local paths, or mutation of unrelated `.clista` state. The demo workflow and external replay audit do not implement distribution, installation, UI, agents, pitch cleanup, external user testing, M29, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
-
-M25 release manifests are repository artifacts, not reasoning-state events. `state show` and `export` may omit release state by design: conversation is input, reasoning state is output, and release verification proves the artifact boundary rather than the conversation state.
-
-Continuity may report `protocolVersion: "0.24.0"` while the package release is `0.25.0` or a later artifact release such as `0.28.1`. Continuity reflects the latest reasoning-state portability boundary; the package version reflects the current released artifact. M25 binds the package artifact, M26 verifies the local runtime, M26.1 audits runtime verification usability, M27 adds a documented scenario fixture, and M28 audits external replay of that fixture without adding a new continuity state layer.
 
 For the expanded first-run guide, see:
 
@@ -292,7 +322,15 @@ clista attribution list --thread thd_scenario_demo --events examples/scenario-de
 clista provenance trace dcr_limited_beta --events examples/scenario-demo/events.ndjson
 ```
 
-If the scenario can be found, validated, projected, exported, manually compared with expected state, and inspected for attribution/provenance without hidden builder state or absolute local paths, ClisTa has proven M28 external replay for this scenario. M28 external replay audit does not add an expected-state comparator command, and is not installation, distribution, network behavior, UI, agents, pitch cleanup, external user testing, M29, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
+If the scenario can be found, validated, projected, exported, manually compared with expected state, and inspected for attribution/provenance without hidden builder state or absolute local paths, ClisTa has proven M28 external replay for this scenario. M28 external replay audit does not add an expected-state comparator command, and is not installation, distribution, network behavior, UI, agents, external user testing, product readiness, trust, protocol authority, governance approval, amendment approval, or compatibility proof.
+
+The product narrative pass is:
+
+```text
+docs/protocol/v0/milestone-29.md
+```
+
+If the README leads with the yes shape, uses the existing scenario as proof, and keeps boundaries after the affirmative explanation, ClisTa can explain its verified artifact without changing protocol behavior.
 
 The identity command is:
 
@@ -342,6 +380,18 @@ clista amendment verify
 
 If it verifies explicit approved protocol changes without treating recommendations as amendments, governance can authorize improvement without implicit mutation.
 
+## Boundaries
+
+Release exists does not mean release is trusted. `clista release verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, publishing verification, or compatibility proof.
+
+Runtime verification requires an existing release manifest. It does not silently generate a fresh manifest, because generated proof can describe the current drifted runtime. Documented first-run artifacts such as `continuity.json` and `package-lock.json` are not runtime identity. `clista runtime verify` keeps `trusted: false` by design and does not create protocol authority, governance approval, amendment approval, compatibility proof, package publishing trust, OS attestation, CI trust, or remote runtime trust.
+
+Runtime usage audit checks whether a fresh user can follow the documented path to runtime verification without insider context. `clista runtime audit` does not create trusted release status, runtime trust, protocol authority, governance approval, amendment approval, compatibility proof, or any new reasoning-state record.
+
+M25 release manifests are repository artifacts, not reasoning-state events. `state show` and `export` may omit release state by design: conversation is input, reasoning state is output, and release verification proves the artifact boundary rather than the conversation state.
+
+Continuity may report `protocolVersion: "0.24.0"` while the package release is `0.25.0` or a later artifact release such as `0.29.0`. Continuity reflects the latest reasoning-state portability boundary; the package version reflects the current released artifact. M25 binds the package artifact, M26 verifies the local runtime, M26.1 audits runtime verification usability, M27 adds a documented scenario fixture, M28 audits external replay of that fixture, and M29 changes product narrative documentation without adding a new continuity state layer.
+
 Anti-pattern:
 
 ```text
@@ -382,7 +432,7 @@ Review is not approval. Required review routes state changes through examination
 
 Recovery is not history rewrite. It can restore trusted projection membership from verified checkpoints and repair records, but it cannot delete, replace, hide, or normalize invalid events.
 
-Layer versions are capability boundaries, not release numbers. A cleanup release can advance the package or tag version while unchanged layers keep the protocol version where that capability was introduced.
+Layer versions are capability boundaries, not release numbers. A cleanup or documentation release can advance the package or tag version while unchanged layers keep the protocol version where that capability was introduced.
 
 The export schema describes projected protocol state. The validator is the strict trust contract for event logs.
 
