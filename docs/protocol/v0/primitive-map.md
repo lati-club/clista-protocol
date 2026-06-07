@@ -1,6 +1,6 @@
-# Primitive Map M0-M25
+# Primitive Map M0-M27
 
-This map compresses the verified M0-M25 surface into protocol primitives.
+This map compresses the verified M0-M27 surface into protocol primitives.
 
 ```text
 Conversation is input.
