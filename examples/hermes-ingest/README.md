@@ -35,6 +35,20 @@ committed expected output:
 node src/cli.js decision summary --events examples/hermes-ingest/events.ndjson | diff - examples/hermes-ingest/expected-summary.json && echo "replay matches"
 ```
 
+## Clean-room replay (one command)
+
+To reproduce and verify the whole flow from the public files alone — copied into
+a fresh temporary directory, with no dependency on local state — run:
+
+```sh
+npm run replay
+```
+
+It re-ingests the session, checks the regenerated log is byte-identical to the
+committed one, validates it with the engine, confirms the answer view matches
+`expected-summary.json`, and prints the human-readable summary. This is the
+one-command form of the roadmap's Next Replay Observation path.
+
 ## What the adapter emits
 
 The 4-message session maps to 10 canonical events:
