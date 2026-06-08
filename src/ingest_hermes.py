@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Hermes Session Ingestion Script
+Hermes Session Ingestion Script (Enhanced)
 
 Parses a raw Hermes session transcript (.json or .ndjson) and emits a valid, 
 structured ClisTa Thread conforming to the v0 protocol schemas.
+Now correctly links tool call executions with their actual outputs as Evidence.
 
 Usage:
     python src/ingest_hermes.py --input session.json --output thread_export.json
@@ -72,7 +73,7 @@ def ingest_session(input_path: str, output_path: str):
             "type": "ai_agent",
             "organization": "Nous Research",
             "identity_ref": "hermes_gateway",
-            "agent_model_ref": "qwen3.7-plus", # Default, can be overridden
+            "agent_model_ref": "qwen3.7-plus",
             "public_key": None,
             "created_at": now
         }
@@ -109,6 +110,9 @@ def ingest_session(input_path: str, output_path: str):
     evidence_items = []
     audit_events = []
     prev_event_id = None
+    
+    # Track pending tool calls to link with their outputs
+    pending_tool_calls = {}
 
     # 3. Process Messages into Protocol Objects
     for idx, msg in enumerate(messages):
@@ -116,16 +120,16 @@ def ingest_session(input_path: str, output_path: str):
         content = msg.get("content", "")
         timestamp = msg.get("timestamp", now)
         
-        actor_id = participants["hermes_agent"]["id"] if role == "assistant" else participants["human_user"]["id"]
+        actor_id = participants["hermes_agent"]["id"] if role in ["assistant", "tool"] else participants["human_user"]["id"]
         
-        # Extract Claims from user prompts (simplified heuristic)
-        if role == "user" and len(claims) == 0 and len(content) > 20:
+        # Extract Claims from user prompts
+        if role == "user" and len(claims) == 0 and len(str(content)) > 20:
             claim = {
                 "id": generate_id("clm"),
                 "object_type": "claim",
                 "thread_id": thread_id,
                 "author_participant_id": actor_id,
-                "content": content[:1000],
+                "content": str(content)[:1000],
                 "claim_type": "interpretive",
                 "evidence_ids": [],
                 "confidence_score": 0.8,
@@ -134,37 +138,48 @@ def ingest_session(input_path: str, output_path: str):
             claims.append(claim)
             thread["claim_ids"].append(claim["id"])
 
-        # Extract Evidence from assistant tool calls (simplified heuristic)
+        # Track tool calls
         if role == "assistant" and "tool_calls" in msg and msg["tool_calls"]:
             for tc in msg["tool_calls"]:
-                tool_name = tc.get("name", "unknown_tool")
-                tool_args = tc.get("arguments", "{}")
+                tc_id = tc.get("id") or tc.get("tool_call_id") or f"tc_{uuid.uuid4().hex[:8]}"
+                pending_tool_calls[tc_id] = {
+                    "name": tc.get("name", "unknown_tool"),
+                    "arguments": tc.get("arguments", "{}"),
+                    "timestamp": timestamp,
+                    "actor_id": actor_id
+                }
+
+        # Extract Evidence from tool outputs
+        if role == "tool":
+            tc_id = msg.get("tool_call_id")
+            if tc_id and tc_id in pending_tool_calls:
+                tc_info = pending_tool_calls.pop(tc_id)
                 ev = {
                     "id": generate_id("evd"),
                     "object_type": "evidence",
                     "thread_id": thread_id,
-                    "title": f"Tool Execution: {tool_name}",
-                    "source_type": "hermes_tool_call",
+                    "title": f"Tool Execution: {tc_info['name']}",
+                    "source_type": "hermes_tool_output",
                     "source_url": None,
-                    "source_ref": json.dumps({"tool": tool_name, "args": tool_args})[:200],
-                    "summary": f"Agent executed {tool_name} to gather information.",
-                    "content_hash": hash_payload(tc),
+                    "source_ref": json.dumps({"tool": tc_info['name'], "args": tc_info['arguments']})[:200],
+                    "summary": str(content)[:500], # The actual tool output is the evidence
+                    "content_hash": hash_payload({"tool": tc_info['name'], "output": content}),
                     "category": "tool_execution",
                     "credibility_score": 0.9,
-                    "added_by_participant_id": actor_id,
-                    "created_at": timestamp
+                    "added_by_participant_id": tc_info['actor_id'],
+                    "created_at": tc_info['timestamp']
                 }
                 evidence_items.append(ev)
                 thread["evidence_ids"].append(ev["id"])
 
         # Create Audit Event for every message
-        payload = {"role": role, "content_preview": content[:100] if content else "", "has_tools": "tool_calls" in msg}
+        payload = {"role": role, "content_preview": str(content)[:100] if content else "", "has_tools": "tool_calls" in msg or role == "tool"}
         event = {
             "id": generate_id("evt"),
             "object_type": "audit_event",
             "thread_id": thread_id,
             "actor_participant_id": actor_id,
-            "action_type": "message_sent" if role in ["user", "assistant"] else "system_event",
+            "action_type": "message_sent" if role in ["user", "assistant"] else "tool_execution",
             "target_object_type": "thread",
             "target_object_id": thread_id,
             "payload_hash": hash_payload(payload),

@@ -17,7 +17,11 @@ class ClisTaEngine:
             "participants": {},
             "claims": {},
             "evidence": {},
+            "positions": {},
+            "objections": {},
+            "alignment_states": {},
             "decisions": {},
+            "minority_reports": {},
             "audit_events": {}
         }
 
@@ -33,7 +37,7 @@ class ClisTaEngine:
         if not self.export_data:
             raise ValueError("No export data loaded. Call load_export() first.")
             
-        for obj_type in ["threads", "participants", "claims", "evidence", "decisions", "audit_events"]:
+        for obj_type in self.index.keys():
             for obj in self.export_data.get(obj_type, []):
                 obj_id = obj.get("id")
                 if obj_id:
@@ -46,20 +50,27 @@ class ClisTaEngine:
         for thread in self.index["threads"].values():
             thread_id = thread["id"]
             
-            # Check participants
             for p_id in thread.get("participant_ids", []):
                 if p_id not in self.index["participants"]:
                     errors.append(f"Thread {thread_id}: references unknown participant {p_id}")
             
-            # Check claims
             for c_id in thread.get("claim_ids", []):
                 if c_id not in self.index["claims"]:
                     errors.append(f"Thread {thread_id}: references unknown claim {c_id}")
                     
-            # Check evidence
             for e_id in thread.get("evidence_ids", []):
                 if e_id not in self.index["evidence"]:
                     errors.append(f"Thread {thread_id}: references unknown evidence {e_id}")
+                    
+            for d_id in thread.get("decision_ids", []):
+                if d_id not in self.index["decisions"]:
+                    errors.append(f"Thread {thread_id}: references unknown decision {d_id}")
+
+        # Validate claim evidence references
+        for claim in self.index["claims"].values():
+            for e_id in claim.get("evidence_ids", []):
+                if e_id not in self.index["evidence"]:
+                    errors.append(f"Claim {claim['id']}: references unknown evidence {e_id}")
 
         return {
             "valid": len(errors) == 0,
@@ -108,6 +119,8 @@ class ClisTaEngine:
         claims = [self.index["claims"][cid] for cid in thread.get("claim_ids", []) if cid in self.index["claims"]]
         evidence = [self.index["evidence"][eid] for eid in thread.get("evidence_ids", []) if eid in self.index["evidence"]]
         decisions = [self.index["decisions"][did] for did in thread.get("decision_ids", []) if did in self.index["decisions"]]
+        alignment_states = [self.index["alignment_states"][aid] for aid in thread.get("alignment_state_ids", []) if aid in self.index["alignment_states"]]
+        minority_reports = [self.index["minority_reports"][mid] for mid in thread.get("minority_report_ids", []) if mid in self.index["minority_reports"]]
         
         # Enrich claims with evidence details
         enriched_claims = []
@@ -122,6 +135,18 @@ class ClisTaEngine:
                 "supporting_evidence": claim_evidence
             })
 
+        # Enrich decisions with minority reports
+        enriched_decisions = []
+        for decision in decisions:
+            decision_mr = [
+                mr for mr in minority_reports 
+                if mr.get("decision_id") == decision.get("id")
+            ]
+            enriched_decisions.append({
+                **decision,
+                "minority_reports": decision_mr
+            })
+
         return {
             "schema": "clista.projected_state.v0",
             "thread_id": thread_id,
@@ -131,7 +156,8 @@ class ClisTaEngine:
             "participant_count": len(thread.get("participant_ids", [])),
             "claims": enriched_claims,
             "evidence_count": len(evidence),
-            "decision_count": len(decisions),
+            "alignment_states": alignment_states,
+            "decisions": enriched_decisions,
             "projected_at": thread.get("updated_at")
         }
 
