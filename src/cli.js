@@ -102,6 +102,7 @@ const {
   verifyProtocolNegotiation
 } = require("./negotiation");
 const {
+  isKnownContribution,
   provenanceForContribution,
   traceProvenance
 } = require("./provenance");
@@ -629,6 +630,9 @@ function provenanceShow(options, cwd) {
     throw new Error("Missing required option --contribution");
   }
   const projection = projectEvents(readValidEventsForOptions(options, cwd));
+  if (!isKnownContribution(projection, contributionId)) {
+    throw new Error(`Unknown contribution id: ${contributionId}`);
+  }
   return print(provenanceForContribution(projection.provenance, contributionId));
 }
 
@@ -638,6 +642,9 @@ function provenanceTrace(options, cwd) {
     throw new Error("Missing required option --contribution");
   }
   const projection = projectEvents(readValidEventsForOptions(options, cwd));
+  if (!isKnownContribution(projection, contributionId)) {
+    throw new Error(`Unknown contribution id: ${contributionId}`);
+  }
   return print(traceProvenance(projection.provenance, contributionId));
 }
 
