@@ -34,6 +34,23 @@ conversation -> event log -> projection -> verification -> accountable state
 
 Operating law: **conversation is input; reasoning state is output.**
 
+## Try It in 30 Seconds
+
+Prerequisite: Node.js >= 18. Nothing to install — the engine has zero dependencies.
+
+```sh
+git clone https://github.com/lati-club/clista-protocol.git
+cd clista-protocol
+npm run replay
+```
+
+This reproduces the bundled agent-session example in a clean room and verifies it end to
+end: it re-ingests a session into a canonical event log, confirms the result is
+byte-identical to the committed one, validates it against the engine, and prints the
+decision answer view — *what was decided, why, who dissented, what should happen next*. It
+ends with `Clean-room replay PASSED`. No server, no account, no setup — the event log is the
+source of truth.
+
 ## Quickstart
 
 Prerequisite: Node.js >= 18.
