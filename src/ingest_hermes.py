@@ -12,24 +12,37 @@ Usage:
 """
 
 import argparse
-import datetime
+import hashlib
 import json
 import os
 import re
-import uuid
 from typing import List, Dict, Any, Optional
 
 import clista_events
 
+# Fallback session time when a transcript carries no timestamps at all. A fixed
+# epoch keeps ingestion fully deterministic: the same session always produces
+# the same event log, byte for byte.
+_EPOCH = "1970-01-01T00:00:00.000Z"
 
-def generate_id(prefix: str) -> str:
-    return f"{prefix}_{uuid.uuid4().hex[:12]}"
+
+def _session_seed(messages: List[Dict[str, Any]]) -> str:
+    """A stable digest of the whole session, used to derive deterministic ids."""
+    canonical = json.dumps(messages, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _utc_now() -> str:
-    """ISO 8601 UTC timestamp with milliseconds, e.g. 2026-06-08T16:21:59.654Z."""
-    dt = datetime.datetime.now(datetime.timezone.utc)
-    return dt.strftime("%Y-%m-%dT%H:%M:%S.") + f"{dt.microsecond // 1000:03d}Z"
+def _id_factory(seed: str):
+    """Return make_id(prefix, key) -> deterministic ``<prefix>_<12 hex>``.
+
+    Ids are a function of the session content plus a per-object key, so they are
+    stable across runs (enabling a committed expected state and a diffable
+    replay) and unique within a session.
+    """
+    def make_id(prefix: str, key: str) -> str:
+        digest = hashlib.sha256(f"{seed}:{prefix}:{key}".encode("utf-8")).hexdigest()
+        return f"{prefix}_{digest[:12]}"
+    return make_id
 
 
 def _match_tool_call(pending: List[Dict[str, Any]], tool_call_id: Optional[str]) -> Optional[Dict[str, Any]]:
@@ -160,10 +173,11 @@ def session_to_events(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     The returned events are unhashed; run them through
     clista_events.prepare_and_chain before serializing.
     """
-    now = _utc_now()
-    thread_id = generate_id("thd")
-    human_id = generate_id("par")
-    agent_id = generate_id("par")
+    make_id = _id_factory(_session_seed(messages))
+    now = messages[0].get("timestamp") or _EPOCH
+    thread_id = make_id("thd", "thread")
+    human_id = make_id("par", "participant:human")
+    agent_id = make_id("par", "participant:agent")
 
     first_user = next((m for m in messages if m.get("role") == "user"), messages[0])
     problem = str(first_user.get("content", "Hermes session"))[:500]
@@ -172,7 +186,7 @@ def session_to_events(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
     def emit(event_type, actor_id, payload, timestamp):
         events.append({
-            "event_id": generate_id("evt"),
+            "event_id": make_id("evt", f"event:{len(events)}"),
             "event_type": event_type,
             "thread_id": thread_id,
             "actor_id": actor_id,
@@ -202,13 +216,13 @@ def session_to_events(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     evidence_ids: List[str] = []
 
     pending_tool_calls: List[Dict[str, Any]] = []
-    for msg in messages:
+    for index, msg in enumerate(messages):
         role = msg.get("role", "unknown")
         content = msg.get("content", "")
         timestamp = msg.get("timestamp", now)
 
         if role == "user" and len(str(content)) > 20:
-            claim_id = generate_id("clm")
+            claim_id = make_id("clm", f"claim:{index}")
             claim_ids.append(claim_id)
             emit("ClaimCreated", human_id, {"claim": {
                 "id": claim_id, "object": "claim",
@@ -231,7 +245,7 @@ def session_to_events(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if role == "tool":
             tc_info = _match_tool_call(pending_tool_calls, msg.get("tool_call_id"))
             if tc_info is not None:
-                evidence_id = generate_id("evd")
+                evidence_id = make_id("evd", f"evidence:{index}")
                 evidence_ids.append(evidence_id)
                 emit("EvidenceCommitted", agent_id, {"evidence": {
                     "id": evidence_id, "object": "evidence",
@@ -249,8 +263,8 @@ def session_to_events(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     # blocking objection would imply formal dissent the session did not contain.
     objection_ids: List[str] = []
     if claim_ids:
-        for objection in _detect_objections(messages):
-            objection_id = generate_id("obj")
+        for obj_index, objection in enumerate(_detect_objections(messages)):
+            objection_id = make_id("obj", f"objection:{obj_index}")
             objection_ids.append(objection_id)
             emit("ObjectionRaised", agent_id, {"objection": {
                 "id": objection_id, "object": "objection",
@@ -270,10 +284,10 @@ def session_to_events(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     if recommendation and evidence_ids:
         proposal = recommendation["text"][:1000]
         ts = recommendation["timestamp"] or now
-        assumption_id = generate_id("asm")
-        request_id = generate_id("drq")
-        review_id = generate_id("rev")
-        record_id = generate_id("dcr")
+        assumption_id = make_id("asm", "assumption")
+        request_id = make_id("drq", "decision_request")
+        review_id = make_id("rev", "review")
+        record_id = make_id("dcr", "decision_record")
 
         # The engine requires every decision to rest on evidence, a claim, and a
         # named assumption. The load-bearing assumption behind acting on a
