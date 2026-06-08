@@ -49,10 +49,15 @@ From the repository root — the engine validates and projects the generated log
 exactly like any hand-authored one:
 
 ```sh
-node src/cli.js validate  --events examples/hermes-ingest/events.ndjson
-node src/cli.js state show --events examples/hermes-ingest/events.ndjson
-node src/cli.js audit show --events examples/hermes-ingest/events.ndjson
+node src/cli.js validate         --events examples/hermes-ingest/events.ndjson
+node src/cli.js state show        --events examples/hermes-ingest/events.ndjson
+node src/cli.js decision summary  --events examples/hermes-ingest/events.ndjson
+node src/cli.js audit show        --events examples/hermes-ingest/events.ndjson
 ```
+
+`decision summary` is the concise answer view: what was decided, why, who
+dissented, and what should happen next — without reading the full state
+projection.
 
 To trace the decision back to its source event, participant, and authority
 context (ids vary per run, so read one from the log):

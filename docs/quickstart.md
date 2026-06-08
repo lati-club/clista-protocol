@@ -42,6 +42,7 @@ Run these commands from the repository root:
 ```sh
 npm run clista -- validate
 npm run clista -- state show
+npm run clista -- decision summary
 npm run clista -- export
 npm run clista -- continuity export --out continuity.json
 npm run clista -- continuity verify --packet continuity.json
