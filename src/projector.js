@@ -1153,6 +1153,72 @@ function selectAudit(projection, requestedThreadId) {
   };
 }
 
+// A concise answer to the four questions a reader actually has about a thread:
+// what was decided, why, who dissented, and what should happen next. Reuses the
+// full thread-state projection but surfaces only the decision-relevant slice, so
+// the answer does not require reading the entire reasoning state.
+function selectDecisionSummary(projection, requestedThreadId) {
+  const threadId = requestedThreadId || latestThreadId(projection);
+  const state = selectThreadState(projection, threadId);
+  if (state.error) {
+    return { schema: "clista.decisionSummary.v0", threadId: threadId || null, error: state.error };
+  }
+
+  const name = (participantId) =>
+    projection.participants[participantId]?.name || participantId || null;
+  const byId = (collection) => Object.fromEntries(collection.map((object) => [object.id, object]));
+  const resolve = (ids, lookup, shape) =>
+    (ids || []).map((id) => lookup[id]).filter(Boolean).map(shape);
+
+  const evidenceById = byId(valuesForThreadScope(projection, threadId, "evidence"));
+  const claimsById = byId(valuesForThreadScope(projection, threadId, "claims"));
+  const assumptionsById = byId(valuesForThreadScope(projection, threadId, "assumptions"));
+
+  const decisionRecord = state.decisionStatus.decisionRecord;
+  const proposal = state.currentProposal;
+  const support = decisionRecord || proposal || {};
+  const status = decisionRecord ? "decided" : (proposal ? "pending" : "open");
+
+  return {
+    schema: "clista.decisionSummary.v0",
+    threadId,
+    title: state.thread.title,
+    question: state.thread.question,
+    status,
+    whatWasDecided: decisionRecord
+      ? {
+          status: decisionRecord.status,
+          summary: decisionRecord.summary,
+          decidedBy: name(decisionRecord.decidedByParticipantId)
+        }
+      : (proposal ? { status: "pending", proposal: proposal.proposal } : null),
+    why: {
+      rationale: decisionRecord?.rationale || null,
+      supportingEvidence: resolve(support.supportingEvidenceIds, evidenceById,
+        (evidence) => ({ id: evidence.id, source: evidence.source, finding: evidence.finding })),
+      supportingClaims: resolve(support.supportingClaimIds, claimsById,
+        (claim) => ({ id: claim.id, text: claim.text })),
+      supportingAssumptions: resolve(support.supportingAssumptionIds, assumptionsById,
+        (assumption) => ({ id: assumption.id, text: assumption.text }))
+    },
+    whoDissented: {
+      objections: state.unresolvedObjections.map((objection) => ({
+        id: objection.id,
+        text: objection.text,
+        raisedBy: objection.participant?.name || name(objection.participantId),
+        status: objection.status,
+        blocking: objection.blocking !== false
+      })),
+      minorityReports: (state.reasoningState?.minority_reports || []).map((report) => ({
+        id: report.id,
+        text: report.text,
+        filedBy: name(report.participantId)
+      }))
+    },
+    whatNext: decisionRecord?.nextAction || null
+  };
+}
+
 function exportProtocol(projection) {
   return {
     schema: PROTOCOL_VERSION,
@@ -1862,6 +1928,7 @@ module.exports = {
   exportProtocol,
   projectEvents,
   selectAudit,
+  selectDecisionSummary,
   selectForkLineage,
   selectMergeRequestState,
   selectMergeState,

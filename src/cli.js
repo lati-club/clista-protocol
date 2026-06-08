@@ -133,6 +133,7 @@ const {
   exportProtocol,
   projectEvents,
   selectAudit,
+  selectDecisionSummary,
   selectForkLineage,
   selectMergeRequestState,
   selectThreadState
@@ -217,6 +218,8 @@ function main(argv = process.argv.slice(2), cwd = process.cwd()) {
         return objectionRaise(options, cwd);
       case "decision open":
         return decisionOpen(options, cwd);
+      case "decision summary":
+        return decisionSummary(options, cwd);
       case "decision eligibility":
         return decisionEligibility(options, cwd);
       case "review submit":
@@ -2528,6 +2531,11 @@ function stateShow(options, cwd) {
 function auditShow(options, cwd) {
   const projection = projectEvents(readValidEventsForOptions(options, cwd));
   return print(selectAudit(projection, options.thread));
+}
+
+function decisionSummary(options, cwd) {
+  const projection = projectEvents(readValidEventsForOptions(options, cwd));
+  return print(selectDecisionSummary(projection, options.thread));
 }
 
 function forkLineage(options, cwd) {
