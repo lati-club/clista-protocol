@@ -1,0 +1,47 @@
+{
+  "schema": "clista.decisionSummary.v0",
+  "threadId": "thd_ec7ec41fa781",
+  "title": "Hermes Session: We need to decide whether to run a limited beta of the AI su",
+  "question": "We need to decide whether to run a limited beta of the AI support assistant. The queue pressure is high, but privacy is a concern.",
+  "status": "decided",
+  "whatWasDecided": {
+    "status": "approved",
+    "summary": "Based on the data, the median wait time is 45 minutes. However, we must ensure any beta uses redacted transcripts to comply with privacy guidelines. I recommend a limited, redacted beta.",
+    "decidedBy": "Human User"
+  },
+  "why": {
+    "rationale": "Approved the assistant's recommendation from the session.",
+    "supportingEvidence": [
+      {
+        "id": "evd_943b5fcbca34",
+        "source": "Tool: web_search",
+        "finding": "{\"results\": [{\"title\": \"Q2 Queue Report\", \"description\": \"Median wait time is 45 minutes, exceeding the 15-minute target.\"}]}"
+      }
+    ],
+    "supportingClaims": [
+      {
+        "id": "clm_07d76aedd273",
+        "text": "We need to decide whether to run a limited beta of the AI support assistant. The queue pressure is high, but privacy is a concern."
+      }
+    ],
+    "supportingAssumptions": [
+      {
+        "id": "asm_6e36130e869e",
+        "text": "The evidence gathered in this session is sufficient and current enough to act on the recommendation."
+      }
+    ]
+  },
+  "whoDissented": {
+    "objections": [
+      {
+        "id": "obj_dec6a67d968b",
+        "text": "However, we must ensure any beta uses redacted transcripts to comply with privacy guidelines.",
+        "raisedBy": "Hermes Agent",
+        "status": "open",
+        "blocking": false
+      }
+    ],
+    "minorityReports": []
+  },
+  "whatNext": null
+}

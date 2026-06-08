@@ -14,6 +14,8 @@ log.
   assistant tool call, the tool output, and an assistant recommendation that
   also names a privacy concern).
 - `events.ndjson` — the generated append-only event log (10 events).
+- `expected-summary.json` — the expected `decision summary` answer view, for a
+  diffable replay check.
 
 ## Regenerate
 
@@ -23,10 +25,15 @@ From the repository root:
 python3 src/ingest_hermes.py --input examples/hermes-ingest/session.json --output examples/hermes-ingest/events.ndjson
 ```
 
-Object ids and the thread/participant timestamps are freshly generated, so a new
-run produces an equivalent log with different ids. The committed `events.ndjson`
-is one such snapshot — there is no `expected-state.json` to diff against, because
-the ids vary by design.
+Ingestion is **deterministic**: object ids are derived from the session content
+and timestamps come from the session's own messages, so the same input always
+produces the same log, byte for byte. That makes the replay diffable — after
+regenerating, `events.ndjson` is unchanged, and the answer view still matches the
+committed expected output:
+
+```sh
+node src/cli.js decision summary --events examples/hermes-ingest/events.ndjson | diff - examples/hermes-ingest/expected-summary.json && echo "replay matches"
+```
 
 ## What the adapter emits
 
@@ -65,11 +72,10 @@ node src/cli.js decision summary --events examples/hermes-ingest/events.ndjson -
 ```
 
 To trace the decision back to its source event, participant, and authority
-context (ids vary per run, so read one from the log):
+context (the id is stable because ingestion is deterministic):
 
 ```sh
-DECISION=$(grep -o '"id":"dcr_[a-f0-9]*"' examples/hermes-ingest/events.ndjson | head -1 | cut -d'"' -f4)
-node src/cli.js provenance trace "$DECISION" --events examples/hermes-ingest/events.ndjson
+node src/cli.js provenance trace dcr_515c7c6ac3a1 --events examples/hermes-ingest/events.ndjson
 ```
 
 ## What It Demonstrates

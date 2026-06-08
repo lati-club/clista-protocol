@@ -40,7 +40,7 @@ None of those systems should define the protocol.
 
 Verified baseline:
 
-- Completed through M31: Decision Legibility (Phase 0 acceptance test as executable command)
+- Completed through M32: Reproducible Adapter Replay (deterministic ingestion + diffable replay)
 
 Next selected milestone:
 
@@ -59,6 +59,9 @@ Status:
 - M31 decision legibility complete
 - M31 selected from observed friction: the Phase 0 acceptance test ("another agent can answer: what was decided, why, who dissented, what next") was still a manual JSON dig even after full state projection existed
 - M31 makes the acceptance criterion a first-class CLI surface: `decision summary` produces the exact four-answer view from projected state alone
+- M32 reproducible adapter replay complete
+- M32 selected from observed friction: random ingestion ids and wall-clock timestamps meant the adapter example could not commit an expected state, forced a grep-the-id workaround in its docs, and left replay verification to the eye
+- M32 makes ingestion deterministic (ids derived from session content, timestamps from the session), so the same session always emits the same log; the example now ships a committed expected answer view and a diffable replay
 - Next decision: pause or select the next milestone from observed friction
 
 M28 audited the existing M27 scenario. It did not expand the product surface.
@@ -130,6 +133,20 @@ Hard law:
 concise_answer_view != full_state_dump
 ```
 
+M32 makes the adapter reproducible. Ingestion previously minted random ids and stamped wall-clock times, so re-ingesting the same session produced an equivalent-but-different log: the `examples/hermes-ingest/` example could not commit an `expected-state`, its README had to `grep` the decision id out of the log before tracing it, and replay was verified by eye. M32 derives every id from the session content and every timestamp from the session's own messages, so the same session always emits the same log, byte for byte. The example now ships `expected-summary.json` and a diffable replay (`decision summary | diff - expected-summary.json`), with the reproducibility itself covered by tests. This is the concrete substrate for the roadmap's Next Replay Observation candidate.
+
+The M32 theorem is:
+
+```text
+reproducible_ingestion = derive(ids, timestamps) from session_content
+```
+
+Hard law:
+
+```text
+replay_verification != eyeball_comparison
+```
+
 Candidate next milestones remain unselected:
 
 | Candidate | What it would prove |
@@ -141,13 +158,15 @@ Candidate next milestones remain unselected:
 Holding state:
 
 ```text
-latest_verified_milestone = M31
+latest_verified_milestone = M32
 m28_real_external_replay_observed_once = PASS
 m29_product_narrative_pass = complete
 m30_agent_ingestion_adapter = complete
 m31_decision_legibility = complete
+m32_reproducible_adapter_replay = complete
 agent_session_bridge = engine_validated
 phase0_acceptance_test = executable_via_decision_summary
+adapter_replay = deterministic_and_diffable
 next_selected_milestone = none
 decision_pause = pause_or_select_from_observed_friction
 safe_to_build_from = yes

@@ -302,6 +302,34 @@ class ObjectionExtractionTests(unittest.TestCase):
         self.assertNotIn("DecisionMerged", types)
 
 
+class DeterminismTests(unittest.TestCase):
+    def test_session_to_events_is_deterministic(self):
+        first = session_to_events(MOCK_MESSAGES)
+        second = session_to_events(MOCK_MESSAGES)
+        self.assertEqual(first, second)
+        self.assertEqual([e["event_id"] for e in first], [e["event_id"] for e in second])
+
+    def test_different_sessions_get_different_ids(self):
+        a = session_to_events(MOCK_MESSAGES)
+        b = session_to_events(OBJECTION_MESSAGES)
+        self.assertNotEqual(
+            a[0]["payload"]["participant"]["id"],
+            b[0]["payload"]["participant"]["id"],
+        )
+
+    def test_committed_example_log_is_reproducible(self):
+        # Re-ingesting the example session must reproduce the committed log
+        # byte-for-byte — the property that makes a diffable replay possible.
+        example = os.path.join(REPO_ROOT, "examples", "hermes-ingest")
+        with open(os.path.join(example, "session.json"), encoding="utf-8") as f:
+            messages = json.load(f)
+        regenerated = clista_events.serialize_ndjson(
+            clista_events.prepare_and_chain(session_to_events(messages)))
+        with open(os.path.join(example, "events.ndjson"), encoding="utf-8") as f:
+            committed = f.read()
+        self.assertEqual(regenerated, committed)
+
+
 @unittest.skipUnless(shutil.which("node"), "node not available")
 class EngineRoundTripTests(unittest.TestCase):
     def _write_log(self, tmp, messages):
