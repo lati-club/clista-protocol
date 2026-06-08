@@ -9,7 +9,8 @@
   },
   "scripts": {
     "clista": "node src/cli.js",
-    "test": "node --test"
+    "test": "node --test",
+    "replay": "bash scripts/replay.sh"
   },
   "engines": {
     "node": ">=18"

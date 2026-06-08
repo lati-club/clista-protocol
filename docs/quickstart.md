@@ -65,6 +65,8 @@ node src/cli.js decision summary --thread thd_scenario_demo --events examples/sc
 
 `decision summary` answers "what was decided, why, who dissented, what next" from projected state alone. It prints JSON by default; add `--format text` (or `md`) for a human-readable markdown rendering.
 
+To reproduce and verify the Hermes ingestion adapter end to end from the public files alone — in a fresh temporary directory — run `npm run replay`. See `examples/hermes-ingest/`.
+
 This is the minimum release usage path:
 
 1. Validate the append-only event log.
