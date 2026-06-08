@@ -710,6 +710,34 @@ function unique(values) {
   return Array.from(new Set((values || []).filter(Boolean)));
 }
 
+function isKnownContribution(projection, contributionId) {
+  if (!projection || !contributionId) {
+    return false;
+  }
+  const collections = [
+    projection.threads,
+    projection.forks,
+    projection.evidence,
+    projection.assumptions,
+    projection.claims,
+    projection.positions,
+    projection.objections,
+    projection.decisionRequests,
+    projection.reviews,
+    projection.decisionRecords,
+    projection.minorityReports,
+    projection.mergeRequests,
+    projection.mergeReviews,
+    projection.mergeConflicts,
+    projection.mergeConflictResolutions,
+    projection.mergeCompletions,
+    projection.expectedOutcomes,
+    projection.outcomeAudits,
+    projection.decisionScores
+  ];
+  return collections.some(collection => collection && collection[contributionId] !== undefined);
+}
+
 module.exports = {
   PROVENANCE_SCHEMA,
   PROVENANCE_VERIFY_SCHEMA,
@@ -718,6 +746,7 @@ module.exports = {
   buildProvenanceState,
   emptyProvenanceState,
   formatProvenanceReasons,
+  isKnownContribution,
   projectProvenance,
   provenanceForContribution,
   selectProvenanceForThread,
