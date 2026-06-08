@@ -36,7 +36,10 @@ Optional inspection:
 ```sh
 node src/cli.js attribution list --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
 node src/cli.js provenance trace dcr_limited_beta --events examples/scenario-demo/events.ndjson
+node src/cli.js decision summary --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
 ```
+
+The `decision summary` command surfaces the Phase 0 "answer view": a concise machine- and human-readable response to "what was decided, why, who dissented, what next" derived strictly from the event log via the projector. It is the executable realization of the Phase 0 acceptance test.
 
 ## External Replay
 

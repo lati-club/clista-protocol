@@ -40,7 +40,7 @@ None of those systems should define the protocol.
 
 Verified baseline:
 
-- Completed through M30: Agent Ingestion Adapter (Hermes bridge)
+- Completed through M31: Decision Legibility (Phase 0 acceptance test as executable command)
 
 Next selected milestone:
 
@@ -56,6 +56,9 @@ Status:
 - M30 agent ingestion adapter (Hermes bridge) complete
 - M30 selected from observed friction: the two-engine drift between the Python MVP export and the canonical event log
 - M30 engine-validated: imported sessions are accepted byte-for-byte and projected by the reference engine
+- M31 decision legibility complete
+- M31 selected from observed friction: the Phase 0 acceptance test ("another agent can answer: what was decided, why, who dissented, what next") was still a manual JSON dig even after full state projection existed
+- M31 makes the acceptance criterion a first-class CLI surface: `decision summary` produces the exact four-answer view from projected state alone
 - Next decision: pause or select the next milestone from observed friction
 
 M28 audited the existing M27 scenario. It did not expand the product surface.
@@ -106,10 +109,26 @@ The M30 theorem is:
 agent_ingestion = emit(session_transcript) -> canonical_protocol_events
 ```
 
+
+M31 realizes Phase 0 acceptance as executable legibility. The original Phase 0 criterion was "Given only the exported ClisTa JSON, another agent can answer: What was decided? Why? Who dissented? What should happen next?" After projection existed, this was still a manual dig through large `state show` or `export` JSON. M31 adds the `decision summary` command (backed by `selectDecisionSummary` in the projector) that surfaces exactly those four answers in a compact, purpose-built view:
+
+- `whatWasDecided` (status, summary, decidedBy)
+- `why` (rationale + resolved supportingEvidence, supportingClaims, supportingAssumptions)
+- `whoDissented` (unresolved/preserved objections + minorityReports)
+- `whatNext`
+
+No full transcript or full state dump required. The command is part of the core protocol surface, not a scenario-specific product command.
+
+The M31 theorem is:
+
+```text
+decision_legibility = selectDecisionSummary(projected_state) answers(what, why, who_dissented, what_next)
+```
+
 Hard law:
 
 ```text
-adapter_emits_protocol != adapter_owns_protocol
+concise_answer_view != full_state_dump
 ```
 
 Candidate next milestones remain unselected:
@@ -123,11 +142,13 @@ Candidate next milestones remain unselected:
 Holding state:
 
 ```text
-latest_verified_milestone = M30
+latest_verified_milestone = M31
 m28_real_external_replay_observed_once = PASS
 m29_product_narrative_pass = complete
 m30_agent_ingestion_adapter = complete
+m31_decision_legibility = complete
 agent_session_bridge = engine_validated
+phase0_acceptance_test = executable_via_decision_summary
 next_selected_milestone = none
 decision_pause = pause_or_select_from_observed_friction
 safe_to_build_from = yes
@@ -166,13 +187,19 @@ Who dissented?
 What should happen next?
 ```
 
-Status: started.
+Status: complete (M31).
+
+The Phase 0 acceptance test is now a real, first-class command (`decision summary`) rather than a manual JSON dig. `selectDecisionSummary` (in the projector) + the CLI wrapper directly answers the four questions from projected state alone, making the original acceptance criterion executable for agents or humans.
 
 Existing artifacts:
 
 - `schemas/clista-mvp.schema.json`
 - `docs/first-real-thread.md`
 - `docs/hermes-thread-emission.md`
+- `src/projector.js` (selectDecisionSummary)
+- `src/cli.js` (decision summary command)
+- `test/decision-summary.test.js`
+- examples/scenario-demo/ (wired into external replay docs and audit)
 
 ## Phase 1: Reasoning Repo MVP
 

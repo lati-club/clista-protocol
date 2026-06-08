@@ -24,7 +24,8 @@ const documentedReplayCommands = [
   `node src/cli.js state show --thread ${threadId} --events ${scenarioEvents}`,
   `node src/cli.js export --events ${scenarioEvents}`,
   `node src/cli.js attribution list --thread ${threadId} --events ${scenarioEvents}`,
-  `node src/cli.js provenance trace ${decisionId} --events ${scenarioEvents}`
+  `node src/cli.js provenance trace ${decisionId} --events ${scenarioEvents}`,
+  `node src/cli.js decision summary --thread ${threadId} --events ${scenarioEvents}`
 ];
 
 const publicArtifactPaths = [
@@ -75,6 +76,7 @@ test("documented scenario commands replay from a clean public-artifact copy", ()
   const exported = runDocumentedCommand(cwd, commands[2]);
   const attribution = runDocumentedCommand(cwd, commands[3]);
   const provenance = runDocumentedCommand(cwd, commands[4]);
+  const summary = runDocumentedCommand(cwd, commands[5]);
 
   assert.equal(validation.valid, true);
   assert.deepEqual(validation.errors, []);
@@ -87,6 +89,17 @@ test("documented scenario commands replay from a clean public-artifact copy", ()
   assert.equal(attribution.count, 18);
   assert.equal(provenance.schema, "clista.provenance.trace.v0");
   assert.equal(provenance.contributionId, decisionId);
+
+  // Decision summary provides the Phase 0 answer view (what/why/who dissented/what next)
+  assert.equal(summary.schema, "clista.decisionSummary.v0");
+  assert.equal(summary.threadId, threadId);
+  assert.equal(summary.status, "decided");
+  assert.equal(summary.whatWasDecided.status, "approved");
+  assert.ok(summary.whatWasDecided.summary);
+  assert.ok(summary.why);
+  assert.ok(summary.why.rationale || summary.why.supportingEvidence?.length > 0);
+  assert.ok(summary.whoDissented);
+  assert.ok(summary.whatNext);
 });
 
 test("external replay expected state and durable export are reproducible", () => {

@@ -10,6 +10,7 @@ node src/cli.js state show --thread thd_scenario_demo --events examples/scenario
 node src/cli.js export --events examples/scenario-demo/events.ndjson
 node src/cli.js attribution list --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
 node src/cli.js provenance trace dcr_limited_beta --events examples/scenario-demo/events.ndjson
+node src/cli.js decision summary --thread thd_scenario_demo --events examples/scenario-demo/events.ndjson
 ```
 
 Inspect the result:
@@ -19,6 +20,7 @@ Inspect the result:
 - `export` serializes the projected state for reload or inspection.
 - `attribution list` shows who contributed each durable object.
 - `provenance trace dcr_limited_beta` shows the source trail behind the decision.
+- `decision summary` provides the concise "answer view" for the Phase 0 acceptance test (what was decided, why, who dissented, what next) directly from projected state. This is the executable form of the original "another agent can answer" criterion.
 
 Expected compact state:
 
