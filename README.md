@@ -36,7 +36,7 @@ Operating law: **conversation is input; reasoning state is output.**
 
 ## Try It in 30 Seconds
 
-Prerequisite: Node.js >= 18. Nothing to install — the engine has zero dependencies.
+Prerequisites: Node.js >= 18, plus Python 3 (used only to re-ingest the session). Nothing to install — the engine itself has zero npm dependencies.
 
 ```sh
 git clone https://github.com/lati-club/clista-protocol.git
