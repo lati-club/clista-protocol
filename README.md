@@ -70,6 +70,23 @@ structure is never endorsement of content, and only blind external judging
 
 Everything below is the protocol tour — what the engine is, and how to verify it yourself.
 
+## Try It in 30 Seconds
+
+Prerequisite: Node.js >= 18. Nothing to install — the engine has zero dependencies.
+
+```sh
+git clone https://github.com/lati-club/clista-protocol.git
+cd clista-protocol
+npm run replay
+```
+
+This reproduces the bundled agent-session example in a clean room and verifies it end to
+end: it re-ingests a session into a canonical event log, confirms the result is
+byte-identical to the committed one, validates it against the engine, and prints the
+decision answer view — *what was decided, why, who dissented, what should happen next*. It
+ends with `Clean-room replay PASSED`. No server, no account, no setup — the event log is the
+source of truth.
+
 ## Quickstart
 
 Prerequisite: Node.js >= 18.
@@ -156,7 +173,7 @@ The full capability set, by layer — each command verifies one boundary and fai
 | Layer | Command | Passing proves |
 | --- | --- | --- |
 | Integrity | `integrity verify [--strict]` | The log is verifiable history, not just readable data. |
-| Continuity | `continuity export / resume / verify` | Projected state survives context loss without transcript replay. |
+| Continuity (N2) | `continuity export / resume / verify` | A successor resumes settled state from the verified packet without transcript replay — see [N2: Resumption Without Replay](docs/protocol/v0/n2-resumption-without-replay.md). |
 | Compatibility | `compatibility verify` | Unsupported state fails closed instead of best-effort accepted. |
 | Interoperability | `interoperability verify` | Declared semantics survive transfer; translation isn't reinterpretation. |
 | Federation | `federation verify` | External state can be referenced without importing remote authority. |
