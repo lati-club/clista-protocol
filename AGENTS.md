@@ -2,7 +2,9 @@
 
 ClisTa is a protocol engine first.
 
-Do not build UI, agents, graph DB, governance portal, or platform features until the protocol spine works.
+The protocol spine is proven: `events -> projector -> validator -> cli`, exercised end-to-end by the test suite and a clean-room replay. Every milestone since extends that spine with one protocol property at a time — governance reviews, federation, continuity, recovery, attribution, and the rest are modeled as events, projections, and validations, never as product surfaces.
+
+The boundary still holds: do not build UI, hosted platform, graph DB, governance portal, or agent runtime. A module named `governance.js` records governance *as events*; it is not a portal. `federation.js` is protocol interop, not a platform.
 
 ## Scope Freeze (until the EXTERNAL-RUNS gate)
 
