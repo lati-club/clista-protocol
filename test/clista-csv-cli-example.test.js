@@ -30,7 +30,7 @@ test("CSV CLI example validates clean and projects the expected governance state
   assert.ok(!("error" in state), `projection carried an error: ${state.error}`);
   const rs = state.reasoningState;
   assert.equal(rs.claims.length, 4, "4 claims");
-  assert.equal(rs.evidence.length, 4, "foundation + 3 live evidence");
+  assert.equal(rs.evidence.length, 5, "foundation + 4 live evidence (incl. error-handling)");
   assert.equal(rs.assumptions.length, 1, "1 supporting assumption");
   assert.equal(rs.positions.length, 2, "2 positions");
   assert.equal(rs.decision.status, "approved", "decision approved");
