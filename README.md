@@ -199,3 +199,38 @@ claim dies on the record. Failed and abandoned runs are explicitly wanted eviden
 
 Code is licensed under Apache-2.0 (see `LICENSE`). Documentation and the debate prompt pack
 are licensed under CC BY 4.0. Attribution: lati-cooki.
+
+## Running Example: Governing Octopus CSV CLI Build with ClisTa + ThreadHub
+
+This is the live, operationalized example of the full integration (as of 2026-06-12):
+
+- Octopus runs the CSV CLI arms (parsing, stats, CLI integration + error handling).
+- ThreadHub stores the execution signals (cascade-blocks → ObjectionRaised) in `octo-build`.
+- ClisTa turns them into accountable governance in a dedicated ThreadHub thread `clista-csv-cli-build` (and the clean event log `examples/clista-csv-cli-build.ndjson`).
+
+Key artifacts:
+- Clean combined log (19+ events, participants first, correct shapes, 3 live evidences): `examples/clista-csv-cli-build.ndjson`
+- Dedicated ThreadHub thread: slug `clista-csv-cli-build` (id `thd_99f812b60f7c`), 20 records, head `sha256:1a376724be4d5e633ec2875d8630c4e605a81c996d87a16e503bd9ef229b438c`
+- Raw signals: `octo-build` slug (8 records, the 3 live blocks at seq 5/6/7 with hashes `27226cae...`, `6c39ae70...`, `460f601d...`)
+- Cross-links: ClisTa `EvidenceCommitted` events carry the exact ThreadHub record hashes as artifacts. Provenance traces "ThreadHub octo-build seq N (live arm-...)" + hash.
+- Attribution: `par_octopus` for execution dissent; `id_troy` for governance (claims, evidence commits from the live blocks, review).
+
+### Quick Exploration (from clista-protocol root)
+```sh
+node src/cli.js validate --events examples/clista-csv-cli-build.ndjson
+node src/cli.js state show --thread thd_csv_cli_build_consensus_mqa0yqno_95493e23 --events examples/clista-csv-cli-build.ndjson
+node src/cli.js attribution list --events examples/clista-csv-cli-build.ndjson
+node src/cli.js provenance trace --contribution evd_live_p2 --events examples/clista-csv-cli-build.ndjson
+```
+
+### In ThreadHub (from ThreadHub root)
+```sh
+node bin/cli.js verify --thread clista-csv-cli-build
+node bin/cli.js verify --thread octo-build
+node bin/cli.js export --thread clista-csv-cli-build | head -c 1000
+```
+
+See `docs/clista-csv-cli-build.md` (in the ThreadHub repo) for full details, how the 3 live arms were added one-at-a-time, commands, and operational notes for future arms (tests, docs, error handling).
+
+This example is the reference for "ClisTa as the consensus layer over Octopus execution via ThreadHub as the verifiable substrate." The clean log + dedicated thread keep the demo pollution-free while the raw signals stay in the general Octopus log.
+
