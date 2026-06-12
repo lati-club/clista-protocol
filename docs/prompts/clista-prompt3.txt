@@ -1,154 +1,0 @@
-Create an agent team to run a structured, adversarial ClisTa-style concept validation debate.
-Use the real team tools — spawn actual teammates and have them talk to EACH OTHER via SendMessage. Do NOT relay messages yourself; you, as LEAD, only referee the protocol, enforce state discipline, and synthesize at the end.
-TOPIC: Is ClisTa Protocol a real, generalizable protocol layer for accountable agentic work, or is it adequately solved by one strong prompt plus one markdown transfer-state document?
-CORE CLISTA LAW: Conversation is input. Reasoning state is output.
-OPERATING MODEL: Explore in threads. Project into state. Verify against artifacts. Act only after alignment.
-Spawn exactly four teammates:
-PROTOCOL_ADVOCATE: Argues that ClisTa should become a full protocol/runtime. Must explain what a protocol adds beyond prompts and markdown: schemas, validators, artifact verification, state transfer, authority boundaries, provenance, reusable CLI commands, and machine-checkable continuation. No vibes.
-PROMPT_MINIMALIST: Argues that ClisTa does not need to become a full protocol yet. The minimalist position is that one strong adversarial prompt plus one markdown transfer-state file already delivers most of the value. Must attack overbuilding, premature abstraction, protocol theater, and implementation drag.
-PRODUCT_STRATEGIST: Evaluates whether ClisTa is a real product category. Must focus on user value, wedge, adoption path, narrative clarity, market confusion, and whether “ClisTa changes the shape of yes” is a strong enough product thesis.
-PROTOCOL_SKEPTIC: Attacks the entire concept. Must challenge whether ClisTa is actually different from existing tools such as prompts, docs, project management, decision logs, evals, CI, agent frameworks, or governance checklists. Must identify failure modes where ClisTa could become bureaucracy, false confidence, or ceremonial state.
-CLISTA STATE REQUIREMENTS: Each teammate must make their claims explicit and label them as one of:
-CLAIM: something they assert is true
-ASSUMPTION: something that must be true for their argument to hold
-EVIDENCE_NEEDED: something that would need verification
-OBJECTION: a concrete challenge to another side
-CONCESSION: a point explicitly yielded
-AMENDMENT: a change to the proposal required for support
-RESIDUAL_RISK: a risk that remains even after rebuttal
-BLOCKER: a condition that prevents the concept from advancing
-DECISION_IMPACT: why the point should affect the final decision
-CONTEXT ARTIFACTS AVAILABLE TO THE TEAM: Use the following prior ClisTa evidence as the starting record:
-Monorepo/trunk debate test:
-Two-agent adversarial architecture debate.
-Final ledger: 16 objections, 12 resolved, 4 converted to residual risk, 0 still-open, 0 blocking.
-Decision: MONOREPO/TRUNK as amended.
-Integrity marker: adversary endorsed the amended design while opposing the original.
-AI support launch debate test:
-Three-agent product/security/operator debate.
-Final ledger: 29 numbered points, all closed, zero still-open, zero contested.
-Decision: HYBRID shadow-first external beta, gated on ten artifact checks.
-Integrity markers: operator reversed on the merits; advocate conceded six blockers and its own headline calendar; skeptic refused to inflate a non-blocker because doing so would be dishonest.
-Product thesis:
-ClisTa changes the shape of yes.
-“Here’s a yes — now trace its shape.”
-A ClisTa decision is not a boolean; it carries evidence, assumptions, objections, minority reports, authority, provenance, bounded scope, verification state, residual risk, and transfer state.
-Working distinction:
-Prompt proves the behavior.
-Markdown preserves the result.
-Protocol guarantees the continuation.
-Core risk:
-A protocol may be unnecessary if prompt + markdown is enough.
-A prompt + markdown may be insufficient if work spans many agents, artifacts, tools, teams, and high-stakes decisions.
-RULES OF ENGAGEMENT:
-PROTOCOL_ADVOCATE opens with a concrete proposal for what ClisTa Protocol is and what must exist for it to be more than a prompt pattern. The proposal must include:
-core primitives
-minimum viable protocol artifact
-what is machine-checkable
-what remains human-judged
-how state transfer works
-how artifact verification works
-how authority/provenance are represented
-what the first product wedge is
-PROMPT_MINIMALIST replies directly to all teammates with numbered objections. Each objection must attack a specific claim and include:
-the claim being attacked
-why prompt + markdown may already be enough
-the cost of turning it into a protocol
-what evidence would justify protocol hardening
-PRODUCT_STRATEGIST replies directly to all teammates with:
-product positioning risks
-user adoption risks
-narrative strengths
-market wedge recommendation
-whether “changes the shape of yes” should lead the product narrative
-PROTOCOL_SKEPTIC replies directly to all teammates with:
-category confusion risks
-duplication with existing tools
-false-confidence risks
-bureaucracy risks
-concrete cases where ClisTa should NOT be used
-what would falsify the ClisTa thesis
-Each round, PROTOCOL_ADVOCATE must respond to every numbered objection and concern by explicitly marking it:
-CONCEDED
-DEFENDED
-PARTIALLY_CONCEDED
-ACCEPTED_AS_AMENDMENT
-NEEDS_ARTIFACT_VERIFICATION
-PROTOCOL_ADVOCATE may not silently drop any objection.
-After each advocate response:
-PROMPT_MINIMALIST must mark each prior minimalist objection: RESOLVED, STILL_OPEN, CONVERTED_TO_RESIDUAL_RISK, or BLOCKING.
-PRODUCT_STRATEGIST must mark each prior product concern: RESOLVED, STILL_OPEN, CONVERTED_TO_RESIDUAL_RISK, or BLOCKING.
-PROTOCOL_SKEPTIC must mark each prior concept objection: RESOLVED, STILL_OPEN, CONVERTED_TO_RESIDUAL_RISK, or BLOCKING.
-Run up to 4 rounds. Stop early only if all three critics have zero STILL_OPEN or BLOCKING points.
-Teammates must message each other directly every round. LEAD does not carry messages between them.
-LEAD must maintain a visible ClisTa-style state table after each round with:
-active claims
-assumptions
-amendments
-concessions
-resolved objections
-still-open objections
-residual risks
-blockers
-artifact checks required
-current decision status: PROCEED, DEGRADED, BLOCKED, or UNDECIDED
-The debate may not end with “consensus” unless the state supports it. Agreement without resolved objections is not alignment.
-The team must explicitly decide whether the next step is:
-FULL_PROTOCOL_BUILD
-PROMPT_AND_MARKDOWN_ONLY
-HYBRID_PROMPT_TO_PROTOCOL_PATH
-PRODUCT_NARRATIVE_ONLY
-BLOCKED_PENDING_MORE_EVIDENCE
-FINAL LEAD REPORT:
-When the agents converge or hit round 4, produce a final ClisTa decision report with:
-DECISION STATE: Choose one:
-FULL_PROTOCOL_BUILD
-PROMPT_AND_MARKDOWN_ONLY
-HYBRID_PROMPT_TO_PROTOCOL_PATH
-PRODUCT_NARRATIVE_ONLY
-BLOCKED_PENDING_MORE_EVIDENCE
-FINAL DECISION: State whether ClisTa should be treated as an actual protocol, a prompt discipline, a product narrative, or a staged path from prompt discipline to protocol.
-WHY THIS DECISION ADVANCED: Explain which claims survived adversarial review and which objections were resolved.
-MINIMUM VIABLE CLISTA: Define the smallest thing that deserves to be called ClisTa, including:
-minimum prompt structure
-minimum transfer-state artifact
-minimum ledger requirements
-minimum artifact verification requirements
-minimum authority/provenance requirements
-WHAT A FULL PROTOCOL ADDS: List only what cannot be reliably guaranteed by prompt + markdown alone.
-WHAT PROMPT + MARKDOWN ALREADY SOLVES: List the value already proven without a full runtime.
-KEY TRADEOFFS: Give 3–5 tradeoffs, each framed as: “Chose X over Y because Z.” These must be accepted costs, not fake solved problems.
-CONCESSIONS: List any Protocol Advocate claims killed or weakened by the critics.
-WON-BACK CLAIMS: List any challenged ClisTa claims the Advocate successfully defended.
-RESIDUAL WATCH-ITEMS: List risks that survived the debate unresolved but are not blockers.
-BLOCKED ITEMS: List anything that cannot proceed until verified.
-ARTIFACT VERIFICATION REQUIRED: List concrete checks that would need to be verified before ClisTa advances as a protocol, such as:
-third independent replay using the protocol
-new-thread resumption without debate replay
-schema completeness test
-objection ledger integrity test
-artifact verification test
-authority/provenance trace test
-comparison against simple prompt + markdown
-user comprehension test of the product narrative
-friction/time-cost measurement
-AUTHORITY BOUNDARY: State what this debate is authorized to decide and what it is not authorized to decide.
-MINIMALIST CAVEAT: Require PROMPT_MINIMALIST to provide one final caveat: “I endorse protocol hardening only if…”
-PRODUCT CAVEAT: Require PRODUCT_STRATEGIST to provide one final caveat: “This becomes a product only if…”
-SKEPTIC CAVEAT: Require PROTOCOL_SKEPTIC to provide one final caveat: “I stop objecting only if…”
-DEBATE INTEGRITY: One line answering: “Was the debate real?” Include whether critics killed any ClisTa claims and whether the Advocate won any back.
-TRANSFER STATE: End with a compact self-contained state-transfer summary that a new thread could resume from without replaying the debate:
-decision
-final ledger
-verified reasoning
-amendments
-accepted tradeoffs
-residual risks
-blocked items
-artifact checks required
-authority boundary
-minimalist caveat
-product caveat
-skeptic caveat
-next recommended action
-Show the per-round exchange as it happens, then the visible ClisTa state table after each round, then the final report.

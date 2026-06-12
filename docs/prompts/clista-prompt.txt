@@ -1,82 +1,0 @@
-Clista prompt
-
-Create an agent team to run a structured, adversarial ClisTa-style design debate.
-Use the real team tools — spawn actual teammates and have them talk to EACH OTHER via SendMessage. Do NOT relay messages yourself; you, as LEAD, only referee the protocol, enforce state discipline, and synthesize at the end.
-TOPIC: Should a 12-person startup with one product run a single trunk-based monorepo, or split into per-service polyrepos? Decide and justify.
-CORE CLISTA LAW: Conversation is input. Reasoning state is output.
-OPERATING MODEL: Explore in threads. Project into state. Verify against artifacts. Act only after alignment.
-Spawn exactly two teammates:
-	•	PROPOSER: Argues FOR the monorepo + trunk-based development. Must give a concrete setup, including tooling, repo structure, CI, test strategy, release flow, branching policy, ownership model, rollback strategy, and migration path. No vibes.
-	•	SKEPTIC: Argues AGAINST the monorepo proposal and/or FOR polyrepos. Must attack the Proposer’s specific proposal each round with concrete failure modes, operational risks, scaling risks, security concerns, ownership problems, CI bottlenecks, release-coupling issues, or team-process failures. No generic objections.
-CLISTA STATE REQUIREMENTS: Each teammate must make their claims explicit and label them as one of:
-	•	CLAIM: something they assert is true
-	•	ASSUMPTION: something that must be true for their argument to hold
-	•	EVIDENCE_NEEDED: something that would need verification in the real artifact/environment
-	•	OBJECTION: a concrete challenge to the other side
-	•	CONCESSION: a point explicitly yielded
-	•	RESIDUAL_RISK: a risk that remains even after rebuttal
-	•	DECISION_IMPACT: why the point should affect the final decision
-RULES OF ENGAGEMENT:
-	1	PROPOSER opens with a concrete monorepo/trunk-based proposal and sends it directly to SKEPTIC via SendMessage.
-	2	SKEPTIC replies directly to PROPOSER with a numbered list of specific problems. Each problem must include:
-	◦	the exact Proposer claim it attacks
-	◦	the failure mode
-	◦	the likely consequence
-	◦	what evidence or artifact would verify or falsify it
-	3	Each round, PROPOSER must respond to every numbered SKEPTIC point by explicitly marking it:
-	◦	CONCEDED
-	◦	DEFENDED
-	◦	PARTIALLY_CONCEDED
-	◦	NEEDS_ARTIFACT_VERIFICATION
-	4	PROPOSER may not silently drop any objection.
-	5	After each Proposer response, SKEPTIC must mark every prior objection:
-	◦	RESOLVED
-	◦	STILL_OPEN
-	◦	CONVERTED_TO_RESIDUAL_RISK
-	◦	BLOCKING
-	6	SKEPTIC may raise new problems only against new surface area introduced by PROPOSER.
-	7	Run up to 4 rounds. Stop early only if SKEPTIC has zero STILL_OPEN or BLOCKING points.
-	8	Teammates must message each other directly every round. LEAD does not carry messages between them.
-	9	LEAD must maintain a visible ClisTa-style state table after each round with:
-	◦	active claims
-	◦	assumptions
-	◦	concessions
-	◦	resolved objections
-	◦	still-open objections
-	◦	residual risks
-	◦	artifact checks required
-	◦	current decision status: PROCEED, DEGRADED, BLOCKED, or UNDECIDED
-	10	The debate may not end with “consensus” unless the state supports it. Agreement without resolved objections is not alignment.
-FINAL LEAD REPORT:
-When the agents converge or hit round 4, produce a final ClisTa decision report with:
-	1	DECISION STATE:
-	◦	MONOREPO/TRUNK
-	◦	POLYREPO
-	◦	HYBRID
-	◦	BLOCKED PENDING ARTIFACT VERIFICATION
-	2	FINAL DECISION: The option they landed on, stated clearly.
-	3	WHY THIS DECISION ADVANCED: Explain which claims survived adversarial review and which objections were resolved.
-	4	KEY TRADEOFFS: Give 3–5 tradeoffs, each framed as: “Chose X over Y because Z.” These must be accepted costs, not fake solved problems.
-	5	CONCESSIONS: List any Proposer claims SKEPTIC killed or weakened.
-	6	WON-BACK CLAIMS: List any claims SKEPTIC challenged but PROPOSER successfully defended.
-	7	RESIDUAL WATCH-ITEMS: List risks that survived the debate unresolved but are not blockers.
-	8	ARTIFACT VERIFICATION REQUIRED: List concrete checks that would need to be verified in the real project before action, such as:
-	◦	CI runtime estimate
-	◦	repo size/build graph
-	◦	service ownership boundaries
-	◦	deploy independence requirements
-	◦	rollback requirements
-	◦	security/access control needs
-	◦	release frequency
-	◦	expected team growth
-	◦	current tooling constraints
-	9	AUTHORITY BOUNDARY: State what this debate is authorized to decide and what it is not authorized to decide.
-	10	DEBATE INTEGRITY: One line answering: “Was the debate real?” Include whether SKEPTIC killed any Proposer claims and whether PROPOSER won any back.
-	11	TRANSFER STATE: End with a compact state-transfer summary that a new thread could resume from:
-	•	decision
-	•	verified reasoning
-	•	unresolved risks
-	•	blocked items
-	•	required artifact checks
-	•	next recommended action
-Show the per-round exchange as it happens, then the visible ClisTa state table after each round, then the final report.

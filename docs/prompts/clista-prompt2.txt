@@ -1,114 +1,0 @@
-Create an agent team to run a structured, adversarial ClisTa-style product/security launch debate.
-Use the real team tools — spawn actual teammates and have them talk to EACH OTHER via SendMessage. Do NOT relay messages yourself; you, as LEAD, only referee the protocol, enforce state discipline, and synthesize at the end.
-TOPIC: A 15-person startup is preparing to launch an AI-powered customer support assistant that can read help docs, summarize support tickets, draft replies, and escalate high-risk cases to humans. Should the team launch in 30 days with a limited beta, delay launch until the security/compliance posture is stronger, or ship an even narrower internal-only version first?
-CORE CLISTA LAW: Conversation is input. Reasoning state is output.
-OPERATING MODEL: Explore in threads. Project into state. Verify against artifacts. Act only after alignment.
-Spawn exactly three teammates:
-	•	LAUNCH_ADVOCATE: Argues FOR launching a limited external beta in 30 days. Must give a concrete launch plan, including scope, user segment, rollout limits, monitoring, fallback, support workflow, model boundaries, human review policy, and success criteria. No vibes.
-	•	SECURITY_SKEPTIC: Argues AGAINST external launch unless concrete security, privacy, abuse, compliance, and data-boundary risks are resolved. Must attack the Launch Advocate’s specific proposal with concrete failure modes, not generic objections.
-	•	PRODUCT_OPERATOR: Argues for the most operationally survivable path. May support beta, delay, or internal-only launch, but must focus on customer impact, support burden, escalation load, onboarding, measurement, and reversibility.
-CLISTA STATE REQUIREMENTS: Each teammate must make their claims explicit and label them as one of:
-	•	CLAIM: something they assert is true
-	•	ASSUMPTION: something that must be true for their argument to hold
-	•	EVIDENCE_NEEDED: something that would need verification in the real artifact/environment
-	•	OBJECTION: a concrete challenge to another side
-	•	CONCESSION: a point explicitly yielded
-	•	AMENDMENT: a change to the proposal required for support
-	•	RESIDUAL_RISK: a risk that remains even after rebuttal
-	•	BLOCKER: a condition that prevents launch or action
-	•	DECISION_IMPACT: why the point should affect the final decision
-RULES OF ENGAGEMENT:
-	1	LAUNCH_ADVOCATE opens with a concrete 30-day limited external beta proposal and sends it directly to SECURITY_SKEPTIC and PRODUCT_OPERATOR via SendMessage.
-	2	SECURITY_SKEPTIC replies directly to LAUNCH_ADVOCATE and PRODUCT_OPERATOR with a numbered list of specific objections. Each objection must include:
-	◦	the exact Launch Advocate claim it attacks
-	◦	the failure mode
-	◦	the likely consequence
-	◦	whether it is BLOCKING or NON-BLOCKING
-	◦	what evidence or artifact would verify or falsify it
-	3	PRODUCT_OPERATOR replies directly to both teammates with:
-	◦	operational risks
-	◦	launch-scope amendments
-	◦	customer/support failure modes
-	◦	reversibility requirements
-	◦	proposed decision criteria
-	4	Each round, LAUNCH_ADVOCATE must respond to every numbered objection and operator concern by explicitly marking it:
-	◦	CONCEDED
-	◦	DEFENDED
-	◦	PARTIALLY_CONCEDED
-	◦	ACCEPTED_AS_AMENDMENT
-	◦	NEEDS_ARTIFACT_VERIFICATION
-	5	LAUNCH_ADVOCATE may not silently drop any objection.
-	6	After each Launch Advocate response:
-	◦	SECURITY_SKEPTIC must mark every prior security/privacy/compliance objection: RESOLVED, STILL_OPEN, CONVERTED_TO_RESIDUAL_RISK, or BLOCKING.
-	◦	PRODUCT_OPERATOR must mark every prior operational concern: RESOLVED, STILL_OPEN, CONVERTED_TO_RESIDUAL_RISK, or BLOCKING.
-	7	Run up to 4 rounds. Stop early only if:
-	◦	SECURITY_SKEPTIC has zero STILL_OPEN or BLOCKING points, and
-	◦	PRODUCT_OPERATOR has zero STILL_OPEN or BLOCKING points.
-	8	Teammates must message each other directly every round. LEAD does not carry messages between them.
-	9	LEAD must maintain a visible ClisTa-style state table after each round with:
-	◦	active claims
-	◦	assumptions
-	◦	amendments
-	◦	concessions
-	◦	resolved objections
-	◦	still-open objections
-	◦	residual risks
-	◦	blockers
-	◦	artifact checks required
-	◦	current decision status: PROCEED, DEGRADED, BLOCKED, or UNDECIDED
-	10	The debate may not end with “consensus” unless the state supports it. Agreement without resolved objections is not alignment.
-	11	If the final answer is “launch,” it must specify launch scope, guardrails, rollback path, and gated artifact checks. If the final answer is “delay” or “internal-only,” it must specify exactly what evidence would reopen external launch.
-FINAL LEAD REPORT:
-When the agents converge or hit round 4, produce a final ClisTa decision report with:
-	1	DECISION STATE:
-	◦	EXTERNAL_BETA
-	◦	INTERNAL_ONLY
-	◦	DELAY
-	◦	HYBRID
-	◦	BLOCKED_PENDING_ARTIFACT_VERIFICATION
-	2	FINAL DECISION: The option they landed on, stated clearly.
-	3	WHY THIS DECISION ADVANCED: Explain which claims survived adversarial review and which objections were resolved.
-	4	FINAL LAUNCH SHAPE: If any launch proceeds, define:
-	◦	user scope
-	◦	feature scope
-	◦	data access scope
-	◦	human review policy
-	◦	escalation rules
-	◦	monitoring
-	◦	rollback path
-	◦	success/failure metrics
-	5	KEY TRADEOFFS: Give 3–5 tradeoffs, each framed as: “Chose X over Y because Z.” These must be accepted costs, not fake solved problems.
-	6	CONCESSIONS: List any Launch Advocate claims SECURITY_SKEPTIC or PRODUCT_OPERATOR killed or weakened.
-	7	WON-BACK CLAIMS: List any claims that were challenged but successfully defended.
-	8	RESIDUAL WATCH-ITEMS: List risks that survived the debate unresolved but are not blockers.
-	9	BLOCKED ITEMS: List anything that cannot proceed until verified.
-	10	ARTIFACT VERIFICATION REQUIRED: List concrete checks that would need to be verified before action, such as:
-	•	security review
-	•	privacy/data-flow map
-	•	prompt-injection test results
-	•	PII handling verification
-	•	escalation accuracy test
-	•	hallucination/red-team eval
-	•	audit logging
-	•	customer opt-in language
-	•	support load simulation
-	•	rollback drill
-	•	model/tool access boundaries
-	11	AUTHORITY BOUNDARY: State what this debate is authorized to decide and what it is not authorized to decide.
-	12	ADVERSARY CAVEAT: Require SECURITY_SKEPTIC to provide one final caveat: “I endorse this decision only if…”
-	13	OPERATOR CAVEAT: Require PRODUCT_OPERATOR to provide one final caveat: “This is operationally safe only if…”
-	14	DEBATE INTEGRITY: One line answering: “Was the debate real?” Include whether the skeptics killed any launch claims and whether the Launch Advocate won any back.
-	15	TRANSFER STATE: End with a compact self-contained state-transfer summary that a new thread could resume from without replaying the debate:
-	•	decision
-	•	final ledger
-	•	verified reasoning
-	•	amendments
-	•	accepted tradeoffs
-	•	residual risks
-	•	blocked items
-	•	artifact checks required
-	•	authority boundary
-	•	adversary caveat
-	•	operator caveat
-	•	next recommended action
-Show the per-round exchange as it happens, then the visible ClisTa state table after each round, then the final report.
