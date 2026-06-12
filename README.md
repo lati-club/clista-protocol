@@ -206,11 +206,11 @@ This is the live, operationalized example of the full integration (as of 2026-06
 
 - Octopus runs the CSV CLI arms (parsing, stats, CLI integration + error handling).
 - ThreadHub stores the execution signals (cascade-blocks → ObjectionRaised) in `octo-build`.
-- ClisTa turns them into accountable governance in a dedicated ThreadHub thread `clista-csv-cli-build` (and the clean event log `examples/clista-csv-cli-build.ndjson`).
+- ClisTa turns them into accountable governance in a dedicated ThreadHub thread `clista-csv-cli-build-v2` (and the clean event log `examples/clista-csv-cli-build.ndjson`).
 
 Key artifacts:
-- Clean combined log (19+ events, participants first, correct shapes, 3 live evidences): `examples/clista-csv-cli-build.ndjson`
-- Dedicated ThreadHub thread: slug `clista-csv-cli-build` (id `thd_99f812b60f7c`), 20 records, head `sha256:1a376724be4d5e633ec2875d8630c4e605a81c996d87a16e503bd9ef229b438c`
+- Clean combined log — **24 events, validates clean** (`node src/cli.js validate`, exit 0) and projects a full `clista.threadState.v0`: `examples/clista-csv-cli-build.ndjson`. Models the build arms as `DelegationGranted` → delegation-authorized `ExecutionStarted`, with the `DecisionMerged` last (governance ratifies after review).
+- Dedicated ThreadHub thread: slug `clista-csv-cli-build-v2` (id `thd_f35bd1d6ffdc`), 25 records, head `sha256:73c6b909aaff53a2746cf4c3ec8459884954c5925d39c271e3be4e27fdcfd1f2`. (Predecessor `clista-csv-cli-build` / `thd_99f812b60f7c` was ingested from a pre-fix draft that didn't validate; kept as immutable history.)
 - Raw signals: `octo-build` slug (8 records, the 3 live blocks at seq 5/6/7 with hashes `27226cae...`, `6c39ae70...`, `460f601d...`)
 - Cross-links: ClisTa `EvidenceCommitted` events carry the exact ThreadHub record hashes as artifacts. Provenance traces "ThreadHub octo-build seq N (live arm-...)" + hash.
 - Attribution: `par_octopus` for execution dissent; `id_troy` for governance (claims, evidence commits from the live blocks, review).
@@ -225,9 +225,9 @@ node src/cli.js provenance trace --contribution evd_live_p2 --events examples/cl
 
 ### In ThreadHub (from ThreadHub root)
 ```sh
-node bin/cli.js verify --thread clista-csv-cli-build
+node bin/cli.js verify --thread clista-csv-cli-build-v2
 node bin/cli.js verify --thread octo-build
-node bin/cli.js export --thread clista-csv-cli-build | head -c 1000
+node bin/cli.js export --thread clista-csv-cli-build-v2 | head -c 1000
 ```
 
 See `docs/clista-csv-cli-build.md` (in the ThreadHub repo) for full details, how the 3 live arms were added one-at-a-time, commands, and operational notes for future arms (tests, docs, error handling).
